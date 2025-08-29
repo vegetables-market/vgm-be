@@ -1,0 +1,30 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title layout:title-pattern="$CONTENT_TITLE - GrandMarket">GrandMarket</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/output.css}" />
+    <th:block layout:fragment="head"></th:block>
+  </head>
+  <body>
+    <header class="bg-blue-600 p-4 text-white">
+      <nav>
+        <a th:href="@{/}" class="hover:underline">ナビゲーション</a>
+      </nav>
+    </header>
+
+    <main class="container mx-auto p-4">
+      <div layout:fragment="content">
+        <!-- ページ固有のコンテンツがここに入る -->
+      </div>
+    </main>
+
+    <footer class="bg-gray-800 p-4 text-center text-white">
+      <p>&copy; 2024 サイト名</p>
+    </footer>
+
+    <th:block layout:fragment="scripts"></th:block>
+  </body>
+</html>
