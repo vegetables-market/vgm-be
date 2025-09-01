@@ -1,29 +1,172 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ja">
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  xmlns="http://www.w3.org/1999/html"
+  lang="ja"
+>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
 
-    <title layout:title-pattern="$CONTENT_TITLE - GrandMarket">GrandMarket</title>
+    <title layout:title-pattern="$LAYOUT_TITLE - GrandMarket">GrandMarket</title>
+
+    <link rel="stylesheet" th:href="@{/webjars/font-awesome/css/all.min.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/output.css}" />
     <th:block layout:fragment="head"></th:block>
+    <script>
+      (function () {
+        const savedMode = localStorage.getItem('theme-mode') || 'light';
+        const savedColor = localStorage.getItem('theme-color') || 'default';
+
+        document.documentElement.classList.add('theme-' + savedMode);
+        document.documentElement.classList.add('theme-' + savedColor);
+      })();
+    </script>
   </head>
-  <body>
-    <header class="bg-blue-600 p-4 text-white">
-      <nav>
-        <a th:href="@{/}" class="hover:underline">ナビゲーション</a>
+  <body class="bg-gr h-[100vh] w-[100vw] antialiased">
+    <div class="flex h-full w-full flex-col overflow-hidden">
+      <nav class="flex h-[60px] w-[100vw] shrink-0 pt-[8px] pb-[8px]">
+        <div class="mr-[10px] flex h-full w-[20%] shrink-0 items-center">
+          <h1 class="ml-6 text-3xl">GrandMarket</h1>
+        </div>
+
+        <div class="box-border flex h-full w-full gap-2">
+          <div class="flex h-full gap-2">
+            <a
+              href="/"
+              class="icon-button group aspect-square h-full overflow-hidden rounded-full border-2 border-black bg-white transition-colors duration-500 hover:!bg-[#2a2a2a]"
+            >
+              <i
+                class="fas fa-home mt-1 size-6 text-[20px] text-[#b3b3b3] transition-colors duration-500 group-hover:!text-white"
+              ></i>
+            </a>
+          </div>
+          <div class="flex h-full w-full">
+            <div class="group relative flex h-full w-full cursor-default items-center">
+              <div class="absolute h-full w-[40px]"></div>
+              <i
+                class="fa-solid fa-magnifying-glass absolute left-3 mt-1 block size-6 text-[20px] !text-[#b3b3b3] transition-colors duration-500 group-focus-within:!text-white group-hover:!text-white"
+              ></i>
+              <label for="TopSearch" class="h-full w-full">
+                <input
+                  type="search"
+                  placeholder="何をお探しですか？"
+                  id="TopSearch"
+                  class="text-xg h-full w-full rounded-full border-2 border-black bg-white pl-[40px] transition-colors duration-300 outline-none hover:!border-white/1 hover:!bg-[#2a2a2a] focus:!border-white"
+                />
+              </label>
+            </div>
+          </div>
+          <div class="flex h-full justify-end gap-2">
+            <button
+              class="icon-button group bo aspect-square h-full overflow-hidden rounded-full border-2 transition-colors duration-500 hover:!bg-[#2a2a2a]"
+            >
+              <i
+                class="fa-solid fa-book mt-1 size-6 text-[20px] text-[#b3b3b3] transition-colors duration-500 group-hover:!text-white"
+              ></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="relative ml-[10px] flex h-full w-[20%] shrink-0 items-center justify-end gap-2 pr-2">
+          <button class="icon-button group aspect-square h-[70%] overflow-hidden p-2">
+            <i
+              class="fa-solid fa-bell h-[18px] w-[18px] transition-all duration-300 group-hover:scale-110 group-hover:text-white"
+            ></i>
+          </button>
+          <!--    <div class="flex h-full items-center px-3"></div>-->
+          <div class="mx-2 h-[60%] w-0.5 bg-black"></div>
+          <a href="/signup" class="icon-button group h-8 cursor-pointer overflow-hidden px-1 py-1">
+            <span class="text-sm font-bold text-[#b3b3b3]">ログイン</span>
+          </a>
+          <a
+            href="/login"
+            class="icon-button group h-full cursor-pointer overflow-hidden rounded-full bg-blue-400 px-3 py-1.5"
+          >
+            <span class="font-bold">出品する</span>
+          </a>
+          <!--    <div class="relative h-full">-->
+          <!--      <button class="group icon-button group relative aspect-square h-full cursor-pointer bg-[#1f1f1f] p-1.5">-->
+          <!--        &lt;!&ndash;        {/*&ndash;&gt;-->
+          <!--        &lt;!&ndash;&lt;!&ndash;        <Image *&ndash;&gt;&ndash;&gt;-->
+          <!--        &lt;!&ndash;        /}&ndash;&gt;-->
+          <!--        &lt;!&ndash;        {/* src="/yanami04.jpg"*/}&ndash;&gt;-->
+          <!--        &lt;!&ndash;        {/* alt=""*/}&ndash;&gt;-->
+          <!--        &lt;!&ndash;        {/* width={400}*/}&ndash;&gt;-->
+          <!--        &lt;!&ndash;        {/* height={400}*/}&ndash;&gt;-->
+          <!--        &lt;!&ndash;        {/* className="aspect-square h-full rounded-full transition-transform duration-300 group-hover:scale-105"*/}&ndash;&gt;-->
+          <!--        &lt;!&ndash;        {/*/>*/}&ndash;&gt;-->
+          <!--        &lt;!&ndash;      <FaUser className="aspect-square h-full w-auto rounded-full bg-amber-300/30 p-2 text-[#b3b3b3] shadow-black" />&ndash;&gt;-->
+          <!--        <span class="absolute top-12 flex h-8 items-center justify-center rounded-md bg-[#121212] px-3 text-base opacity-0 drop-shadow-xl/100">-->
+          <!--        &lt;!&ndash;      transition-opacity delay-300 duration-300 group-hover:opacity-100 ${&ndash;&gt;-->
+          <!--          &lt;!&ndash;      isMenuOpen ? 'hidden' : ''&ndash;&gt;-->
+          <!--          &lt;!&ndash;      }`}&ndash;&gt;-->
+          <!--          &lt;!&ndash;      >&ndash;&gt;-->
+          <!--          &lt;!&ndash;      {user.displayName}&ndash;&gt;-->
+          <!--        </span>-->
+          <!--        <div class="absolute top-15 right-0 flex w-30 flex-col overflow-hidden rounded-md border-4 border-[#202020] bg-[#202020] drop-shadow-xl/100">-->
+          <!--          <a href="/account" class="flex justify-start rounded-xs px-2 py-1 hover:bg-[#303030]">-->
+          <!--            アカウント-->
+          <!--          </a>-->
+          <!--          <span class="flex justify-start rounded-xs px-2 py-1 hover:bg-[#303030]">プロフィール</span>-->
+          <!--          <span class="flex justify-start rounded-xs px-2 py-1 hover:bg-[#303030]">設定</span>-->
+          <!--          <span class="flex justify-start rounded-xs px-2 py-1 hover:bg-[#303030]">ログアウト</span>-->
+          <!--        </div>-->
+          <!--        )}-->
+          <!--      </button>-->
+          <!--    </div>-->
+        </div>
       </nav>
-    </header>
 
-    <main class="container mx-auto p-4">
-      <div layout:fragment="content">
-        <!-- ページ固有のコンテンツがここに入る -->
-      </div>
-    </main>
+      <main class="flex h-full w-[100vw]">
+        <div
+          style="width: 20%"
+          class="h-full shrink-0 overflow-hidden rounded-tr-2xl border-2 border-gray-500 bg-white"
+        >
+          <a th:href="@{/categories}">カテゴリページ</a>
+          <a th:href="@{/profile}">プロフィール</a>
+          <a th:href="@{/product}">プロダクト</a>
+          <!--          <button id="toggleColorMode" class="cursor-pointer bg-blue-300 text-white">ダークモード切り替え</button>-->
+          <!--          <button id="toggleBlueTheme" class="cursor-pointer bg-blue-800 text-white">ブルー</button>-->
+          <!--          <button id="toggleRedTheme" class="cursor-pointer bg-red-800 text-white">レッド</button>-->
+        </div>
 
-    <footer class="bg-gray-800 p-4 text-center text-white">
-      <p>&copy; 2024 サイト名</p>
-    </footer>
+        <div class="group flex h-full w-[10px] shrink-0 cursor-grab items-center justify-center">
+          <div
+            class="h-[97%] w-[2px] rounded-full transition-colors duration-300 ease-in-out group-hover:bg-[#b3b3b3]"
+          ></div>
+        </div>
+
+        <div
+          layout:fragment="content"
+          style="width: 60%"
+          class="h-full overflow-hidden rounded-t-2xl border-2 border-gray-500 bg-white"
+        ></div>
+
+        <div class="group flex h-full w-[10px] shrink-0 cursor-grab items-center justify-center">
+          <div
+            class="h-[97%] w-[2px] rounded-full transition-colors duration-300 ease-in-out group-hover:bg-[#b3b3b3]"
+          ></div>
+        </div>
+
+        <div
+          style="width: 20%"
+          class="h-full shrink-0 overflow-hidden rounded-tl-2xl border-2 border-gray-500 bg-white"
+        >
+          <!--          <div class="w-fit rounded-full border-4 border-amber-500 bg-white p-2">カラーモードテスト用要素１</div>-->
+        </div>
+      </main>
+
+      <!--      <footer class="bg-gray-800 p-4 text-center text-white">-->
+      <!--        <p>&copy; 2024 サイト名</p>-->
+      <!--      </footer>-->
+    </div>
+
+    <th:block layout:fragment="scripts">
+      <script type="module" src="/js/index.js"></script>
+      <script type="module" src="/js/theme-settings.js"></script>
+    </th:block>
 
     <th:block layout:fragment="scripts"></th:block>
   </body>
