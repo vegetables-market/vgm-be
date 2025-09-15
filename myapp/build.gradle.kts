@@ -29,11 +29,20 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
+
 
 kotlin {
 	compilerOptions {
 		freeCompilerArgs.addAll("-Xjsr305=strict")
+    // Security crypto (BCrypt)
+    implementation("org.springframework.security:spring-security-crypto")
+
+    // TOTP / QR 生成用ライブラリ
+    implementation("com.eatthepath:otp-java:1.0.0")
+    implementation("commons-codec:commons-codec:1.15")
+    implementation("com.google.zxing:core:3.5.0")
+    implementation("com.google.zxing:javase:3.5.0")
+}
 	}
 }
 
