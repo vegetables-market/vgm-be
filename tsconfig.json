@@ -6,8 +6,12 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "./src/main/resources/static/js",
-    "rootDir": "./src/main/ts"
+    "rootDir": "./src/main/resources/frontend/ts"
   },
-  "include": ["./src/main/ts/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "./src/main/resources/frontend/ts/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

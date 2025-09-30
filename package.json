@@ -5,10 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "postcss ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/output.css",
+    "build:css": "postcss ./src/main/resources/frontend/input.css -o ./src/main/resources/static/css/output.css",
     "build:ts": "tsc",
     "build": "npm run build:css && npm run build:ts",
-    "watch:css": "postcss ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/output.css --watch",
+    "watch:css": "postcss ./src/main/resources/frontend/input.css -o ./src/main/resources/static/css/output.css --watch",
     "watch:ts": "tsc --watch",
     "watch": "npm-run-all --parallel watch:css watch:ts",
     "format": "prettier --write .",
