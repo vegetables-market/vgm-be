@@ -1,0 +1,18 @@
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layout/base}"
+  lang="ja"
+>
+  <head>
+    <title>トップ</title>
+  </head>
+  <body>
+    <div layout:fragment="content">
+      <p class="h-5 bg-amber-300">トップページ</p>
+      <p class="h-5 bg-amber-300">トップページ</p>
+      <a th:href="@{/categories}">カテゴリ</a>
+    </div>
+  </body>
+</html>

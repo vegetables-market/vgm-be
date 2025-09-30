@@ -4,10 +4,10 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 
 @Controller
-class CategoriesController {
+class HomeController {
 
-    @GetMapping("/categories")
-    fun categories(): String {
-        return "category/categories"
+    @GetMapping("/")
+    fun home(): String {
+        return "pages/index"
     }
 }
