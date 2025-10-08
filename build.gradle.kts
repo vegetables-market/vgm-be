@@ -21,10 +21,20 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-    implementation ("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect")
+    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+	// Security crypto (BCrypt)
+    implementation("org.springframework.security:spring-security-crypto")
+
+    // TOTP / QR 生成用ライブラリ
+    implementation("com.eatthepath:java-otp:0.3.1")
+    implementation("commons-codec:commons-codec:1.15")
+    implementation("com.google.zxing:core:3.5.0")
+    implementation("com.google.zxing:javase:3.5.0")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
