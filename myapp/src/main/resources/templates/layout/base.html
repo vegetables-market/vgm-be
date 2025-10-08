@@ -10,8 +10,13 @@
   </head>
   <body>
     <header class="bg-blue-600 p-4 text-white">
-      <nav>
-        <a th:href="@{/}" class="hover:underline">ナビゲーション</a>
+      <nav class="flex justify-between items-center">
+        <a th:href="@{/}" class="hover:underline">GrandMarket</a>
+        <div>
+          <a th:href="@{/auth/login}" class="hover:underline mr-4">ログイン</a>
+          <a th:href="@{/auth/register}" class="hover:underline mr-4">新規登録</a>
+          <a th:href="@{/auth/logout}" class="hover:underline">ログアウト</a>
+        </div>
       </nav>
     </header>
 

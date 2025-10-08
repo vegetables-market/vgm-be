@@ -1,0 +1,98 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/base}" lang="ja">
+  <head>
+    <title>ログイン</title>
+  </head>
+  <body>
+    <div layout:fragment="content">
+      <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+          <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              アカウントにログイン
+            </h2>
+          </div>
+          <form class="mt-8 space-y-6" th:action="@{/auth/login}" method="POST">
+            <input type="hidden" name="remember" value="true" />
+            <div class="rounded-md shadow-sm -space-y-px">
+              <div>
+                <label for="email-address" class="sr-only">メールアドレス</label>
+                <input
+                  id="email-address"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  required
+                  class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="メールアドレス"
+                />
+              </div>
+              <div>
+                <label for="password" class="sr-only">パスワード</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                  class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="パスワード"
+                />
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                />
+                <label for="remember-me" class="ml-2 block text-sm text-gray-900">
+                  ログイン状態を保持
+                </label>
+              </div>
+
+              <div class="text-sm">
+                <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
+                  パスワードをお忘れですか？
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                ログイン
+              </button>
+            </div>
+
+            <div th:if="${error}" class="text-center">
+              <div class="text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2 mb-4">
+                <span th:text="${error}"></span>
+              </div>
+            </div>
+
+            <div th:if="${success}" class="text-center">
+              <div class="text-sm text-green-600 bg-green-50 border border-green-200 rounded p-2 mb-4">
+                <span th:text="${success}"></span>
+              </div>
+            </div>
+
+            <div class="text-center">
+              <span class="text-sm text-gray-600">
+                アカウントをお持ちでない方は
+                <a th:href="@{/auth/register}" class="font-medium text-indigo-600 hover:text-indigo-500">
+                  新規登録
+                </a>
+              </span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
