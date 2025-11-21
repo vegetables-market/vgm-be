@@ -9,16 +9,18 @@
     <th:block layout:fragment="head"></th:block>
 </head>
 <body class="w-screen min-h-screen flex flex-col">
+
+<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
 <th:block th:replace="~{layout/fragments/header :: header}"></th:block>
 
 <main id="main-container" class="px-2 flex-1 flex">
     <div layout:fragment="content" id="overview-page-obj" class="w-full flex flex-col justify-start flex-1">
-        <!-- ページ固有のコンテンツがここに入る -->
-    </div>
+        </div>
 </main>
 
 <th:block th:replace="~{layout/fragments/footer :: footer}"></th:block>
 
 <th:block layout:fragment="scripts"></th:block>
-</body>
-</html>
+
+<script th:src="@{/js/test.js}"></script>
+</body> </html>

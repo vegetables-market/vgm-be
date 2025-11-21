@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "朝採れ！完熟トマト (3個入)",
+    "price": 350,
+    "producer": "田中農園",
+    "description": "今朝採れたばかりです。スーパーのとは甘さが違います！",
+    "imageUrl": "/images/tomato.jpg"
+  },
+  {
+    "id": 2,
+    "name": "おばあちゃんの泥付きネギ",
+    "price": 150,
+    "producer": "サトウさん",
+    "description": "土付きなので長持ちします。鍋に最高ですよ。",
+    "imageUrl": "/images/negi.jpg"
+  },
+  {
+    "id": 3,
+    "name": "形は悪いけど味は最高なキュウリ（5本）",
+    "price": 200,
+    "producer": "鈴木さんち",
+    "description": "曲がってるので格安で。漬物にどうぞ！",
+    "imageUrl": "/images/kyuri.jpg"
+  },
+  {
+    "id": 4,
+    "name": "無農薬レモン（1kg）",
+    "price": 800,
+    "producer": "瀬戸内ライフ",
+    "description": "ワックス不使用なので皮まで食べられます。",
+    "imageUrl": "/images/remon.webp"
+  },
+  {
+    "id": 5,
+    "name": "採れたて生しいたけ",
+    "price": 400,
+    "producer": "キノコ王",
+    "description": "肉厚でジューシーです。BBQで焼いて食べて！",
+    "imageUrl": "/images/siitake.jpg"
+  }
+]

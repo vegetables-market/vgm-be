@@ -1,18 +1,47 @@
 <!doctype html>
-<html
-  xmlns:th="http://www.thymeleaf.org"
-  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-  layout:decorate="~{layout/base}"
-  lang="ja"
->
-  <head>
-    <title>トップ</title>
-  </head>
-  <body>
-    <div layout:fragment="content">
-      <p class="h-5 bg-amber-300">トップページ</p>
-      <p class="h-5 bg-amber-300">トップページ</p>
-      <a th:href="@{/categories}">カテゴリ</a>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layout/base}" lang="ja">
+
+<head>
+  <title>トップ</title>
+</head>
+
+<body>
+  <div layout:fragment="content">
+    <p class="h-5 bg-amber-300">トップページ</p>
+    <p class="h-5 bg-amber-300">トップページ</p>
+    <a th:href="@{/categories}">カテゴリ</a>
+
+    <div class="mt-10 p-5 border border-gray-300">
+      <h2 class="text-lg font-bold mb-4">トースト機能</h2>
+      <div class="flex gap-4">
+        <button onclick="showToast('3秒後にerror', 'error', 3000)" class="bg-red-500 text-white p-2 rounded">
+          Error
+        </button>
+        <button onclick="showToast('2秒後にwarning', 'warning', 2000)" class="bg-yellow-400 text-black p-2 rounded">
+          Warning
+        </button>
+        <button onclick="showToast('1秒後にsuccess', 'success', 1000)" class="bg-green-500 text-white p-2 rounded">
+          Success
+        </button>
+        <button onclick="showToast('直ぐ出るinfo (5秒)', 'info')" class="bg-blue-500 text-white p-2 rounded">
+          Info
+        </button>
+      </div>
+
+      <div class="mt-10 p-5 border border-gray-300">
+        <h2 class="text-lg font-bold mb-4">商品リスト (JSON取得テスト)</h2>
+
+        <button onclick="fetchItems()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4">
+          データを読み込む
+        </button>
+
+        <div id="item-list" class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        </div>
+      </div>
+
     </div>
-  </body>
+  </div>
+</body>
+
 </html>

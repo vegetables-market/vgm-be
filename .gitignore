@@ -38,3 +38,8 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### Node.js / Tailwind CSS ###
+node_modules/
+npm-debug.log
+yarn-error.log
