@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* アニメーションの適用 */
+.fade-in-up {
+  /* 0.5秒かけて、スッと入ってくる */
+  animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* アニメーションの定義（Spotify風） */
+@keyframes slideInRight {
+  0% {
+    opacity: 0; /* 透明からスタート */
+    /* 画面の右側（30px）から入ってくる */
+    /* もっと派手にしたいなら 100px とかにしてみて */
+    transform: translateX(50px); 
+  }
+  100% {
+    opacity: 1; /* ハッキリ表示 */
+    transform: translateX(0); /* 定位置へ */
+  }
+}
+
+/* --- モーダル用アニメーション (Spotify風ポップアップ) --- */
+.modal-pop {
+    animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes modalPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.8); /* ちょっと小さい状態から */
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1); /* 元のサイズへ（ポヨンと弾む） */
+    }
+}

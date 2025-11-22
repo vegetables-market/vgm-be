@@ -1,26 +1,70 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ja">
+
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="view-transition" content="same-origin" />
 
     <title layout:title-pattern="$CONTENT_TITLE - GrandMarket">GrandMarket</title>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/output.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/output.css}" />
     <th:block layout:fragment="head"></th:block>
 </head>
-<body class="w-screen min-h-screen flex flex-col">
 
-<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
-<th:block th:replace="~{layout/fragments/header :: header}"></th:block>
+<body class="w-screen min-h-screen flex flex-col pb-20 md:pb-0 bg-gray-50 text-gray-800 font-sans antialiased">
 
-<main id="main-container" class="px-2 flex-1 flex">
-    <div layout:fragment="content" id="overview-page-obj" class="w-full flex flex-col justify-start flex-1">
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
+
+    <th:block th:replace="~{layout/fragments/header :: header}"></th:block>
+
+    <main id="main-container" class="px-4 py-6 flex-1 flex flex-col w-full max-w-6xl mx-auto fade-in-up">
+        <div layout:fragment="content" class="w-full flex flex-col justify-start flex-1">
+            </div>
+    </main>
+
+    <th:block th:replace="~{layout/fragments/footer :: footer}"></th:block>
+
+    <th:block layout:fragment="scripts"></th:block>
+    <script th:src="@{/js/test.js}"></script>
+
+    <nav class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-50 md:hidden safe-area-pb">
+        <div class="grid grid-cols-4 h-16">
+            <a th:href="@{/}" class="flex flex-col items-center justify-center text-gray-600 hover:text-green-500">
+                <span class="text-2xl">🏠</span>
+                <span class="text-[10px] mt-1">ホーム</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center text-gray-600 hover:text-green-500">
+                <span class="text-2xl">🔍</span>
+                <span class="text-[10px] mt-1">さがす</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center text-gray-600 hover:text-green-500 relative">
+                <span class="text-2xl">🛒</span>
+                <span class="text-[10px] mt-1">カート</span>
+                <span class="absolute top-2 right-6 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center text-gray-600 hover:text-green-500">
+                <span class="text-2xl">👤</span>
+                <span class="text-[10px] mt-1">マイページ</span>
+            </a>
         </div>
-</main>
+    </nav>
 
-<th:block th:replace="~{layout/fragments/footer :: footer}"></th:block>
+    <div id="modal-overlay"
+        class="fixed inset-0 bg-black bg-opacity-50 z-[60] hidden flex items-center justify-center backdrop-blur-sm transition-opacity duration-300">
+        <div id="modal-content" class="bg-white w-11/12 max-w-sm p-6 rounded-2xl shadow-2xl transform modal-pop">
+            <h3 id="modal-title" class="text-lg font-bold text-gray-800 mb-2 text-center">確認</h3>
+            <p id="modal-message" class="text-gray-600 mb-6 text-sm text-center">メッセージ</p>
+            <div class="flex space-x-3">
+                <button onclick="closeModal()"
+                    class="flex-1 py-3 text-sm font-bold text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                    キャンセル
+                </button>
+                <button id="modal-action-btn"
+                    class="flex-1 py-3 text-sm font-bold text-white bg-green-500 rounded-full hover:bg-green-600 shadow-md transition-transform active:scale-95">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
 
-<th:block layout:fragment="scripts"></th:block>
-
-<script th:src="@{/js/test.js}"></script>
 </body> </html>

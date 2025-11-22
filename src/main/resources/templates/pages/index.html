@@ -1,47 +1,68 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-  layout:decorate="~{layout/base}" lang="ja">
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layout/base}"
+  lang="ja"
+>
+  <head>
+    <title>トップ - GrandMarket</title>
+  </head>
+  <body>
+    <div layout:fragment="content">
+      
+      <div class="mt-2 mb-10">
+        <h2 class="text-lg font-bold mb-3 text-gray-800 px-1">注目の農家さん 👩‍🌾</h2>
+        
+        <div class="flex overflow-x-auto space-x-4 pb-4 px-1">
+          
+          <div class="flex-none w-32 group cursor-pointer">
+            <div class="w-32 h-32 rounded-full overflow-hidden border-2 border-green-500 shadow-md transition-transform group-hover:scale-105">
+              <img src="/images/tomato.jpg" class="w-full h-full object-cover">
+            </div>
+            <p class="text-center text-sm font-bold mt-2 text-gray-700 group-hover:text-green-600">田中農園</p>
+          </div>
 
-<head>
-  <title>トップ</title>
-</head>
+          <div class="flex-none w-32 group cursor-pointer">
+            <div class="w-32 h-32 rounded-full overflow-hidden border-2 border-gray-200 shadow-md transition-transform group-hover:scale-105">
+              <img src="/images/negi.jpg" class="w-full h-full object-cover">
+            </div>
+            <p class="text-center text-sm font-bold mt-2 text-gray-700 group-hover:text-green-600">サトウさん</p>
+          </div>
 
-<body>
-  <div layout:fragment="content">
-    <p class="h-5 bg-amber-300">トップページ</p>
-    <p class="h-5 bg-amber-300">トップページ</p>
-    <a th:href="@{/categories}">カテゴリ</a>
+          <div class="flex-none w-32 group cursor-pointer">
+            <div class="w-32 h-32 rounded-full overflow-hidden border-2 border-gray-200 shadow-md transition-transform group-hover:scale-105">
+              <img src="/images/kyuri.jpg" class="w-full h-full object-cover">
+            </div>
+            <p class="text-center text-sm font-bold mt-2 text-gray-700 group-hover:text-green-600">鈴木さんち</p>
+          </div>
 
-    <div class="mt-10 p-5 border border-gray-300">
-      <h2 class="text-lg font-bold mb-4">トースト機能</h2>
-      <div class="flex gap-4">
-        <button onclick="showToast('3秒後にerror', 'error', 3000)" class="bg-red-500 text-white p-2 rounded">
-          Error
-        </button>
-        <button onclick="showToast('2秒後にwarning', 'warning', 2000)" class="bg-yellow-400 text-black p-2 rounded">
-          Warning
-        </button>
-        <button onclick="showToast('1秒後にsuccess', 'success', 1000)" class="bg-green-500 text-white p-2 rounded">
-          Success
-        </button>
-        <button onclick="showToast('直ぐ出るinfo (5秒)', 'info')" class="bg-blue-500 text-white p-2 rounded">
-          Info
-        </button>
+          <div class="flex-none w-32 group cursor-pointer">
+            <div class="w-32 h-32 rounded-full overflow-hidden border-2 border-gray-200 shadow-md transition-transform group-hover:scale-105">
+              <img src="/images/remon.webp" class="w-full h-full object-cover">
+            </div>
+            <p class="text-center text-sm font-bold mt-2 text-gray-700 group-hover:text-green-600">瀬戸内ライフ</p>
+          </div>
+
+        </div>
       </div>
 
-      <div class="mt-10 p-5 border border-gray-300">
-        <h2 class="text-lg font-bold mb-4">商品リスト (JSON取得テスト)</h2>
+      <div class="mt-4">
+        <div class="flex justify-between items-end mb-4 px-1">
+          <h2 class="text-xl font-bold text-gray-800">本日のおすすめ 🍅</h2>
+          <a href="#" class="text-xs text-green-600 font-bold hover:underline">すべて見る ></a>
+        </div>
 
-        <button onclick="fetchItems()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4">
-          データを読み込む
-        </button>
-
-        <div id="item-list" class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div id="item-list" class="grid grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-4">
+          
+          <div class="animate-pulse bg-gray-200 h-72 rounded-xl"></div>
+          <div class="animate-pulse bg-gray-200 h-72 rounded-xl"></div>
+          <div class="animate-pulse bg-gray-200 h-72 rounded-xl"></div>
+          <div class="animate-pulse bg-gray-200 h-72 rounded-xl"></div>
+          
         </div>
       </div>
 
     </div>
-  </div>
-</body>
-
+  </body>
 </html>

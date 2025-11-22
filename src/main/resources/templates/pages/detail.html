@@ -1,0 +1,50 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/base}" lang="ja">
+<head>
+    <title>商品詳細</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        
+        <a th:href="@{/}" class="inline-block mb-4 text-green-600 font-bold hover:underline transition-colors">
+            ← 一覧に戻る
+        </a>
+
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden max-w-4xl mx-auto border border-gray-100">
+            
+            <img id="detail-image" src="" alt="商品画像" class="w-full h-64 md:h-96 object-cover bg-gray-200">
+            
+            <div class="p-6 md:p-8">
+                <h1 id="detail-name" class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
+                    読み込み中...
+                </h1>
+                
+                <p id="detail-price" class="text-xl md:text-2xl text-green-600 font-bold mb-4">
+                    -
+                </p>
+                
+                <div class="flex items-center mb-6">
+                    <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs mr-2">生産者</span>
+                    <p class="text-sm text-gray-600">
+                        <span id="detail-producer" class="font-bold text-gray-700 text-base">-</span>
+                    </p>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-8">
+                    <p id="detail-description" class="text-gray-700 leading-relaxed min-h-[80px]">
+                        詳細情報を読み込んでいます...
+                    </p>
+                </div>
+
+                <button class="w-full bg-green-500 text-white font-bold py-4 rounded-lg shadow-md hover:bg-green-600 transition-all transform active:scale-95 flex justify-center items-center gap-2">
+                    <span>🛒</span> カートに入れる
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/detail.js}"></script>
+    </th:block>
+</body>
+</html>
