@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: ${DB_URL}       # 環境変数から注入
+    username: ${DB_USER} # 環境変数から注入
+    password: ${DB_PASSWORD} # 環境変数から注入
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate # 本番接続なので勝手に変更させない
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# CORS設定（Cloudflare Pagesからのアクセス許可）
+cors:
+  allowed-origins: "https://vgm-fe.pages.dev,https://develop.vgm-fe.pages.dev"
