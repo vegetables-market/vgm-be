@@ -11,7 +11,7 @@ env:
   REGION: asia-northeast1
   REPO_NAME: vgm-repo
   SERVICE_NAME: vgm-backend
-  WORKDIR: vgm-be                    # Dockerfileがあるディレクトリ
+  WORKDIR: .                    # Dockerfileがあるディレクトリ
 
 jobs:
   deploy:
