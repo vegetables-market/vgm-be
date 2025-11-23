@@ -44,3 +44,31 @@ kotlin {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+// Docker tasks
+tasks.register("dockerUp") {
+	description = "Start Docker containers using docker-compose"
+	doLast {
+		exec {
+			commandLine("docker-compose", "-f", "docker-compose.yml", "up", "-d", "--build")
+		}
+	}
+}
+
+tasks.register("dockerDown") {
+	description = "Stop Docker containers using docker-compose"
+	doLast {
+		exec {
+			commandLine("docker-compose", "-f", "docker-compose.yml", "down")
+		}
+	}
+}
+
+tasks.register("dockerLogs") {
+	description = "Show Docker logs"
+	doLast {
+		exec {
+			commandLine("docker-compose", "-f", "docker-compose.yml", "logs", "-f", "app")
+		}
+	}
+}
