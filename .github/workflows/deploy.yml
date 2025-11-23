@@ -4,14 +4,14 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'vgm-be/**'                  # backendの変更時のみ動く
-      - '.github/workflows/**'       # workflow変更時も動く
+      - '**'                  # すべてのファイル変更を検知
+      - '.github/workflows/**'
 
 env:
   REGION: asia-northeast1
   REPO_NAME: vgm-repo
   SERVICE_NAME: vgm-backend
-  WORKDIR: .                    # Dockerfileがあるディレクトリ
+  WORKDIR: .                  # Dockerfileがあるディレクトリ (ルート)
 
 jobs:
   deploy:
@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Google Cloud 認証 (キーレス認証)
+      # 1. Google Cloud 認証
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v2'
@@ -36,7 +36,7 @@ jobs:
         run: |-
           gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
-      # 3. ビルド & プッシュ (ここが重い処理)
+      # 3. ビルド & プッシュ
       - name: 'Build and Push Container'
         working-directory: ${{ env.WORKDIR }}
         run: |-
