@@ -6,6 +6,7 @@ WORKDIR /app
 COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle ./gradle
 COPY gradlew ./
+RUN chmod +x gradlew
 RUN ./gradlew dependencies --no-daemon || true
 
 # ソースコードをコピーしてビルド
