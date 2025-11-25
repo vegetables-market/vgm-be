@@ -35,7 +35,7 @@ jobs:
             echo "DB_USER=${{ vars.DB_USER_PROD }}" >> $GITHUB_ENV
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}" >> $GITHUB_ENV
             # 本番はメモリを贅沢に使う
-            echo "MEMORY=1Gi" >> $GITHUB_ENV
+            echo "MEMORY=2Gi" >> $GITHUB_ENV
             echo "CPU=1" >> $GITHUB_ENV
           else
             echo "Target: DEVELOPMENT"
@@ -44,7 +44,7 @@ jobs:
             echo "DB_USER=${{ vars.DB_USER_DEV }}" >> $GITHUB_ENV
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD_DEV }}" >> $GITHUB_ENV
             # 開発環境も起動安定のために同じスペックにする
-            echo "MEMORY=1Gi" >> $GITHUB_ENV
+            echo "MEMORY=2Gi" >> $GITHUB_ENV
             echo "CPU=1" >> $GITHUB_ENV
           fi
 
