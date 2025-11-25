@@ -2,16 +2,17 @@ name: Deploy to Cloud Run
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - develop
     paths:
-      - '**'                  # すべてのファイル変更を検知
+      - '**'
       - '.github/workflows/**'
 
 env:
   REGION: asia-northeast1
   REPO_NAME: vgm-repo
-  SERVICE_NAME: vgm-backend
-  WORKDIR: .                  # Dockerfileがあるディレクトリ (ルート)
+  WORKDIR: .
 
 jobs:
   deploy:
@@ -22,6 +23,30 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # ブランチに応じた環境変数の切り替え
+      - name: Set environment specific variables
+        id: env-vars
+        run: |
+          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+            echo "Target: PRODUCTION"
+            echo "SERVICE_NAME=vgm-backend" >> $GITHUB_ENV
+            echo "DB_URL=${{ vars.DB_URL_PROD }}" >> $GITHUB_ENV
+            echo "DB_USER=${{ vars.DB_USER_PROD }}" >> $GITHUB_ENV
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}" >> $GITHUB_ENV
+            # 本番はメモリを贅沢に使う
+            echo "MEMORY=1Gi" >> $GITHUB_ENV
+            echo "CPU=1" >> $GITHUB_ENV
+          else
+            echo "Target: DEVELOPMENT"
+            echo "SERVICE_NAME=vgm-backend-dev" >> $GITHUB_ENV
+            echo "DB_URL=${{ vars.DB_URL_DEV }}" >> $GITHUB_ENV
+            echo "DB_USER=${{ vars.DB_USER_DEV }}" >> $GITHUB_ENV
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD_DEV }}" >> $GITHUB_ENV
+            # 開発環境も起動安定のために同じスペックにする
+            echo "MEMORY=1Gi" >> $GITHUB_ENV
+            echo "CPU=1" >> $GITHUB_ENV
+          fi
 
       # 1. Google Cloud 認証
       - id: 'auth'
@@ -40,8 +65,14 @@ jobs:
       - name: 'Build and Push Container'
         working-directory: ${{ env.WORKDIR }}
         run: |-
-          docker build -t "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" .
-          docker push "${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          # タグにコミットハッシュをつけてユニークにする
+          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          
+          docker build -t "${IMAGE_TAG}" .
+          docker push "${IMAGE_TAG}"
+          
+          # 次のステップで使うために環境変数にセット
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
 
       # 4. Cloud Runへデプロイ
       - name: 'Deploy to Cloud Run'
@@ -49,9 +80,11 @@ jobs:
         with:
           service: ${{ env.SERVICE_NAME }}
           region: ${{ env.REGION }}
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          image: ${{ env.IMAGE_TAG }}
+          # 切り替えたDB情報を注入
           env_vars: |
-            DB_URL=${{ secrets.DB_URL }}
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          flags: '--allow-unauthenticated'
+            DB_URL=${{ env.DB_URL }}
+            DB_USER=${{ env.DB_USER }}
+            DB_PASSWORD=${{ env.DB_PASSWORD }}
+          # メモリ設定などを反映
+          flags: '--allow-unauthenticated --memory=${{ env.MEMORY }} --cpu=${{ env.CPU }}'
