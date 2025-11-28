@@ -1,0 +1,28 @@
+/* top-animation.css */
+
+/* GSAPアニメーションに必要な基本設定 */
+:root { --font-primary: "PP Neue Montreal", sans-serif; }
+body { font-family: var(--font-primary); overflow-x: hidden; background-color: #f9f8f4; }
+
+/* アニメーションエリアの必須スタイル */
+.fixed-section { height: 1100vh; position: relative; }
+.fixed-container { position: sticky; top: 0; left: 0; width: 100%; height: 100vh; overflow: hidden; }
+.background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background-color: #000; }
+.background-image { position: absolute; top: -10%; left: 0; width: 100%; height: 120%; object-fit: cover; object-position: center center; opacity: 0; filter: brightness(0.7); will-change: transform; }
+.background-image.active { opacity: 1; z-index: 1; }
+
+.grid-container { position: relative; z-index: 10; height: 100%; display: grid; grid-template-columns: repeat(12, 1fr); padding: 0 2rem; }
+
+/* コンテンツ配置 */
+.header { grid-column: 1 / 13; padding-top: 5vh; text-align: center; color: white; mix-blend-mode: overlay; }
+.main-content-row { grid-column: 1 / 13; display: flex; justify-content: space-between; align-items: center; position: absolute; top: 50%; width: 100%; left: 0; transform: translateY(-50%); padding: 0 2rem; }
+
+/* メニューアニメーション */
+.artist { opacity: 0.6; transition: all 0.3s; cursor: pointer; }
+.artist:hover { opacity: 1; transform: translateX(10px); color: #86efac; }
+
+.featured-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; text-align: center; opacity: 0; visibility: hidden; }
+.featured-content.active { opacity: 1; visibility: visible; }
+
+/* ガラス風モーダル背景 */
+.glass-effect { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }

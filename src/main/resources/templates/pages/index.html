@@ -1,61 +1,94 @@
-<!doctype html>
-<html
-  xmlns:th="http://www.thymeleaf.org"
-  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-  layout:decorate="~{layout/base}"
-  lang="ja"
->
-  <head>
-    <title>トップ - GrandMarket</title>
-  </head>
-  <body>
-    <div layout:fragment="content">
-      
-      <div class="mt-2 mb-10">
-        <h2 class="text-lg font-bold mb-3 text-gray-800 px-1">注目の農家さん 👩‍🌾</h2>
-        <div class="flex overflow-x-auto space-x-4 pb-4 px-1 no-scrollbar">
-          <div class="flex-none w-28 group cursor-pointer"> <div class="w-28 h-28 rounded-full overflow-hidden border-2 border-green-500 shadow-md transition-transform group-hover:scale-105">
-              <img src="/images/tomato.jpg" class="w-full h-full object-cover">
-            </div>
-            <p class="text-center text-xs font-bold mt-2 text-gray-700 group-hover:text-green-600">田中農園</p>
-          </div>
-          <div class="flex-none w-28 group cursor-pointer">
-            <div class="w-28 h-28 rounded-full overflow-hidden border-2 border-gray-200 shadow-md transition-transform group-hover:scale-105">
-              <img src="/images/negi.jpg" class="w-full h-full object-cover">
-            </div>
-            <p class="text-center text-xs font-bold mt-2 text-gray-700 group-hover:text-green-600">サトウさん</p>
-          </div>
-          <div class="flex-none w-28 group cursor-pointer">
-            <div class="w-28 h-28 rounded-full overflow-hidden border-2 border-gray-200 shadow-md transition-transform group-hover:scale-105">
-              <img src="/images/kyuri.jpg" class="w-full h-full object-cover">
-            </div>
-            <p class="text-center text-xs font-bold mt-2 text-gray-700 group-hover:text-green-600">鈴木さんち</p>
-          </div>
-          <div class="flex-none w-28 group cursor-pointer">
-            <div class="w-28 h-28 rounded-full overflow-hidden border-2 border-gray-200 shadow-md transition-transform group-hover:scale-105">
-              <img src="/images/remon.webp" class="w-full h-full object-cover">
-            </div>
-            <p class="text-center text-xs font-bold mt-2 text-gray-700 group-hover:text-green-600">瀬戸内ライフ</p>
-          </div>
-        </div>
-      </div>
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
 
-      <div class="mt-4">
-        <div class="flex justify-between items-end mb-4 px-1">
-          <h2 class="text-xl font-bold text-gray-800">本日のおすすめ 🍅</h2>
-          <a href="#" class="text-xs text-green-600 font-bold hover:underline">すべて見る ></a>
-        </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harvest - 自然を分け合う</title>
 
-        <div id="item-list" class="grid grid-cols-2 gap-3 md:gap-6 md:grid-cols-3 lg:grid-cols-4">
-          
-          <div class="animate-pulse bg-gray-200 h-60 rounded-xl"></div>
-          <div class="animate-pulse bg-gray-200 h-60 rounded-xl"></div>
-          <div class="animate-pulse bg-gray-200 h-60 rounded-xl"></div>
-          <div class="animate-pulse bg-gray-200 h-60 rounded-xl"></div>
-          
-        </div>
-      </div>
+    <link rel="stylesheet" th:href="@{/css/output.css}">
 
+    <link rel="stylesheet" th:href="@{/css/top-animation.css}">
+
+    <link href="https://fonts.cdnfonts.com/css/pp-neue-montreal" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/CustomEase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+</head>
+
+<body class="text-stone-800 antialiased">
+
+    <div id="loading-overlay"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-[#f9f8f4] text-2xl tracking-widest text-stone-600">
+        HARVEST LOADING...
     </div>
-  </body>
+
+    <div id="product-modal"
+        class="glass-effect fixed inset-0 z-[50] opacity-0 invisible transition-all duration-300 flex items-center justify-center">
+        <div id="modal-content"
+            class="bg-white/95 w-[95%] md:w-[90%] max-w-6xl h-[85vh] rounded-2xl shadow-2xl p-6 relative flex flex-col transform translate-y-10 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+                <h2 id="modal-category-title" class="text-2xl md:text-3xl font-serif text-stone-700">CATEGORY</h2>
+                <button id="close-modal"
+                    class="text-3xl text-gray-400 hover:text-gray-800 transition-colors w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100">&times;</button>
+            </div>
+            <div id="item-list-container" class="overflow-y-auto flex-1 pr-2">
+                <div id="item-list" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-container">
+        <div class="fixed-section">
+            <div class="fixed-container">
+                <div class="background-container">
+                    <img th:src="@{/images/bg1.webp}" class="background-image active" decoding="async">
+                    <img th:src="@{/images/bg2.webp}" class="background-image" decoding="async">
+                    <img th:src="@{/images/bg3.webp}" class="background-image" decoding="async">
+                    <img th:src="@{/images/bg4.webp}" class="background-image" decoding="async">
+                    <img th:src="@{/images/bg5.webp}" class="background-image" decoding="async">
+                    <img th:src="@{/images/bg6.webp}" class="background-image" decoding="async">
+                    <img th:src="@{/images/bg7.webp}" class="background-image" decoding="async">
+                    <img th:src="@{/images/bg8.webp}" class="background-image" decoding="async">
+                    <img th:src="@{/images/bg9.webp}" class="background-image" decoding="async">
+                    <img th:src="@{/images/bg10.webp}" class="background-image" decoding="async">
+                </div>
+
+                <div class="grid-container">
+                    <div class="header text-white drop-shadow-lg">
+                        <div class="text-[12vw] leading-none font-medium">Grand Market</div>
+                    </div>
+
+                    <div class="main-content-row">
+                        <div class="left-column flex flex-col gap-2 text-white text-xl md:text-2xl font-light">
+                            <div class="artist">Vegetables</div>
+                            <div class="artist">Seafood</div>
+                            <div class="artist">Mushrooms</div>
+                            <div class="artist">Fruits</div>
+                            <div class="artist">Rice</div>
+                            <div class="artist">Wild Plants</div>
+                            <div class="artist">Eggs</div>
+                            <div class="artist">Honey</div>
+                        </div>
+
+
+                    </div>
+
+                    <div class="col-span-12 self-end pb-10 text-center text-white/80">
+                        <div class="w-48 h-[2px] bg-white/30 mx-auto relative overflow-hidden">
+                            <div id="progress-fill" class="absolute left-0 top-0 h-full w-0 bg-white"></div>
+                        </div>
+                        <p class="mt-3 text-sm tracking-widest">SCROLL TO EXPLORE</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/top-animation.js}"></script>
+</body>
+
 </html>

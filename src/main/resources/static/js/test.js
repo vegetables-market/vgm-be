@@ -131,7 +131,7 @@ async function fetchItems() {
         console.log("5. 表示完了！");
 
     } catch (error) {
-        console.error("★エラー発生:", error);
+        console.error("エラー発生:", error);
         showToast('データの読み込みに失敗しました', 'error');
     }
 }
