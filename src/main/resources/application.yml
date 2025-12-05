@@ -1,11 +1,11 @@
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8081}
 
 spring:
   datasource:
-    url: ${DB_URL}       # 環境変数から注入
-    username: ${DB_USER} # 環境変数から注入
-    password: ${DB_PASSWORD} # 環境変数から注入
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/myapp}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -15,6 +15,29 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         temp:
           use_jdbc_metadata_defaults: false
+  flyway:
+    baseline-on-migrate: true
+    enabled: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME:}
+    password: ${GMAIL_APP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+# メール設定
+mail:
+  from:
+    email: ${MAIL_FROM_EMAIL:noreply@example.com}
+    name: ${MAIL_FROM_NAME:VGM Application}
 
 # CORS設定（Cloudflare Pagesからのアクセス許可）
 cors:
