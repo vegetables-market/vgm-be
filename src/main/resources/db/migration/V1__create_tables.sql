@@ -25,7 +25,7 @@ CREATE TABLE t_user_info(
     f_birth_date date,
     f_gender smallint default 0,
     f_phone_number varchar(50),
-    f_oreated_at timestamp not null default CURRENT_TIMESTAMP ,
+    f_created_at timestamp not null default CURRENT_TIMESTAMP ,
     f_updated_at timestamp not null default CURRENT_TIMESTAMP,
     primary key (f_user_id)
 );
@@ -199,6 +199,6 @@ CREATE TABLE t_prefecture_l(
     f_prefecture_id bigint primary key not null ,
     f_prefecture_jpname varchar(10) not null ,
     f_latitude_longitude varchar(50) not null ,
-    f_romaj varchar(30) not null ,
+    f_romaji varchar(30) not null ,
     f_address_id int not null generated always as identity 
 );
