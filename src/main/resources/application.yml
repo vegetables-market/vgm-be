@@ -7,9 +7,13 @@ spring:
     username: ${DB_USER} # 環境変数から注入
     password: ${DB_PASSWORD} # 環境変数から注入
     driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
