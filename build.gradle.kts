@@ -1,6 +1,7 @@
 plugins {
 	kotlin("jvm") version "2.2.10"
 	kotlin("plugin.spring") version "2.2.10"
+	kotlin("plugin.jpa") version "2.2.10"
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.7"
 }
@@ -41,6 +42,12 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
     implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("dev.samstevens.totp:totp:1.7.1")
+
+    // Stripe SDK for payment processing
+    implementation("com.stripe:stripe-java:26.3.0")
+
+    // WebClient for PayPay API calls
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 }
 
 kotlin {
