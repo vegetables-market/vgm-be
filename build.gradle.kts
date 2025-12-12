@@ -1,6 +1,7 @@
 plugins {
 	kotlin("jvm") version "2.2.10"
 	kotlin("plugin.spring") version "2.2.10"
+	kotlin("plugin.jpa") version "2.2.10"
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.7"
 }
@@ -33,6 +34,20 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("org.springframework.security:spring-security-crypto")
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+    implementation("dev.samstevens.totp:totp:1.7.1")
+
+    // Stripe SDK for payment processing
+    implementation("com.stripe:stripe-java:26.3.0")
+
+    // WebClient for PayPay API calls
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
 }
 
 kotlin {
