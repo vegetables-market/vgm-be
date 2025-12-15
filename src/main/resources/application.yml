@@ -2,6 +2,9 @@ server:
   port: ${PORT:8080}
 
 spring:
+  config:
+    # .env.local を必須で読み込む（optional: なし = ファイルがないと起動エラー）
+    import: "file:./.env.local[.properties]"
   application:
     name: vgm-backend
   datasource:
@@ -35,7 +38,11 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
-#
+
+# ==============================
+# 変更する可能性大
+# ==============================
+
 ## メール設定
 #mail:
 #  from:
