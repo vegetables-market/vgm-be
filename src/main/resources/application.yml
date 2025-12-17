@@ -4,7 +4,7 @@ server:
 spring:
   config:
     # .env.local を必須で読み込む（optional: なし = ファイルがないと起動エラー）
-    import: "file:./.env.local[.properties]"
+    import: "optional:file:./.env.local[.properties]"
   application:
     name: vgm-backend
   datasource:
