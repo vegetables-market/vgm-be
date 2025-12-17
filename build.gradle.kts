@@ -50,6 +50,12 @@ dependencies {
 
     // WebClient for PayPay API calls
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // Spring Dotenv for environment variable management
+    implementation("me.paulschwarz:spring-dotenv:4.0.0")
+
+    // Dotenv-kotlin for custom MultiEnvFileLoader
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 }
 
 kotlin {
