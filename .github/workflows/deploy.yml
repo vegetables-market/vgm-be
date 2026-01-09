@@ -31,9 +31,12 @@ jobs:
           if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
             echo "Target: PRODUCTION"
             echo "SERVICE_NAME=vgm-backend" >> $GITHUB_ENV
-            echo "DB_URL=${{ vars.DB_URL_PROD }}" >> $GITHUB_ENV
-            echo "DB_USER=${{ vars.DB_USER_PROD }}" >> $GITHUB_ENV
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD_PROD }}" >> $GITHUB_ENV
+          
+            echo "DB_HOST_IP=${{ secrets.TAILSCALE_VGM_DB_HOST}}" >> $GITHUB_ENV
+            echo "DB_NAME=vgm_db_prod" >> $GITHUB_ENV
+            echo "DB_USER=${{ vars.DB_USER }}" >> $GITHUB_ENV
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+          
             echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME_PROD }}" >> $GITHUB_ENV
             echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD_PROD }}" >> $GITHUB_ENV
             echo "MAIL_FROM_EMAIL=${{ vars.MAIL_FROM_EMAIL_PROD }}" >> $GITHUB_ENV
@@ -52,9 +55,12 @@ jobs:
           else
             echo "Target: DEVELOPMENT"
             echo "SERVICE_NAME=vgm-backend-dev" >> $GITHUB_ENV
-            echo "DB_URL=${{ vars.DB_URL_DEV }}" >> $GITHUB_ENV
-            echo "DB_USER=${{ vars.DB_USER_DEV }}" >> $GITHUB_ENV
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD_DEV }}" >> $GITHUB_ENV
+          
+            echo "DB_HOST_IP=${{ secrets.TAILSCALE_VGM_DB_HOST}}" >> $GITHUB_ENV
+            echo "DB_NAME=vgm_db_dev" >> $GITHUB_ENV
+            echo "DB_USER=${{ vars.DB_USER }}" >> $GITHUB_ENV
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+          
             echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME_DEV }}" >> $GITHUB_ENV
             echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD_DEV }}" >> $GITHUB_ENV
             echo "MAIL_FROM_EMAIL=${{ vars.MAIL_FROM_EMAIL_DEV }}" >> $GITHUB_ENV
@@ -107,9 +113,21 @@ jobs:
           image: ${{ env.IMAGE_TAG }}
           # 環境変数を注入
           env_vars: |
-            DB_URL=${{ env.DB_URL }}
+            # --- Tailscale関連 ---
+            # GitHub Secretsに登録したキー
+            TAILSCALE_AUTH_KEY=${{ secrets.TAILSCALE_AUTH_KEY }}
+            
+            # 接続先DBのIP (100.x.y.z)
+            # prod/devで切り替えるなら vars.DB_HOST_PROD などを参照させる
+            TAILSCALE_VGM_DB_HOST=${{ env.DB_HOST_IP }}
+            
+            # --- DB接続設定 (Spring Boot) ---
+            # ★重要: DBはコンテナ内のトンネル(localhost)経由で繋ぐ
+            # ポートは5432、DB名は環境に合わせて設定
+            DB_URL=jdbc:postgresql://127.0.0.1:5432/${{ env.DB_NAME }}
             DB_USER=${{ env.DB_USER }}
             DB_PASSWORD=${{ env.DB_PASSWORD }}
+            
             MAIL_USERNAME=${{ env.MAIL_USERNAME }}
             MAIL_PASSWORD=${{ env.MAIL_PASSWORD }}
             MAIL_FROM_EMAIL=${{ env.MAIL_FROM_EMAIL }}

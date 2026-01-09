@@ -17,6 +17,17 @@ RUN ./gradlew bootJar --no-daemon
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
+# 1. 必要なツールをインストール (Alpineなので apk を使用)
+# ca-certificatesはHTTPS通信(Tailscaleや外部API)に必須
+RUN apk update && apk add --no-cache curl socat ca-certificates iptables
+
+# 2. Tailscaleのインストール
+RUN curl -fsSL https://tailscale.com/install.sh | sh
+
+# 3. entrypoint.sh をコピーして実行権限を付与
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # ビルド成果物をコピー
 COPY --from=builder /app/build/libs/*.jar app.jar
 
