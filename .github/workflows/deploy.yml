@@ -32,11 +32,13 @@ jobs:
             echo "Target: PRODUCTION"
             echo "SERVICE_NAME=vgm-backend" >> $GITHUB_ENV
           
-            echo "DB_HOST_IP=${{ secrets.TAILSCALE_VGM_DB_HOST}}" >> $GITHUB_ENV
+            # 本番DBへの接続情報
+            echo "DB_HOST_IP=${{ secrets.TAILSCALE_VGM_DB_HOST }}" >> $GITHUB_ENV
             echo "DB_NAME=vgm_db_prod" >> $GITHUB_ENV
             echo "DB_USER=${{ vars.DB_USER }}" >> $GITHUB_ENV
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
           
+            # 本番環境用の環境変数
             echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME_PROD }}" >> $GITHUB_ENV
             echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD_PROD }}" >> $GITHUB_ENV
             echo "MAIL_FROM_EMAIL=${{ vars.MAIL_FROM_EMAIL_PROD }}" >> $GITHUB_ENV
@@ -49,19 +51,22 @@ jobs:
             echo "PAYPAY_MERCHANT_ID=${{ vars.PAYPAY_MERCHANT_ID_PROD }}" >> $GITHUB_ENV
             echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_PROD }}" >> $GITHUB_ENV
             echo "PLATFORM_FEE_RATE=${{ vars.PLATFORM_FEE_RATE_PROD }}" >> $GITHUB_ENV
+            
             # 本番はメモリを贅沢に使う
             echo "MEMORY=2Gi" >> $GITHUB_ENV
             echo "CPU=1" >> $GITHUB_ENV
+            
           else
             echo "Target: DEVELOPMENT"
             echo "SERVICE_NAME=vgm-backend-dev" >> $GITHUB_ENV
           
-            echo "DB_HOST_IP=${{ secrets.TAILSCALE_VGM_DB_HOST}}" >> $GITHUB_ENV
-            echo "TAILSCALE_AUTH_KEY=${{TAILSCALE_AUTH_KEY}}" >> GITHUB_ENV
+            # 開発DBへの接続情報
+            echo "DB_HOST_IP=${{ secrets.TAILSCALE_VGM_DB_HOST }}" >> $GITHUB_ENV
             echo "DB_NAME=vgm_db_dev" >> $GITHUB_ENV
             echo "DB_USER=${{ vars.DB_USER }}" >> $GITHUB_ENV
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
           
+            # 開発環境用の環境変数
             echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME_DEV }}" >> $GITHUB_ENV
             echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD_DEV }}" >> $GITHUB_ENV
             echo "MAIL_FROM_EMAIL=${{ vars.MAIL_FROM_EMAIL_DEV }}" >> $GITHUB_ENV
@@ -74,6 +79,7 @@ jobs:
             echo "PAYPAY_MERCHANT_ID=${{ vars.PAYPAY_MERCHANT_ID_DEV }}" >> $GITHUB_ENV
             echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_DEV }}" >> $GITHUB_ENV
             echo "PLATFORM_FEE_RATE=${{ vars.PLATFORM_FEE_RATE_DEV }}" >> $GITHUB_ENV
+            
             # 開発環境も起動安定のために同じスペックにする
             echo "MEMORY=2Gi" >> $GITHUB_ENV
             echo "CPU=1" >> $GITHUB_ENV
@@ -115,20 +121,15 @@ jobs:
           # 環境変数を注入
           env_vars: |
             # --- Tailscale関連 ---
-            # GitHub Secretsに登録したキー
             TAILSCALE_AUTH_KEY=${{ secrets.TAILSCALE_AUTH_KEY }}
-            
-            # 接続先DBのIP (100.x.y.z)
-            # prod/devで切り替えるなら vars.DB_HOST_PROD などを参照させる
             TAILSCALE_VGM_DB_HOST=${{ env.DB_HOST_IP }}
             
-            # --- DB接続設定 (Spring Boot) ---
-            # ★重要: DBはコンテナ内のトンネル(localhost)経由で繋ぐ
-            # ポートは5432、DB名は環境に合わせて設定
+            # --- DB接続設定 ---
             DB_URL=jdbc:postgresql://127.0.0.1:5432/${{ env.DB_NAME }}
             DB_USER=${{ env.DB_USER }}
             DB_PASSWORD=${{ env.DB_PASSWORD }}
             
+            # --- アプリケーション設定 ---
             MAIL_USERNAME=${{ env.MAIL_USERNAME }}
             MAIL_PASSWORD=${{ env.MAIL_PASSWORD }}
             MAIL_FROM_EMAIL=${{ env.MAIL_FROM_EMAIL }}
