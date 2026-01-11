@@ -2,20 +2,70 @@ server:
   port: ${PORT:8080}
 
 spring:
+  config:
+    # .env.local を必須で読み込む（optional: なし = ファイルがないと起動エラー）
+    import: "optional:file:./.env.local[.properties]"
+  application:
+    name: vgm-backend
   datasource:
-    url: ${DB_URL}       # 環境変数から注入
-    username: ${DB_USER} # 環境変数から注入
-    password: ${DB_PASSWORD} # 環境変数から注入
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         temp:
           use_jdbc_metadata_defaults: false
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
+          connectiontimeout: ${MAIL_SMTP_CONNECTION_TIMEOUT:5000}
+          timeout: ${MAIL_SMTP_TIMEOUT:5000}
+          writetimeout: ${MAIL_SMTP_WRITE_TIMEOUT:5000}
 
-# CORS設定（Cloudflare Pagesからのアクセス許可）
+# メール設定
+mail:
+  from:
+    email: ${MAIL_FROM_EMAIL:noreply@example.com}
+    name: ${MAIL_FROM_NAME:VGM Application}
+
+# CORS設定
 cors:
-  allowed-origins: "https://vgm-fe.pages.dev,https://develop.vgm-fe.pages.dev"
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://vgm-fe.pages.dev,https://develop.vgm-fe.pages.dev}
+
+# Stripe決済設定
+stripe:
+  api:
+    key: ${STRIPE_API_KEY:sk_test_dummy_key}
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET:whsec_dummy_secret}
+
+# PayPay決済設定
+paypay:
+  api:
+    key: ${PAYPAY_API_KEY:dummy_api_key}
+    secret: ${PAYPAY_API_SECRET:dummy_api_secret}
+    baseUrl: ${PAYPAY_API_BASE_URL:https://stg-api.paypay.ne.jp}
+  merchant:
+    id: ${PAYPAY_MERCHANT_ID:dummy_merchant_id}
+
+# マーケットプレイス設定
+marketplace:
+  platform-fee-rate: ${PLATFORM_FEE_RATE:0.10}
