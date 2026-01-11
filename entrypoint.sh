@@ -1,29 +1,47 @@
 #!/bin/sh
+set -e
 
-# 1. Tailscaleのデーモンをバックグラウンドで起動（ユーザーモードネットワーキング）
-# Cloud Runでは /dev/net/tun が使えないため、userspace-networkingを使用
+echo "=== STARTING CLOUD RUN CONTAINER ==="
+
+# 1. 環境変数のチェック
+if [ -z "$TAILSCALE_AUTH_KEY" ]; then
+  echo "ERROR: TAILSCALE_AUTH_KEY is not set!"
+  exit 1
+fi
+if [ -z "$TAILSCALE_VGM_DB_HOST" ]; then
+  echo "ERROR: TAILSCALE_VGM_DB_HOST is not set!"
+  echo "Hint: Did you set the GitHub Secret and mapping in deploy.yaml?"
+  exit 1
+fi
+
+echo "Target DB IP is: $TAILSCALE_VGM_DB_HOST"
+
+# 2. Tailscale起動
+echo "Starting Tailscale daemon..."
 tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
 
-# 2. Tailscaleにログイン
-# Untilループを使って、デーモンが起きるのを少し待ってからログイン試行
+# 3. Tailscaleログイン待機
+echo "Waiting for Tailscale login..."
 until tailscale up --authkey=${TAILSCALE_AUTH_KEY} --hostname=cloudrun-app; do
     sleep 1
+    echo "Retrying tailscale up..."
 done
+echo "Tailscale is UP!"
 
-echo "Tailscale started"
+# 4. トンネル作成 (socat)
+echo "Starting Socat Tunnel..."
+# ログにエラーが出るように -d -d オプションを追加しても良いが、まずはシンプルに
+socat TCP-LISTEN:5432,fork,bind=127.0.0.1 SOCKS5:127.0.0.1:$TAILSCALE_VGM_DB_HOST:5432,socksport=1055 &
+PID_SOCAT=$!
 
-# 3. DBへのトンネルを作成 (socat)
-# Cloud Run内の「localhost:5432」へのアクセスを、
-# Tailscale(SOCKS5)経由で「100.x.y.z:5432」に転送する
-# ★重要: 下の 100.x.y.z は実際のDBサーバーのIPに変えてください
-DB_TARGET_IP="${TAILSCALE_VGM_DB_HOST}"
+# socatが即死していないか1秒待って確認
+sleep 2
+if ! kill -0 $PID_SOCAT > /dev/null 2>&1; then
+    echo "ERROR: Socat process died! Check if IP address is correct."
+    exit 1
+fi
+echo "DB Tunnel started on localhost:5432"
 
-socat TCP-LISTEN:5432,fork,bind=127.0.0.1 SOCKS5:127.0.0.1:$DB_TARGET_IP:5432,socksport=1055 &
-
-echo "DB Tunnel started"
-
-# 4. アプリケーションを起動
-# (Dockerfileの CMD に書いてあったコマンドをここに書く)
-# 例: Spring Bootなら java -jar ..., Pythonなら uvicorn ...
-# 以下の "$@" は Dockerfileの CMD で渡された引数をそのまま実行する魔法の変数
+# 5. アプリ起動
+echo "Starting Java App..."
 exec "$@"
