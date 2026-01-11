@@ -1,47 +1,39 @@
 #!/bin/sh
 set -e
 
-echo "=== STARTING CLOUD RUN CONTAINER ==="
+# 改行コード対策: 環境変数の末尾に \r があったら削除
+TAILSCALE_AUTH_KEY=$(echo "$TAILSCALE_AUTH_KEY" | tr -d '\r')
+TAILSCALE_VGM_DB_HOST=$(echo "$TAILSCALE_VGM_DB_HOST" | tr -d '\r')
 
-# 1. 環境変数のチェック
-if [ -z "$TAILSCALE_AUTH_KEY" ]; then
-  echo "ERROR: TAILSCALE_AUTH_KEY is not set!"
-  exit 1
-fi
-if [ -z "$TAILSCALE_VGM_DB_HOST" ]; then
-  echo "ERROR: TAILSCALE_VGM_DB_HOST is not set!"
-  echo "Hint: Did you set the GitHub Secret and mapping in deploy.yaml?"
-  exit 1
-fi
+echo "=== STARTING CLOUD RUN CONTAINER (DEBUG MODE) ==="
+echo "Target DB IP: '${TAILSCALE_VGM_DB_HOST}'"
 
-echo "Target DB IP is: $TAILSCALE_VGM_DB_HOST"
-
-# 2. Tailscale起動
-echo "Starting Tailscale daemon..."
+# 1. Tailscale起動
+echo "Starting Tailscale..."
 tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
 
-# 3. Tailscaleログイン待機
-echo "Waiting for Tailscale login..."
+# 2. ログイン待機
 until tailscale up --authkey=${TAILSCALE_AUTH_KEY} --hostname=cloudrun-app; do
     sleep 1
-    echo "Retrying tailscale up..."
 done
 echo "Tailscale is UP!"
 
-# 4. トンネル作成 (socat)
+# 3. トンネル作成 (ログをファイルに出力してエラーを見る)
 echo "Starting Socat Tunnel..."
-# ログにエラーが出るように -d -d オプションを追加しても良いが、まずはシンプルに
-socat TCP-LISTEN:5432,fork,bind=127.0.0.1 SOCKS5:127.0.0.1:$TAILSCALE_VGM_DB_HOST:5432,socksport=1055 &
-PID_SOCAT=$!
+# -d -d -d で詳細ログを出す
+socat -d -d -d TCP-LISTEN:5432,fork,bind=127.0.0.1 SOCKS5:127.0.0.1:$TAILSCALE_VGM_DB_HOST:5432,socksport=1055 > /var/log/socat.log 2>&1 &
+SOCAT_PID=$!
 
-# socatが即死していないか1秒待って確認
+# 少し待って、socatが生きているか確認
 sleep 2
-if ! kill -0 $PID_SOCAT > /dev/null 2>&1; then
-    echo "ERROR: Socat process died! Check if IP address is correct."
+if ! kill -0 $SOCAT_PID > /dev/null 2>&1; then
+    echo "!!! ERROR: Socat died immediately! Check logs below:"
+    cat /var/log/socat.log
     exit 1
+else
+    echo "Socat is running (PID: $SOCAT_PID)."
 fi
-echo "DB Tunnel started on localhost:5432"
 
-# 5. アプリ起動
+# 4. アプリ起動
 echo "Starting Java App..."
 exec "$@"
