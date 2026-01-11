@@ -22,7 +22,7 @@ WORKDIR /app
 RUN apk update && apk add --no-cache curl socat ca-certificates iptables
 
 # 2. Tailscaleのインストール
-RUN curl -fsSL https://tailscale.com/install.sh | sh
+RUN apk add --no-cache tailscale
 
 # 3. entrypoint.sh をコピーして実行権限を付与
 COPY entrypoint.sh /entrypoint.sh
