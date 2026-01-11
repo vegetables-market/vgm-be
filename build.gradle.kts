@@ -1,6 +1,7 @@
 plugins {
 	kotlin("jvm") version "2.2.10"
 	kotlin("plugin.spring") version "2.2.10"
+	kotlin("plugin.jpa") version "2.2.10"
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.7"
 }
@@ -32,7 +33,32 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("org.springframework.security:spring-security-crypto")
+    
+    // H2 Database for testing
+    testRuntimeOnly("com.h2database:h2")
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+    implementation("dev.samstevens.totp:totp:1.7.1")
+
+    // Stripe SDK for payment processing
+    implementation("com.stripe:stripe-java:26.3.0")
+
+    // WebClient for PayPay API calls
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // Spring Dotenv for environment variable management
+    implementation("me.paulschwarz:spring-dotenv:4.0.0")
+
+    // Dotenv-kotlin for custom MultiEnvFileLoader
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 }
 
 kotlin {

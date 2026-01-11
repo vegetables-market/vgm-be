@@ -1,0 +1,48 @@
+﻿spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  flyway:
+    enabled: false  # テスト時はFlywayを無効化
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # テスト時はスキーマを自動生成
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: test@example.com
+    password: test_password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# テスト用のダミー設定
+mail:
+  from:
+    email: noreply@test.com
+    name: Test Application
+
+stripe:
+  api:
+    key: sk_test_dummy
+  webhook:
+    secret: whsec_test_dummy
+
+paypay:
+  api:
+    key: dummy_key
+    secret: dummy_secret
+    baseUrl: https://stg-api.paypay.ne.jp
+  merchant:
+    id: dummy_merchant
