@@ -57,6 +57,7 @@ jobs:
             echo "SERVICE_NAME=vgm-backend-dev" >> $GITHUB_ENV
           
             echo "DB_HOST_IP=${{ secrets.TAILSCALE_VGM_DB_HOST}}" >> $GITHUB_ENV
+            echo "TAILSCALE_AUTH_KEY=${{TAILSCALE_AUTH_KEY}}" >> GITHUB_ENV
             echo "DB_NAME=vgm_db_dev" >> $GITHUB_ENV
             echo "DB_USER=${{ vars.DB_USER }}" >> $GITHUB_ENV
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
