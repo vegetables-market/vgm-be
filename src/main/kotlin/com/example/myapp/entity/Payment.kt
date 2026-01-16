@@ -5,58 +5,54 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "payments")
+@Table(name = "t_payments")
 data class Payment(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "f_payment_id")
     val id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "f_order_id", nullable = false)
     val order: Order,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "f_user_id", nullable = false)
     val user: User,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "f_payment_method", nullable = false)
     val paymentMethod: PaymentMethod,
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "f_amount", nullable = false, precision = 10, scale = 2)
     val amount: BigDecimal,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "f_status", nullable = false)
     val status: PaymentStatus = PaymentStatus.PENDING,
 
-    // Stripe Payment Intent ID または PayPay取引ID
-    @Column(unique = true)
+    @Column(name = "f_external_payment_id", unique = true)
     val externalPaymentId: String? = null,
 
-    // Stripe Charge ID（エスクロー管理用）
-    @Column
+    @Column(name = "f_external_charge_id")
     val externalChargeId: String? = null,
 
-    // Stripe Transfer ID（出品者への入金用）
-    @Column
+    @Column(name = "f_external_transfer_id")
     val externalTransferId: String? = null,
 
-    @Column(nullable = false)
+    @Column(name = "f_created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
-    @Column
+    @Column(name = "f_completed_at")
     val completedAt: LocalDateTime? = null,
 
-    @Column
+    @Column(name = "f_failed_at")
     val failedAt: LocalDateTime? = null,
 
-    // エラーメッセージ（決済失敗時）
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "f_error_message", columnDefinition = "TEXT")
     val errorMessage: String? = null,
 
-    // メタデータ（JSON形式で決済プロバイダからの追加情報を保存）
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "f_metadata", columnDefinition = "TEXT")
     val metadata: String? = null
 )
 

@@ -101,7 +101,7 @@ class AuthService(
         )
     }
 
-    fun getUserById(userId: Long): User? {
+    fun getUserById(userId: Int): User? {
         return userRepository.findById(userId).orElse(null)
     }
 }
