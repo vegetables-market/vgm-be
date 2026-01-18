@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.flywaydb:flyway-core:11.7.2")
+        classpath("org.flywaydb:flyway-database-postgresql:11.7.2")
+        classpath("org.postgresql:postgresql:42.7.3")
+    }
+}
+
 plugins {
 	kotlin("jvm") version "2.2.10"
 	kotlin("plugin.spring") version "2.2.10"
@@ -5,6 +16,8 @@ plugins {
 	id("org.springframework.boot") version "3.5.4"
 	id("io.spring.dependency-management") version "1.1.7"
 }
+
+import org.flywaydb.core.Flyway
 
 group = "com.example"
 version = "0.0.1-SNAPSHOT"
@@ -97,4 +110,53 @@ tasks.register("dockerLogs") {
 			commandLine("docker-compose", "-f", "docker-compose.yml", "logs", "-f", "app")
 		}
 	}
+}
+
+tasks.register("flywayClean") {
+    group = "flyway"
+    description = "Cleans all objects in the configured Flyway schemas."
+
+    doLast {
+        val dbUrl = System.getenv("DB_URL") ?: "jdbc:postgresql://localhost:5433/myapp"
+        val dbUser = System.getenv("DB_USER") ?: "postgres"
+        val dbPassword = System.getenv("DB_PASSWORD") ?: "postgres"
+
+        if (dbUrl.isBlank() || dbUser.isBlank() || dbPassword.isBlank()) {
+            throw GradleException("Database credentials (DB_URL, DB_USER, DB_PASSWORD) must be set as environment variables or in .env.local for flywayClean task.")
+        }
+
+        val flyway = Flyway.configure()
+            .dataSource(dbUrl, dbUser, dbPassword)
+            .locations("classpath:db/migration") // Ensure this matches application.yml
+            .cleanDisabled(false) // Add this line
+            .load()
+
+        flyway.clean()
+        println("Flyway clean successful! All objects in the schema have been removed.")
+    }
+}
+
+tasks.register("flywayRepair") {
+    group = "flyway"
+    description = "Repairs the Flyway schema history table."
+
+    doLast {
+        val dbUrl = System.getenv("DB_URL") ?: "jdbc:postgresql://localhost:5433/myapp"
+        val dbUser = System.getenv("DB_USER") ?: "postgres"
+        val dbPassword = System.getenv("DB_PASSWORD") ?: "postgres"
+
+        if (dbUrl.isBlank() || dbUser.isBlank() || dbPassword.isBlank()) {
+            throw GradleException("Database credentials (DB_URL, DB_USER, DB_PASSWORD) must be set as environment variables or in .env.local for flywayRepair task.")
+        }
+
+        val flyway = Flyway.configure()
+            .dataSource(dbUrl, dbUser, dbPassword)
+            .locations("classpath:db/migration") // Ensure this matches application.yml
+            .baselineOnMigrate(true) // Should match application.yml
+            .baselineVersion("0") // Should match application.yml
+            .load()
+
+        flyway.repair()
+        println("Flyway repair successful!")
+    }
 }

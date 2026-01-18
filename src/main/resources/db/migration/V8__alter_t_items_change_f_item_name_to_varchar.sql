@@ -1,0 +1,1 @@
+ALTER TABLE t_items ALTER COLUMN f_item_name TYPE VARCHAR(255);
