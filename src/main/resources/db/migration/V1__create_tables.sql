@@ -1,204 +1,117 @@
--- ユーザー
-CREATE TABLE m_users(
-    f_user_id int NOT NULL,
-    f_username varchar(100) NOT NULL ,
-    f_display_name varchar(100) NOT NULL ,
-    f_password_hash varchar(255) not null ,
-    f_last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP not NULL,
-    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP not null,
-    f_status smallint default 1,
-    f_email_verified smallint default 0,
-    f_phone_verified smallint default 0,
-    f_two_factor_verified smallint default 0,
-    f_identity_verified smallint default 0,
-    primary key (f_user_id)
+-- V1: エンティティに基づくテーブル定義
+
+-- =====================================================
+-- 1. m_users (ユーザー)
+-- =====================================================
+CREATE TABLE m_users (
+    f_user_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    f_username VARCHAR(100) NOT NULL UNIQUE,
+    f_password_hash VARCHAR(255) NOT NULL,
+    f_email VARCHAR(255),
+    f_created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    f_totp_secret VARCHAR(32),
+    f_two_factor_verified BOOLEAN DEFAULT FALSE
 );
 
--- ユーザー情報
-CREATE TABLE t_user_info(
-    f_user_id int not null ,
-    f_last_name varchar(100),
-    f_first_name varchar(100),
-    f_last_name_kana varchar(100),
-    f_first_name_kana varchar(100),
-    f_birth_date date,
-    f_gender smallint default 0,
-    f_phone_number varchar(50),
-    f_created_at timestamp not null default CURRENT_TIMESTAMP ,
-    f_updated_at timestamp not null default CURRENT_TIMESTAMP,
-    primary key (f_user_id)
-);
+CREATE INDEX idx_m_users_username ON m_users(f_username);
+CREATE INDEX idx_m_users_email ON m_users(f_email);
 
--- ユーザー住所
-CREATE TABLE t_user_address(
-    f_address_id int not null generated always as IDENTITY,
-    f_user_id int not null,
-    f_postal_code varchar(100) not null,
-    f_prefecture varchar(100) not null,
-    f_city varchar(100) not null ,
-    f_address_line1 varchar(100) not null ,
-    f_address_line2 varchar(100) not null ,
-    f_country_code varchar(2) not null default 'JP',
-    f_is_default smallint not null default 0,
-    f_created_at timestamp not null default CURRENT_TIMESTAMP,
-    f_updated_at timestamp not null default CURRENT_TIMESTAMP,
-    primary key (f_address_id)
-);
-
--- ユーザープロフィール
-CREATE TABLE t_user_profile(
-    f_user_id INT not null ,
-    f_text_profile_text text,
-    f_profile_image_url varchar(500),
-    f_rating_count int default 0,
-    f_rating_sum int default 0,
-    f_sales_count int default 0,
-    f_purchases_count int default 0,
-    f_following_count int default 0,
-    f_followers_count int default 0,
-    f_created_at timestamp not null default CURRENT_TIMESTAMP,
-    f_updated_at timestamp not null default CURRENT_TIMESTAMP,
-    PRIMARY KEY(f_user_id)
-);
-
--- ユーザー支払い情報
-CREATE TABLE t_user_pay_info(
-    f_pay_info_id int not null GENERATED ALWAYS AS IDENTITY,
-    f_user_id int not null ,
-    f_pay_type smallint not null ,
-    f_external_customer_id varchar(100),
-    external_payment_method_id varchar(100),
-    f_masked_info varchar(20),
-    f_pay_name varchar(50),
-    f_is_default smallint default 0,
-    f_created_at timestamp not null default CURRENT_TIMESTAMP,
-    f_updated_at timestamp not null default CURRENT_TIMESTAMP,
-    primary key (f_pay_info_id)
-);
-
--- ユーザー名変更履歴
-CREATE TABLE username_history(
-    f_history_id bigint not null GENERATED ALWAYS AS IDENTITY primary key,
-    f_user_id int not null ,
-    f_old_username varchar(50) not null ,
-    f_new_username varchar(50) not null ,
-    f_changed_at timestamp
-);
-
--- 商品
+-- =====================================================
+-- 2. t_items (商品)
+-- =====================================================
 CREATE TABLE t_items (
-    f_item_id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
-    f_item_name char(20) NOT NULL,
-    f_quantity int DEFAULT 0,
-    f_user_id bigint NOT NULL,
-    f_categories_id bigint NOT NULL
+    f_item_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    f_item_name VARCHAR(255) NOT NULL,
+    f_description TEXT,
+    f_price DECIMAL(10, 2) NOT NULL,
+    f_user_id INT NOT NULL REFERENCES m_users(f_user_id),
+    f_status VARCHAR(50) NOT NULL DEFAULT 'AVAILABLE',
+    f_created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP,
+    f_sold_at TIMESTAMP,
+    f_image_urls TEXT,
+    f_category VARCHAR(100),
+    f_stock INT NOT NULL DEFAULT 1
 );
 
--- 注文
-CREATE TABLE t_orders(
-    f_order_id bigint primary key ,
-    f_listing_id bigint,
-    f_buyer_id bigint,
-    f_ordered_at timestamp default CURRENT_TIMESTAMP,
-    f_payment_id bigint GENERATED ALWAYS AS IDENTITY,
-    f_payment_data timestamp default CURRENT_TIMESTAMP,
-    f_amount decimal(10,2),
-    f_payment_method varchar(20),
-    f_payment_status  varchar(20)
+CREATE INDEX idx_t_items_user_id ON t_items(f_user_id);
+CREATE INDEX idx_t_items_status ON t_items(f_status);
+CREATE INDEX idx_t_items_created_at ON t_items(f_created_at DESC);
+
+-- =====================================================
+-- 3. t_orders (注文)
+-- =====================================================
+CREATE TABLE t_orders (
+    f_order_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    f_buyer_id INT NOT NULL REFERENCES m_users(f_user_id),
+    f_seller_id INT NOT NULL REFERENCES m_users(f_user_id),
+    f_item_id BIGINT NOT NULL REFERENCES t_items(f_item_id),
+    f_total_amount DECIMAL(10, 2) NOT NULL,
+    f_platform_fee DECIMAL(10, 2) NOT NULL,
+    f_seller_amount DECIMAL(10, 2) NOT NULL,
+    f_status VARCHAR(50) NOT NULL DEFAULT 'PENDING_PAYMENT',
+    f_created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    f_paid_at TIMESTAMP,
+    f_shipped_at TIMESTAMP,
+    f_delivered_at TIMESTAMP,
+    f_completed_at TIMESTAMP,
+    f_cancelled_at TIMESTAMP,
+    f_shipping_address TEXT,
+    f_shipping_postal_code VARCHAR(20),
+    f_shipping_recipient_name VARCHAR(255),
+    f_shipping_phone_number VARCHAR(20),
+    f_cancellation_reason TEXT
 );
 
--- レビュー
-CREATE TABLE t_reviews(
-    f_review_id char(10) PRIMARY KEY,
-    f_rating integer,
-    f_comment text,
-    f_posted_at timestamp default current_timestamp,
-    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    f_user_id bigint not null ,
-    f_item_id bigint not null
+CREATE INDEX idx_t_orders_buyer_id ON t_orders(f_buyer_id);
+CREATE INDEX idx_t_orders_seller_id ON t_orders(f_seller_id);
+CREATE INDEX idx_t_orders_item_id ON t_orders(f_item_id);
+CREATE INDEX idx_t_orders_status ON t_orders(f_status);
+CREATE INDEX idx_t_orders_created_at ON t_orders(f_created_at DESC);
+
+-- =====================================================
+-- 4. t_payments (決済)
+-- =====================================================
+CREATE TABLE t_payments (
+    f_payment_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    f_order_id BIGINT NOT NULL REFERENCES t_orders(f_order_id),
+    f_user_id INT NOT NULL REFERENCES m_users(f_user_id),
+    f_payment_method VARCHAR(50) NOT NULL,
+    f_amount DECIMAL(10, 2) NOT NULL,
+    f_status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    f_external_payment_id VARCHAR(255) UNIQUE,
+    f_external_charge_id VARCHAR(255),
+    f_external_transfer_id VARCHAR(255),
+    f_created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    f_completed_at TIMESTAMP,
+    f_failed_at TIMESTAMP,
+    f_error_message TEXT,
+    f_metadata TEXT,
+    CONSTRAINT chk_payment_amount_positive CHECK (f_amount > 0)
 );
 
--- 更新日時更新関数
-CREATE OR REPLACE FUNCTION update_f_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.f_updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+CREATE INDEX idx_t_payments_order_id ON t_payments(f_order_id);
+CREATE INDEX idx_t_payments_user_id ON t_payments(f_user_id);
+CREATE INDEX idx_t_payments_external_payment_id ON t_payments(f_external_payment_id);
+CREATE INDEX idx_t_payments_status ON t_payments(f_status);
 
--- コメント
-CREATE TABLE t_comments
-(
-    f_comment_id      bigint primary key GENERATED ALWAYS AS IDENTITY,
-    f_listing_id      bigint,
-    f_user_id         bigint,
-    f_comment_content text not null,
-    f_create_at       timestamp default current_timestamp,
-    f_updated_at      timestamp default current_timestamp,
-    f_read_status     smallint
+-- =====================================================
+-- 5. t_transactions (取引・エスクロー)
+-- =====================================================
+CREATE TABLE t_transactions (
+    f_transaction_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    f_order_id BIGINT NOT NULL UNIQUE REFERENCES t_orders(f_order_id),
+    f_type VARCHAR(50) NOT NULL,
+    f_amount DECIMAL(10, 2) NOT NULL,
+    f_status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    f_escrow_started_at TIMESTAMP,
+    f_escrow_released_at TIMESTAMP,
+    f_refunded_at TIMESTAMP,
+    f_created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP,
+    f_notes TEXT,
+    CONSTRAINT chk_transaction_amount_non_negative CHECK (f_amount >= 0)
 );
 
-CREATE TRIGGER set_timestamp
-BEFORE UPDATE ON t_comments
-FOR EACH ROW
-EXECUTE FUNCTION update_f_updated_at();
-
--- メッセージ
-CREATE TABLE t_messages(
-    f_message_id bigint primary key ,
-    f_sender_id bigint,
-    f_receiver_id bigint,
-    f_thread_id bigint,
-    f_message_content text,
-    f_create_at timestamp default current_timestamp,
-    f_updated_at timestamp default current_timestamp,
-    f_read_status smallint
-);
-
-CREATE TRIGGER set_f_updated_at
-BEFORE UPDATE ON t_messages
-FOR EACH ROW
-EXECUTE FUNCTION update_f_updated_at();
-
--- 配送
-CREATE TABLE t_shipments(
-    f_shipments_id bigint GENERATED ALWAYS AS IDENTITY primary key not null,
-    f_order_id bigint not null ,
-    f_carrier int,
-    tracking_no varchar(50) not null ,
-    f_address varchar(8) not null ,
-    f_delivery_status int not null ,
-    f_shipped_at timestamp not null default current_timestamp,
-    f_delivered_at timestamp not null default current_timestamp,
-    f_updated_at timestamp default current_timestamp
-);
-
--- 商品画像
-CREATE TABLE t_items_images(
-    f_image_id bigint GENERATED ALWAYS AS IDENTITY primary key,
-    f_listing_id bigint,
-    f_image_url varchar(200),
-    f_display_order int,
-    f_created_at timestamp default current_timestamp,
-    f_status int
-);
-
--- ユーザーお気に入り
-CREATE TABLE t_user_favorites(
-    f_favorite_id bigint primary key ,
-    f_created_at timestamp not null default current_timestamp,
-    f_is_active boolean default true,
-    f_user_id bigint not null ,
-    f_item_id bigint not null 
-);
-
--- 都道府県マスタ
-CREATE TABLE t_prefecture_l(
-    f_prefecture_id bigint primary key not null ,
-    f_prefecture_jpname varchar(10) not null ,
-    f_latitude_longitude varchar(50) not null ,
-    f_romaji varchar(30) not null ,
-    f_address_id int not null generated always as identity 
-);
+CREATE INDEX idx_t_transactions_order_id ON t_transactions(f_order_id);
+CREATE INDEX idx_t_transactions_status ON t_transactions(f_status);
