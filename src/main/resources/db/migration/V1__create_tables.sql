@@ -1,15 +1,15 @@
 /*
   System: grand market
-  Database: PostgreSQL
+  Database: PostgreSQL 16+
   Version: 1.0.0
-  Description: Initial Schema Creation
+  Description: Initial Schema Creation with PostGIS & Amazon-style Shipping
 */
 
 -- -----------------------------------------------------
 -- 0. 事前準備 (Extensions & Functions)
 -- -----------------------------------------------------
 
--- PostGIS拡張の有効化（位置情報用）
+-- PostGIS拡張の有効化（位置情報・距離計算用）
 CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- 更新日時(f_updated_at)を自動更新するための関数定義
@@ -37,18 +37,10 @@ CREATE TABLE m_users (
     f_two_factor_verified SMALLINT DEFAULT 0,
     f_identity_verified SMALLINT DEFAULT 0,
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-COMMENT ON TABLE m_users IS 'ユーザーマスター情報';
-COMMENT ON COLUMN m_users.f_user_id IS 'ユーザーID';
-COMMENT ON COLUMN m_users.f_username IS 'ユーザー名';
-COMMENT ON COLUMN m_users.f_status IS 'ステータス(0:無効,1:有効,2:停止,3:削除)';
-
--- 更新日時トリガー
-CREATE TRIGGER set_timestamp_m_users
-BEFORE UPDATE ON m_users
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+COMMENT ON TABLE m_users IS 'ユーザーマスター';
+CREATE TRIGGER set_timestamp_m_users BEFORE UPDATE ON m_users FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 -- -----------------------------------------------------
@@ -65,13 +57,10 @@ CREATE TABLE t_user_info (
     f_phone_number VARCHAR(50),
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user_info_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
+    CONSTRAINT fk_user_info_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
 );
-
-COMMENT ON TABLE t_user_info IS 'ユーザー情報';
-CREATE TRIGGER set_timestamp_t_user_info
-BEFORE UPDATE ON t_user_info
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+COMMENT ON TABLE t_user_info IS 'ユーザー詳細情報';
+CREATE TRIGGER set_timestamp_t_user_info BEFORE UPDATE ON t_user_info FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 -- -----------------------------------------------------
@@ -89,13 +78,10 @@ CREATE TABLE t_user_profile (
     f_followers_count INTEGER DEFAULT 0,
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user_profile_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
+    CONSTRAINT fk_user_profile_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
 );
-
 COMMENT ON TABLE t_user_profile IS 'ユーザープロフィール';
-CREATE TRIGGER set_timestamp_t_user_profile
-BEFORE UPDATE ON t_user_profile
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+CREATE TRIGGER set_timestamp_t_user_profile BEFORE UPDATE ON t_user_profile FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 -- -----------------------------------------------------
@@ -104,22 +90,19 @@ FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 CREATE TABLE t_user_address (
     f_address_id SERIAL PRIMARY KEY,
     f_user_id INTEGER NOT NULL,
-    f_postal_code VARCHAR(100) NOT NULL,
-    f_prefecture VARCHAR(100) NOT NULL,
+    f_postal_code VARCHAR(8) NOT NULL,
+    f_prefecture VARCHAR(50) NOT NULL,
     f_city VARCHAR(100) NOT NULL,
-    f_address_line1 VARCHAR(100) NOT NULL,
-    f_address_line2 VARCHAR(100),
-    f_country_code VARCHAR(2) DEFAULT 'JP' NOT NULL,
+    f_address_line1 VARCHAR(255) NOT NULL,
+    f_address_line2 VARCHAR(255),
+    f_country_code VARCHAR(2) DEFAULT 'JP',
     f_is_default SMALLINT DEFAULT 0,
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user_address_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
+    CONSTRAINT fk_user_address_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
 );
-
-COMMENT ON TABLE t_user_address IS 'ユーザーアドレス';
-CREATE TRIGGER set_timestamp_t_user_address
-BEFORE UPDATE ON t_user_address
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+COMMENT ON TABLE t_user_address IS 'ユーザー住所情報';
+CREATE TRIGGER set_timestamp_t_user_address BEFORE UPDATE ON t_user_address FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 -- -----------------------------------------------------
@@ -128,36 +111,30 @@ FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 CREATE TABLE t_user_pay_info (
     f_pay_info_id SERIAL PRIMARY KEY,
     f_user_id INTEGER NOT NULL,
-    f_pay_type SMALLINT NOT NULL,
-    f_external_customer_id VARCHAR(100),
+    f_pay_type SMALLINT NOT NULL, -- 1:Card, 2:PayPay etc
+    f_external_customer_id VARCHAR(100), -- Stripe Customer ID
     f_external_payment_method_id VARCHAR(100),
-    f_masked_info VARCHAR(20),
-    f_pay_name VARCHAR(50),
+    f_masked_info VARCHAR(50), -- ****-****-****-1234
     f_is_default SMALLINT DEFAULT 0,
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user_pay_info_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
+    CONSTRAINT fk_user_pay_info_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
 );
-
 COMMENT ON TABLE t_user_pay_info IS 'ユーザー決済情報';
-CREATE TRIGGER set_timestamp_t_user_pay_info
-BEFORE UPDATE ON t_user_pay_info
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+CREATE TRIGGER set_timestamp_t_user_pay_info BEFORE UPDATE ON t_user_pay_info FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 -- -----------------------------------------------------
 -- 06. ユーザー名変更履歴 (username_history)
 -- -----------------------------------------------------
-CREATE TABLE username_history (
+CREATE TABLE t_username_history (
     f_history_id BIGSERIAL PRIMARY KEY,
     f_user_id INTEGER NOT NULL,
     f_old_username VARCHAR(100) NOT NULL,
     f_new_username VARCHAR(100) NOT NULL,
     f_changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_username_history_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
+    CONSTRAINT fk_history_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
 );
-
-COMMENT ON TABLE username_history IS 'ユーザー名変更履歴';
 
 
 -- -----------------------------------------------------
@@ -173,7 +150,26 @@ CREATE TABLE t_user_follows (
     CONSTRAINT fk_follows_followed FOREIGN KEY (f_followed_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
 );
 
-COMMENT ON TABLE t_user_follows IS 'ユーザーフォロー情報';
+
+-- -----------------------------------------------------
+-- 24. 都道府県マスタ (m_prefectures)
+-- -----------------------------------------------------
+CREATE TABLE m_prefectures (
+    f_prefecture_id INTEGER PRIMARY KEY,
+    f_name VARCHAR(20) NOT NULL
+);
+-- 初期データ投入（必要なら）
+INSERT INTO m_prefectures (f_prefecture_id, f_name) VALUES
+(1, '北海道'), (2, '青森県'), (3, '岩手県'), (4, '宮城県'), (5, '秋田県'),
+(6, '山形県'), (7, '福島県'), (8, '茨城県'), (9, '栃木県'), (10, '群馬県'),
+(11, '埼玉県'), (12, '千葉県'), (13, '東京都'), (14, '神奈川県'), (15, '新潟県'),
+(16, '富山県'), (17, '石川県'), (18, '福井県'), (19, '山梨県'), (20, '長野県'),
+(21, '岐阜県'), (22, '静岡県'), (23, '愛知県'), (24, '三重県'), (25, '滋賀県'),
+(26, '京都府'), (27, '大阪府'), (28, '兵庫県'), (29, '奈良県'), (30, '和歌山県'),
+(31, '鳥取県'), (32, '島根県'), (33, '岡山県'), (34, '広島県'), (35, '山口県'),
+(36, '徳島県'), (37, '香川県'), (38, '愛媛県'), (39, '高知県'), (40, '福岡県'),
+(41, '佐賀県'), (42, '長崎県'), (43, '熊本県'), (44, '大分県'), (45, '宮崎県'),
+(46, '鹿児島県'), (47, '沖縄県');
 
 
 -- -----------------------------------------------------
@@ -181,219 +177,297 @@ COMMENT ON TABLE t_user_follows IS 'ユーザーフォロー情報';
 -- -----------------------------------------------------
 CREATE TABLE m_categories (
     f_category_id BIGSERIAL PRIMARY KEY,
+    f_name VARCHAR(100) NOT NULL,
     f_parent_id BIGINT,
-    f_category_name VARCHAR(100) NOT NULL,
+    f_level INTEGER DEFAULT 1,
+    f_icon_url VARCHAR(500),
+    f_sort_order INTEGER DEFAULT 0,
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_category_parent FOREIGN KEY (f_parent_id) REFERENCES m_categories (f_category_id)
 );
-
-COMMENT ON TABLE m_categories IS 'カテゴリ情報';
+CREATE TRIGGER set_timestamp_m_categories BEFORE UPDATE ON m_categories FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 -- -----------------------------------------------------
--- 11-B. 配送方法 (m_shipping_method)
+-- 13. 配送方法マスタ (m_shipping_method)
 -- -----------------------------------------------------
 CREATE TABLE m_shipping_method (
     f_shipping_method_id SERIAL PRIMARY KEY,
     f_name VARCHAR(100) NOT NULL,
-    f_is_anonymous INTEGER DEFAULT 0 NOT NULL,
-    f_is_tracking INTEGER DEFAULT 0 NOT NULL,
-    f_allows_cool INTEGER DEFAULT 0 NOT NULL
+    f_is_anonymous SMALLINT DEFAULT 0, -- 0:通常, 1:匿名
+    f_is_tracking SMALLINT DEFAULT 0,
+    f_allows_cool SMALLINT DEFAULT 0
 );
-
-COMMENT ON TABLE m_shipping_method IS '配送方法マスタ';
 
 
 -- -----------------------------------------------------
--- 09. 商品情報 (t_items)
+-- 20. 発送日数マスタ (m_shipping_days)
+-- -----------------------------------------------------
+CREATE TABLE m_shipping_days (
+    f_shipping_days_id SERIAL PRIMARY KEY,
+    f_name VARCHAR(50) NOT NULL, -- "1~2日で発送"
+    f_min_days INTEGER NOT NULL,
+    f_max_days INTEGER NOT NULL,
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- -----------------------------------------------------
+-- 19. 場所・拠点マスター (m_spots)
+-- PostGISを使用。Map検索の核となるテーブル
+-- -----------------------------------------------------
+CREATE TABLE m_spots (
+    f_spot_id BIGSERIAL PRIMARY KEY,
+    f_user_id INTEGER NOT NULL,
+    f_name VARCHAR(100), -- 拠点名（例: 第1農園）
+
+    -- 地球球面座標系 (SRID=4326: WGS84)
+    location GEOGRAPHY(POINT, 4326) NOT NULL,
+
+    -- 0:正確(ピン), 1:あいまい(円), 2:都道府県/市のみ
+    disclosure_type SMALLINT NOT NULL DEFAULT 0,
+    fuzzy_radius INTEGER DEFAULT 500, -- あいまい時の半径(m)
+
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_spots_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
+);
+-- 空間インデックス（検索高速化）
+CREATE INDEX idx_spots_location ON m_spots USING GIST (location);
+CREATE TRIGGER set_timestamp_m_spots BEFORE UPDATE ON m_spots FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+-- -----------------------------------------------------
+-- 10. 商品情報 (t_items)
 -- -----------------------------------------------------
 CREATE TABLE t_items (
     f_item_id BIGSERIAL PRIMARY KEY,
     f_user_id INTEGER NOT NULL,
+    f_spot_id BIGINT, -- 発送元・生産地拠点
+
     f_name VARCHAR(100) NOT NULL,
     f_description TEXT NOT NULL,
     f_categories_id BIGINT NOT NULL,
     f_price INTEGER NOT NULL,
     f_quantity INTEGER DEFAULT 1 NOT NULL,
-    f_status INTEGER DEFAULT 0 NOT NULL, -- 0:下書き,1:出品中...
-    f_shipping_payer_type INTEGER DEFAULT 0 NOT NULL,
-    f_shipping_origin_area INTEGER NOT NULL,
+    f_status SMALLINT DEFAULT 1 NOT NULL, -- 0:下書き, 1:出品中, 2:取引中, 3:売切, 4:停止
+
+    f_shipping_payer_type SMALLINT DEFAULT 0, -- 0:送料込(出品者負担), 1:着払い
+    f_shipping_origin_area INTEGER NOT NULL, -- 都道府県ID (検索用テキストインデックス代わり)
     f_shipping_days_id INTEGER NOT NULL,
-    f_item_condition INTEGER NOT NULL,
-    f_brand VARCHAR(100),
     f_shipping_method_id INTEGER NOT NULL,
-    f_preservation_method INTEGER NOT NULL, -- 0:常温,1:冷蔵,2:冷凍
+
+    f_item_condition SMALLINT DEFAULT 0, -- 0:新品...
+    f_preservation_method SMALLINT DEFAULT 0, -- 0:常温, 1:冷蔵, 2:冷凍
     f_expiration_date TIMESTAMP,
-    f_weight INTEGER,
+    f_brand VARCHAR(100),
+    f_weight INTEGER, -- グラム単位
+
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    f_city_code VARCHAR(10),
-    f_public_lat DOUBLE PRECISION,
-    f_public_long DOUBLE PRECISION,
-    f_location_precision INTEGER DEFAULT 0,
-    location GEOMETRY(Point, 4326), -- PostGIS: SRID 4326 (WGS84)
-    CONSTRAINT fk_items_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE,
-    CONSTRAINT fk_items_category_id FOREIGN KEY (f_categories_id) REFERENCES m_categories (f_category_id),
+
+    CONSTRAINT fk_items_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_items_spot FOREIGN KEY (f_spot_id) REFERENCES m_spots (f_spot_id),
+    CONSTRAINT fk_items_category FOREIGN KEY (f_categories_id) REFERENCES m_categories (f_category_id),
+    CONSTRAINT fk_items_shipping_days FOREIGN KEY (f_shipping_days_id) REFERENCES m_shipping_days (f_shipping_days_id),
     CONSTRAINT fk_items_shipping_method FOREIGN KEY (f_shipping_method_id) REFERENCES m_shipping_method (f_shipping_method_id)
 );
-
-COMMENT ON TABLE t_items IS '商品情報';
--- インデックス推奨 (PostGIS検索用)
-CREATE INDEX idx_items_location ON t_items USING GIST (location);
-
-CREATE TRIGGER set_timestamp_t_items
-BEFORE UPDATE ON t_items
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+CREATE TRIGGER set_timestamp_t_items BEFORE UPDATE ON t_items FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 -- -----------------------------------------------------
--- 10. 商品画像 (t_items_images)
+-- 12. 商品画像 (t_items_images)
 -- -----------------------------------------------------
 CREATE TABLE t_items_images (
     f_image_id BIGSERIAL PRIMARY KEY,
     f_item_id BIGINT NOT NULL,
-    f_image_url VARCHAR(200) NOT NULL,
+    f_image_url TEXT NOT NULL,
     f_display_order INTEGER DEFAULT 1,
+    f_status SMALLINT DEFAULT 1, -- 1:有効, 0:無効
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    f_status INTEGER,
-    CONSTRAINT fk_item_images_item_id FOREIGN KEY (f_item_id) REFERENCES t_items (f_item_id) ON DELETE CASCADE
+    CONSTRAINT fk_images_item FOREIGN KEY (f_item_id) REFERENCES t_items (f_item_id) ON DELETE CASCADE
 );
 
-COMMENT ON TABLE t_items_images IS '商品画像';
-
 
 -- -----------------------------------------------------
--- 16. お気に入り (t_user_favorites)
+-- 11. 商品お気に入り (t_item_likes)
 -- -----------------------------------------------------
-CREATE TABLE t_user_favorites (
-    f_favorite_id BIGSERIAL PRIMARY KEY,
+CREATE TABLE t_item_likes (
+    f_item_favorite_id BIGSERIAL PRIMARY KEY,
     f_user_id INTEGER NOT NULL,
     f_item_id BIGINT NOT NULL,
-    f_is_active BOOLEAN DEFAULT TRUE,
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (f_user_id, f_item_id),
-    CONSTRAINT fk_favorites_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE,
-    CONSTRAINT fk_favorites_item_id FOREIGN KEY (f_item_id) REFERENCES t_items (f_item_id) ON DELETE CASCADE
+    CONSTRAINT fk_likes_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_likes_item FOREIGN KEY (f_item_id) REFERENCES t_items (f_item_id) ON DELETE CASCADE
 );
-
-COMMENT ON TABLE t_user_favorites IS 'お気に入り';
 
 
 -- -----------------------------------------------------
--- 09-B. 注文情報 (t_orders)
+-- 14. 注文情報 (t_orders)
+-- 役割: 1回の決済トランザクション。配送先スナップショットを持つ。
 -- -----------------------------------------------------
 CREATE TABLE t_orders (
     f_order_id BIGSERIAL PRIMARY KEY,
-    f_listing_id BIGINT NOT NULL,
     f_buyer_id INTEGER NOT NULL,
-    f_ordered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    f_payment_id BIGINT,
-    f_payment_date TIMESTAMP,
-    f_amount DECIMAL(10,2),
-    f_payment_method VARCHAR(20),
-    f_payment_status VARCHAR(20),
-    CONSTRAINT fk_orders_listing_id FOREIGN KEY (f_listing_id) REFERENCES t_items (f_item_id),
-    CONSTRAINT fk_orders_buyer_id FOREIGN KEY (f_buyer_id) REFERENCES m_users (f_user_id)
-);
+    f_total_amount DECIMAL(12,0) NOT NULL, -- 決済総額
+    f_status SMALLINT NOT NULL DEFAULT 1, -- 1:未払い, 2:支払い済, 9:キャンセル
 
-COMMENT ON TABLE t_orders IS '注文情報';
+    -- 配送先スナップショット (購入時点の住所を固定)
+    f_shipping_name VARCHAR(100) NOT NULL,
+    f_shipping_zip_code VARCHAR(10) NOT NULL,
+    f_shipping_prefecture VARCHAR(20) NOT NULL,
+    f_shipping_city VARCHAR(50) NOT NULL,
+    f_shipping_address_line1 VARCHAR(255) NOT NULL,
+    f_shipping_address_line2 VARCHAR(255),
+
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_orders_buyer FOREIGN KEY (f_buyer_id) REFERENCES m_users (f_user_id)
+);
+CREATE TRIGGER set_timestamp_t_orders BEFORE UPDATE ON t_orders FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 -- -----------------------------------------------------
--- 11-A. レビュー情報 (t_reviews)
+-- 16. 配送情報 (t_shipments)
+-- 役割: 出品者ごとの配送単位。Amazon方式の要。
+-- -----------------------------------------------------
+CREATE TABLE t_shipments (
+    f_shipment_id BIGSERIAL PRIMARY KEY,
+    f_order_id BIGINT NOT NULL,
+    f_seller_id INTEGER NOT NULL,
+    f_shipping_method_id INTEGER NOT NULL,
+
+    f_tracking_number VARCHAR(100),
+    f_shipping_fee INTEGER DEFAULT 0,
+    f_status SMALLINT DEFAULT 1, -- 1:発送待ち, 2:発送済み, 3:受取完了
+
+    f_shipped_at TIMESTAMP, -- 発送日時 (TINYINTから修正済)
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_shipments_order FOREIGN KEY (f_order_id) REFERENCES t_orders (f_order_id) ON DELETE CASCADE,
+    CONSTRAINT fk_shipments_seller FOREIGN KEY (f_seller_id) REFERENCES m_users (f_user_id),
+    CONSTRAINT fk_shipments_method FOREIGN KEY (f_shipping_method_id) REFERENCES m_shipping_method (f_shipping_method_id)
+);
+CREATE TRIGGER set_timestamp_t_shipments BEFORE UPDATE ON t_shipments FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+-- -----------------------------------------------------
+-- 15. 注文商品明細 (t_orders_items)
+-- 役割: 注文された個々の商品。Shipmentに紐づく。
+-- -----------------------------------------------------
+CREATE TABLE t_orders_items (
+    f_order_item_id BIGSERIAL PRIMARY KEY,
+    f_order_id BIGINT NOT NULL,
+    f_shipment_id BIGINT NOT NULL,
+    f_item_id BIGINT NOT NULL,
+    f_seller_id INTEGER NOT NULL,
+
+    f_unit_price INTEGER NOT NULL, -- 購入時の単価
+    f_quantity INTEGER DEFAULT 1 NOT NULL,
+    f_platform_fee INTEGER DEFAULT 0,
+    f_seller_amount INTEGER DEFAULT 0, -- 出品者受取額
+
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_items_order FOREIGN KEY (f_order_id) REFERENCES t_orders (f_order_id),
+    CONSTRAINT fk_items_shipment FOREIGN KEY (f_shipment_id) REFERENCES t_shipments (f_shipment_id),
+    CONSTRAINT fk_items_item FOREIGN KEY (f_item_id) REFERENCES t_items (f_item_id)
+);
+CREATE TRIGGER set_timestamp_t_orders_items BEFORE UPDATE ON t_orders_items FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+-- -----------------------------------------------------
+-- 17. 決済履歴 (t_payments)
+-- -----------------------------------------------------
+CREATE TABLE t_payments (
+    f_payment_id BIGSERIAL PRIMARY KEY,
+    f_order_id BIGINT NOT NULL,
+    f_method VARCHAR(50), -- card, paypay
+    f_ext_trans_id VARCHAR(255), -- Stripe PaymentIntent ID etc
+    f_status VARCHAR(50), -- succeeded, pending
+    f_amount DECIMAL(12,0),
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_payments_order FOREIGN KEY (f_order_id) REFERENCES t_orders (f_order_id)
+);
+
+
+-- -----------------------------------------------------
+-- 18. 資金移動/売上台帳 (t_transactions)
+-- -----------------------------------------------------
+CREATE TABLE t_transactions (
+    f_transaction_id BIGSERIAL PRIMARY KEY,
+    f_user_id INTEGER NOT NULL, -- 対象ユーザー
+    f_order_item_id BIGINT, -- 関連する注文明細(売上の場合)
+
+    f_type VARCHAR(20) NOT NULL, -- SALES, WITHDRAWAL, REFUND
+    f_amount INTEGER NOT NULL,
+    f_status VARCHAR(20) NOT NULL, -- PENDING, AVAILABLE
+
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_trans_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id),
+    CONSTRAINT fk_trans_item FOREIGN KEY (f_order_item_id) REFERENCES t_orders_items (f_order_item_id)
+);
+CREATE TRIGGER set_timestamp_t_transactions BEFORE UPDATE ON t_transactions FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+-- -----------------------------------------------------
+-- 21. レビュー情報 (t_reviews)
 -- -----------------------------------------------------
 CREATE TABLE t_reviews (
     f_review_id BIGSERIAL PRIMARY KEY,
-    f_user_id INTEGER NOT NULL,
+    f_user_id INTEGER NOT NULL, -- レビューを書いた人
     f_item_id BIGINT NOT NULL,
     f_rating SMALLINT NOT NULL,
     f_comment TEXT,
     f_posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_reviews_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id),
-    CONSTRAINT fk_reviews_item_id FOREIGN KEY (f_item_id) REFERENCES t_items (f_item_id)
+    CONSTRAINT fk_reviews_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_reviews_item FOREIGN KEY (f_item_id) REFERENCES t_items (f_item_id)
 );
-
-COMMENT ON TABLE t_reviews IS 'レビュー情報';
-CREATE TRIGGER set_timestamp_t_reviews
-BEFORE UPDATE ON t_reviews
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+CREATE TRIGGER set_timestamp_t_reviews BEFORE UPDATE ON t_reviews FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 -- -----------------------------------------------------
--- 12. ユーザーメッセージ (t_messages)
+-- 22. ユーザーメッセージ (t_messages)
 -- -----------------------------------------------------
 CREATE TABLE t_messages (
     f_message_id BIGSERIAL PRIMARY KEY,
     f_sender_id INTEGER NOT NULL,
     f_receiver_id INTEGER NOT NULL,
-    f_thread_id BIGINT,
+    f_item_id BIGINT, -- どの商品に関する問い合わせか(任意)
+
     f_message_content TEXT,
-    f_create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_image_url TEXT, -- 型修正済み
+    f_read_status SMALLINT DEFAULT 0, -- 0:未読, 1:既読
+
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    f_read_status SMALLINT DEFAULT 0,
-    CONSTRAINT fk_messages_sender FOREIGN KEY (f_sender_id) REFERENCES m_users (f_user_id),
-    CONSTRAINT fk_messages_receiver FOREIGN KEY (f_receiver_id) REFERENCES m_users (f_user_id)
+
+    CONSTRAINT fk_msg_sender FOREIGN KEY (f_sender_id) REFERENCES m_users (f_user_id),
+    CONSTRAINT fk_msg_receiver FOREIGN KEY (f_receiver_id) REFERENCES m_users (f_user_id)
 );
-
-COMMENT ON TABLE t_messages IS 'ユーザーメッセージ';
-CREATE TRIGGER set_timestamp_t_messages
-BEFORE UPDATE ON t_messages
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+CREATE TRIGGER set_timestamp_t_messages BEFORE UPDATE ON t_messages FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
 -- -----------------------------------------------------
--- 13. コメント情報 (t_comments)
+-- 23. 商品コメント (t_item_comment)
 -- -----------------------------------------------------
-CREATE TABLE t_comments (
-    f_comment_id BIGSERIAL PRIMARY KEY,
-    f_listing_id BIGINT NOT NULL,
+CREATE TABLE t_item_comment (
+    f_item_comment_id BIGSERIAL PRIMARY KEY,
+    f_item_id BIGINT NOT NULL,
     f_user_id INTEGER NOT NULL,
     f_comment_content TEXT NOT NULL,
-    f_create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    f_read_status SMALLINT DEFAULT 0,
-    CONSTRAINT fk_comments_listing FOREIGN KEY (f_listing_id) REFERENCES t_items (f_item_id) ON DELETE CASCADE,
-    CONSTRAINT fk_comments_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id)
+    CONSTRAINT fk_comment_item FOREIGN KEY (f_item_id) REFERENCES t_items (f_item_id) ON DELETE CASCADE,
+    CONSTRAINT fk_comment_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
 );
-
-COMMENT ON TABLE t_comments IS 'コメント情報';
-CREATE TRIGGER set_timestamp_t_comments
-BEFORE UPDATE ON t_comments
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
-
-
--- -----------------------------------------------------
--- 14. 配送情報 (t_shipments)
--- -----------------------------------------------------
-CREATE TABLE t_shipments (
-    f_shipments_id BIGSERIAL PRIMARY KEY,
-    f_order_id BIGINT NOT NULL,
-    f_carrier INTEGER,
-    tracking_no VARCHAR(50),
-    f_postal_code VARCHAR(8) NOT NULL,
-    f_address VARCHAR(100) NOT NULL,
-    f_delivery_status INTEGER DEFAULT 0,
-    f_shipped_at TIMESTAMP,
-    f_delivered_at TIMESTAMP,
-    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_shipments_order FOREIGN KEY (f_order_id) REFERENCES t_orders (f_order_id)
-);
-
-COMMENT ON TABLE t_shipments IS '配送情報';
-CREATE TRIGGER set_timestamp_t_shipments
-BEFORE UPDATE ON t_shipments
-FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
-
-
--- -----------------------------------------------------
--- 17. 都道府県の位置情報データ (t_Prefecture_L)
--- -----------------------------------------------------
-CREATE TABLE t_Prefecture_L (
-    f_prefecture_id BIGINT NOT NULL PRIMARY KEY,
-    f_prefecture_jpname VARCHAR(10) NOT NULL,
-    f_latitude_longitude VARCHAR(50) NOT NULL,
-    f_romaj VARCHAR(30) NOT NULL,
-    f_address_id INTEGER
-);
-
-COMMENT ON TABLE t_Prefecture_L IS '都道府県の位置情報データ';
+CREATE TRIGGER set_timestamp_t_item_comment BEFORE UPDATE ON t_item_comment FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
