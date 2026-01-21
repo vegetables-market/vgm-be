@@ -7,7 +7,7 @@ import java.math.BigDecimal
 // 決済リクエスト
 data class CreatePaymentRequest(
     val orderId: Long,
-    val userId: Int,
+    val userId: Long,
     val paymentMethod: PaymentMethod,
     val amount: Double
 )
