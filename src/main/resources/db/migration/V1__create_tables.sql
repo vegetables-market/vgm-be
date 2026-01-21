@@ -10,7 +10,7 @@
 -- -----------------------------------------------------
 
 -- PostGIS拡張の有効化（位置情報・距離計算用）
-CREATE EXTENSION IF NOT EXISTS postgis;
+-- CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- 更新日時(f_updated_at)を自動更新するための関数定義
 CREATE OR REPLACE FUNCTION trigger_set_timestamp()
