@@ -5,72 +5,69 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "orders")
+@Table(name = "t_orders")
 data class Order(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "f_order_id")
     val id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "buyer_id", nullable = false)
+    @JoinColumn(name = "f_buyer_id", nullable = false)
     val buyer: User,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seller_id", nullable = false)
+    @JoinColumn(name = "f_seller_id", nullable = false)
     val seller: User,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "f_item_id", nullable = false)
     val product: Product,
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "f_total_amount", nullable = false, precision = 10, scale = 2)
     val totalAmount: BigDecimal,
 
-    // 手数料（プラットフォーム手数料、例: 10%）
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "f_platform_fee", nullable = false, precision = 10, scale = 2)
     val platformFee: BigDecimal,
 
-    // 出品者への入金額（totalAmount - platformFee）
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "f_seller_amount", nullable = false, precision = 10, scale = 2)
     val sellerAmount: BigDecimal,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "f_status", nullable = false)
     val status: OrderStatus = OrderStatus.PENDING_PAYMENT,
 
-    @Column(nullable = false)
+    @Column(name = "f_created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
-    @Column
+    @Column(name = "f_paid_at")
     val paidAt: LocalDateTime? = null,
 
-    @Column
+    @Column(name = "f_shipped_at")
     val shippedAt: LocalDateTime? = null,
 
-    @Column
+    @Column(name = "f_delivered_at")
     val deliveredAt: LocalDateTime? = null,
 
-    @Column
+    @Column(name = "f_completed_at")
     val completedAt: LocalDateTime? = null,
 
-    @Column
+    @Column(name = "f_cancelled_at")
     val cancelledAt: LocalDateTime? = null,
 
-    // 配送先情報
-    @Column
+    @Column(name = "f_shipping_address")
     val shippingAddress: String? = null,
 
-    @Column
+    @Column(name = "f_shipping_postal_code")
     val shippingPostalCode: String? = null,
 
-    @Column
+    @Column(name = "f_shipping_recipient_name")
     val shippingRecipientName: String? = null,
 
-    @Column
+    @Column(name = "f_shipping_phone_number")
     val shippingPhoneNumber: String? = null,
 
-    // キャンセル理由
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "f_cancellation_reason", columnDefinition = "TEXT")
     val cancellationReason: String? = null
 )
 

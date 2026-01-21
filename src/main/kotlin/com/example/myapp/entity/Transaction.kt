@@ -5,47 +5,44 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "transactions")
+@Table(name = "t_transactions")
 data class Transaction(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "f_transaction_id")
     val id: Long? = null,
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false, unique = true)
+    @JoinColumn(name = "f_order_id", nullable = false, unique = true)
     val order: Order,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "f_type", nullable = false)
     val type: TransactionType,
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "f_amount", nullable = false, precision = 10, scale = 2)
     val amount: BigDecimal,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "f_status", nullable = false)
     val status: TransactionStatus = TransactionStatus.PENDING,
 
-    // エスクロー（資金保留）開始時刻
-    @Column
+    @Column(name = "f_escrow_started_at")
     val escrowStartedAt: LocalDateTime? = null,
 
-    // エスクロー解除（出品者への入金）時刻
-    @Column
+    @Column(name = "f_escrow_released_at")
     val escrowReleasedAt: LocalDateTime? = null,
 
-    // 返金時刻
-    @Column
+    @Column(name = "f_refunded_at")
     val refundedAt: LocalDateTime? = null,
 
-    @Column(nullable = false)
+    @Column(name = "f_created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
-    @Column
+    @Column(name = "f_updated_at")
     val updatedAt: LocalDateTime? = null,
 
-    // トランザクションメモ（エラーメッセージや追加情報）
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "f_notes", columnDefinition = "TEXT")
     val notes: String? = null
 )
 

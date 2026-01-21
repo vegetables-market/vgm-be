@@ -40,7 +40,7 @@ class AuthController(
     }
 
     @GetMapping("/user/{userId}")
-    fun getUserById(@PathVariable userId: Long): ResponseEntity<LoginResponse> {
+    fun getUserById(@PathVariable userId: Int): ResponseEntity<LoginResponse> {
         val user = authService.getUserById(userId)
         return if (user != null) {
             ResponseEntity.ok(LoginResponse(

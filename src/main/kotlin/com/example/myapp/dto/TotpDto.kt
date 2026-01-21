@@ -2,7 +2,7 @@ package com.example.myapp.dto
 
 // TOTP有効化リクエスト
 data class EnableTotpRequest(
-    val userId: Long
+    val userId: Int
 )
 
 // TOTP有効化レスポンス
@@ -16,7 +16,7 @@ data class EnableTotpResponse(
 
 // TOTP検証＆有効化リクエスト
 data class VerifyAndEnableTotpRequest(
-    val userId: Long,
+    val userId: Int,
     val code: String
 )
 
@@ -28,7 +28,7 @@ data class VerifyAndEnableTotpResponse(
 
 // TOTP無効化リクエスト
 data class DisableTotpRequest(
-    val userId: Long,
+    val userId: Int,
     val password: String  // 本人確認用
 )
 
@@ -50,7 +50,7 @@ data class LoginWithTotpResponse(
     val success: Boolean,
     val message: String,
     val requireTotp: Boolean = false,  // TOTP入力が必要か
-    val userId: Long? = null,
+    val userId: Int? = null,
     val username: String? = null,
     val email: String? = null
 )
