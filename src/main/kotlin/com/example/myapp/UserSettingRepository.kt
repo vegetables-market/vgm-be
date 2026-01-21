@@ -1,0 +1,1 @@
+interface UserSettingRepository : JpaRepository<UserSetting, Long>
