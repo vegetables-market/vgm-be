@@ -1,2 +1,2 @@
-org.springframework.boot.env.EnvironmentPostProcessor=\
-com.example.myapp.config.MultiEnvFileLoader
+# org.springframework.boot.env.EnvironmentPostProcessor=\
+# com.example.myapp.config.MultiEnvFileLoader
