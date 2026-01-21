@@ -5,7 +5,7 @@ import java.math.BigDecimal
 
 // 注文作成リクエスト
 data class CreateOrderRequest(
-    val buyerId: Int,
+    val buyerId: Long,
     val productId: Long,
     val shippingAddress: String?,
     val shippingPostalCode: String?,

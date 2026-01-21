@@ -8,7 +8,7 @@ data class CreateProductRequest(
     val name: String,
     val description: String?,
     val price: Double,
-    val sellerId: Int,
+    val sellerId: Long,
     val category: String?,
     val stock: Int? = 1
 )
@@ -30,7 +30,7 @@ data class ProductDto(
     val name: String,
     val description: String?,
     val price: BigDecimal,
-    val sellerId: Int,
+    val sellerId: Long,
     val sellerName: String,
     val status: ProductStatus,
     val category: String?,
