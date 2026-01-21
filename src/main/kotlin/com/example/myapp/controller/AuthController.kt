@@ -47,8 +47,8 @@ class AuthController(
                 success = true,
                 message = "ユーザー情報を取得しました",
                 userId = user.id,
-                username = user.username,
-                email = user.email
+                username = user.username
+                // email = user.email
             ))
         } else {
             ResponseEntity.notFound().build()
@@ -89,11 +89,11 @@ class AuthController(
         val qrCodeImage = totpService.generateQrCodeImageBase64(user.username, secret)
 
         // メールでシークレットキーを送信
-        try {
-            emailService.sendSecretKeyEmail(user.email, user.username, secret)
-        } catch (e: Exception) {
-            println("メール送信エラー: ${e.message}")
-        }
+        // try {
+        //     emailService.sendSecretKeyEmail(user.email, user.username, secret)
+        // } catch (e: Exception) {
+        //     println("メール送信エラー: ${e.message}")
+        // }
 
         return ResponseEntity.ok(
             EnableTotpResponse(
@@ -215,8 +215,8 @@ class AuthController(
                         success = true,
                         message = "ログインに成功しました",
                         userId = user.id,
-                        username = user.username,
-                        email = user.email
+                        username = user.username
+                        // email = user.email
                     )
                 )
             } else {

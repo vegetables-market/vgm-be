@@ -16,7 +16,7 @@ class AuthService(
     private val passwordEncoder = BCryptPasswordEncoder()
 
     fun register(request: RegisterRequest): RegisterResponse {
-        if (request.username.isBlank() || request.email.isBlank() || request.password.isBlank()) {
+        if (request.username.isBlank() || request.password.isBlank()) {
             return RegisterResponse(
                 success = false,
                 message = "全ての項目を入力してください"
@@ -30,12 +30,12 @@ class AuthService(
             )
         }
 
-        if (userRepository.existsByEmail(request.email)) {
-            return RegisterResponse(
-                success = false,
-                message = "このメールアドレスは既に使用されています"
-            )
-        }
+        // if (userRepository.existsByEmail(request.email)) {
+        //     return RegisterResponse(
+        //         success = false,
+        //         message = "このメールアドレスは既に使用されています"
+        //     )
+        // }
 
         if (request.password.length < 6) {
             return RegisterResponse(
@@ -48,7 +48,7 @@ class AuthService(
 
         val newUser = User(
             username = request.username,
-            email = request.email,
+            // email = request.email,
             password = hashedPassword
         )
 
@@ -96,8 +96,8 @@ class AuthService(
             success = true,
             message = "ログインに成功しました",
             userId = user.id,
-            username = user.username,
-            email = user.email
+            username = user.username
+            // email = user.email
         )
     }
 

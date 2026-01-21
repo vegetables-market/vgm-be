@@ -51,6 +51,6 @@ data class LoginWithTotpResponse(
     val message: String,
     val requireTotp: Boolean = false,  // TOTP入力が必要か
     val userId: Int? = null,
-    val username: String? = null,
-    val email: String? = null
+    val username: String? = null
+    // val email: String? = null
 )
