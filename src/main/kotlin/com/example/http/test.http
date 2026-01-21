@@ -2,7 +2,7 @@ POST http://localhost:8080/api/items
 Content-Type: application/json
 
 {
-  "name": "Docker経由のテスト",
+  "name": "このんいちは",
   "price": 2500
 }
 
