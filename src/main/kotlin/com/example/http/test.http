@@ -1,0 +1,10 @@
+POST http://localhost:8080/api/items
+Content-Type: application/json
+
+{
+  "name": "このんいちは",
+  "price": 2500
+}
+
+### 登録されたアイテムを全件取得する
+GET http://localhost:8080/api/items
