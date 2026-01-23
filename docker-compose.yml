@@ -9,6 +9,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      - USE_TAILSCALE=false
       # Docker起動時は .env.local の有無に関わらずローカルDBを強制使用
       - DB_URL=jdbc:postgresql://postgres:5432/myapp
       - DB_USER=postgres
@@ -21,7 +22,7 @@ services:
       - vgm-network
 
   postgres:
-    image: postgres:15-alpine
+    image: postgis/postgis:15-3.4-alpine
     container_name: vgm-postgres
     environment:
       POSTGRES_DB: myapp

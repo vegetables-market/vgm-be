@@ -10,49 +10,49 @@ buildscript {
 }
 
 plugins {
-	kotlin("jvm") version "2.2.10"
-	kotlin("plugin.spring") version "2.2.10"
-	kotlin("plugin.jpa") version "2.2.10"
-	id("org.springframework.boot") version "3.5.4"
-	id("io.spring.dependency-management") version "1.1.7"
+    kotlin("jvm") version "2.2.10"
+    kotlin("plugin.spring") version "2.2.10"
+    kotlin("plugin.jpa") version "2.2.10"
+    id("org.springframework.boot") version "3.5.4"
+    id("io.spring.dependency-management") version "1.1.7"
 }
 
-import org.flywaydb.core.Flyway
 
 group = "com.example"
 version = "0.0.1-SNAPSHOT"
 description = "myapp"
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
-    repositories {
-        mavenCentral()
-    }
+repositories {
+    mavenCentral()
+}
 
-    dependencies {
-        implementation("org.springframework.boot:spring-boot-starter-web")
-        implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-        implementation("org.jetbrains.kotlin:kotlin-reflect")
-        implementation("org.springframework.boot:spring-boot-starter-actuator")
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
-    implementation("org.flywaydb:flyway-core")
-    implementation("org.flywaydb:flyway-database-postgresql")
+
     implementation("org.springframework.security:spring-security-crypto")
-    
+
     // H2 Database for testing
     testRuntimeOnly("com.h2database:h2")
+
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
@@ -70,45 +70,40 @@ java {
 
     // Dotenv-kotlin for custom MultiEnvFileLoader
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+
+    constraints {
+        implementation("com.beust:jcommander:1.82") {
+            because("Previous versions have security vulnerability WS-2019-0490")
+        }
+    }
 }
 
 kotlin {
-	compilerOptions {
-		freeCompilerArgs.addAll("-Xjsr305=strict")
-	}
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjsr305=strict")
+    }
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 // Docker tasks
-tasks.register("dockerUp") {
-	description = "Start Docker containers using docker-compose"
-	doLast {
-		exec {
-			commandLine("docker-compose", "-f", "docker-compose.yml", "up", "-d", "--build")
-		}
-	}
+tasks.register<Exec>("dockerUp") {
+    description = "Start Docker containers using docker-compose"
+    commandLine("docker-compose", "-f", "docker-compose.yml", "up", "-d", "--build")
 }
 
-tasks.register("dockerDown") {
-	description = "Stop Docker containers using docker-compose"
-	doLast {
-		exec {
-			commandLine("docker-compose", "-f", "docker-compose.yml", "down")
-		}
-	}
+tasks.register<Exec>("dockerDown") {
+    description = "Stop Docker containers using docker-compose"
+    commandLine("docker-compose", "-f", "docker-compose.yml", "down")
 }
 
-tasks.register("dockerLogs") {
-	description = "Show Docker logs"
-	doLast {
-		exec {
-			commandLine("docker-compose", "-f", "docker-compose.yml", "logs", "-f", "app")
-		}
-	}
+tasks.register<Exec>("dockerLogs") {
+    description = "Show Docker logs"
+    commandLine("docker-compose", "-f", "docker-compose.yml", "logs", "-f", "app")
 }
+
 
 tasks.register("flywayClean") {
     group = "flyway"
@@ -123,7 +118,7 @@ tasks.register("flywayClean") {
             throw GradleException("Database credentials (DB_URL, DB_USER, DB_PASSWORD) must be set as environment variables or in .env.local for flywayClean task.")
         }
 
-        val flyway = Flyway.configure()
+        val flyway = org.flywaydb.core.Flyway.configure()
             .dataSource(dbUrl, dbUser, dbPassword)
             .locations("classpath:db/migration") // Ensure this matches application.yml
             .cleanDisabled(false) // Add this line
@@ -147,7 +142,7 @@ tasks.register("flywayRepair") {
             throw GradleException("Database credentials (DB_URL, DB_USER, DB_PASSWORD) must be set as environment variables or in .env.local for flywayRepair task.")
         }
 
-        val flyway = Flyway.configure()
+        val flyway = org.flywaydb.core.Flyway.configure()
             .dataSource(dbUrl, dbUser, dbPassword)
             .locations("classpath:db/migration") // Ensure this matches application.yml
             .baselineOnMigrate(true) // Should match application.yml
