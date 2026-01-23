@@ -7,8 +7,10 @@ TAILSCALE_VGM_DB_HOST=$(echo "$TAILSCALE_VGM_DB_HOST" | tr -d '\r')
 
 echo "=== STARTING CLOUD RUN CONTAINER ==="
 
-if [ "$IS_LOCAL" = "false" ]; then
-
+if [ "$IS_LOCAL" = "true" ]; then
+  echo "--- Local Mode: ON (Local Development) ---"
+  echo "Skipping Tailscale setup. Connecting to local network DB."
+else
   echo "Target DB IP: '${TAILSCALE_VGM_DB_HOST}'"
 
   # 1. Tailscale起動
@@ -36,9 +38,6 @@ if [ "$IS_LOCAL" = "false" ]; then
   else
       echo "Socat is running (PID: $SOCAT_PID)."
   fi
-else
-  echo "--- Local Mode: OFF (Local Development) ---"
-  echo "Skipping Tailscale setup. Connecting to local network DB."
 fi
 
 # 4. アプリ起動
