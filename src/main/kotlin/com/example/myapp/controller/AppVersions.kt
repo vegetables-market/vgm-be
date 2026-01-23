@@ -13,7 +13,7 @@ data class AppVersionResponse(
 class AppVersionsController(
     val appVersionRepository: AppVersionRepository
 ) {
-    @GetMapping("/api/version")
+    @GetMapping("/version")
     fun getVersion(): AppVersionResponse {
         val latestVersion = appVersionRepository.findTopByOrderByVersionCodeDesc()
         val versionName = latestVersion?.versionName ?: "1.0.2"
