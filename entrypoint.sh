@@ -7,7 +7,7 @@ TAILSCALE_VGM_DB_HOST=$(echo "$TAILSCALE_VGM_DB_HOST" | tr -d '\r')
 
 echo "=== STARTING CLOUD RUN CONTAINER ==="
 
-if ["$IS_LOCAL" = "false"]; then
+if [ "$IS_LOCAL" = "false" ]; then
 
   echo "Target DB IP: '${TAILSCALE_VGM_DB_HOST}'"
 
