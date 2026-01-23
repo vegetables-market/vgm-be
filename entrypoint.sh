@@ -2,15 +2,14 @@
 set -e
 
 # 改行コード対策: 環境変数の末尾に \r があったら削除
-TAILSCALE_AUTH_KEY=$(echo "$TAILSCALE_AUTH_KEY" | tr -d '\r')
+IS_TAILSCALE=$(echo "${IS_TAILSCALE:-true}" | tr -d '\r')
+TAILSCALE_AUTH_KEY=$(echo "${TAILSCALE_AUTH_KEY:-}" | tr -d '\r')
 TAILSCALE_VGM_DB_HOST=$(echo "$TAILSCALE_VGM_DB_HOST" | tr -d '\r')
 
-echo "=== STARTING CLOUD RUN CONTAINER ==="
+echo "=== STARTING CONTAINER ==="
 
-if [ "$IS_LOCAL" = "true" ]; then
-  echo "--- Local Mode: ON (Local Development) ---"
-  echo "Skipping Tailscale setup. Connecting to local network DB."
-else
+if [ "$IS_TAILSCALE" = "true" ]; then
+  echo "--- Mode: TAILSCALE (Connecting to Remote DB via Tailscale) ---"
   echo "Target DB IP: '${TAILSCALE_VGM_DB_HOST}'"
 
   # 1. Tailscale起動
@@ -38,6 +37,9 @@ else
   else
       echo "Socat is running (PID: $SOCAT_PID)."
   fi
+else
+  echo "--- Mode: LOCAL (Connecting to Local Network DB) ---"
+  echo "Skipping Tailscale setup."
 fi
 
 # 4. アプリ起動
