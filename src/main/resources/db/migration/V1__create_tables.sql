@@ -125,7 +125,7 @@ CREATE TRIGGER set_timestamp_t_user_pay_info BEFORE UPDATE ON t_user_pay_info FO
 
 
 -- -----------------------------------------------------
--- 06. ユーザー名変更履歴 (username_history)
+-- 06. ユーザー名変更履歴 (t_username_history)
 -- -----------------------------------------------------
 CREATE TABLE t_username_history (
     f_history_id BIGSERIAL PRIMARY KEY,
@@ -292,9 +292,9 @@ CREATE TABLE t_items_images (
 
 
 -- -----------------------------------------------------
--- 11. 商品お気に入り (t_item_likes)
+-- 11. 商品お気に入り (t_items_likes)
 -- -----------------------------------------------------
-CREATE TABLE t_item_likes (
+CREATE TABLE t_items_likes (
     f_item_favorite_id BIGSERIAL PRIMARY KEY,
     f_user_id INTEGER NOT NULL,
     f_item_id BIGINT NOT NULL,
@@ -471,3 +471,93 @@ CREATE TABLE t_item_comment (
     CONSTRAINT fk_comment_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
 );
 CREATE TRIGGER set_timestamp_t_item_comment BEFORE UPDATE ON t_item_comment FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+-- -----------------------------------------------------
+-- 25. 2段階認証設定 (t_user_two_factor)
+-- セキュリティ情報を分離管理するために作成
+-- -----------------------------------------------------
+CREATE TABLE t_user_two_factor (
+    f_two_factor_id BIGSERIAL PRIMARY KEY,
+    f_user_id INTEGER NOT NULL UNIQUE, -- 1ユーザー1レコード
+
+    -- TOTPシークレット (Base32)。暗号化して保存するのが理想だが、まずは平文でも分離されていればOK
+    f_secret_key VARCHAR(255) NOT NULL,
+
+    -- バックアップコード (カンマ区切りやJSONで保存)
+    f_backup_codes TEXT,
+
+    -- 設定が有効かどうか
+    f_is_enabled BOOLEAN DEFAULT FALSE,
+
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_2fa_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
+);
+
+COMMENT ON TABLE t_user_two_factor IS '2段階認証のシークレット情報';
+CREATE TRIGGER set_timestamp_t_user_two_factor BEFORE UPDATE ON t_user_two_factor FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+-- -----------------------------------------------------
+-- 26. 一時的検証コード (t_verification_codes)
+-- メール認証、SMS認証、パスワードリセット用
+-- -----------------------------------------------------
+CREATE TABLE t_verification_codes (
+    f_code_id BIGSERIAL PRIMARY KEY,
+    f_user_id INTEGER, -- 未登録ユーザーの場合はNULLもありえる
+    f_email VARCHAR(255), -- 送信先
+
+    f_code VARCHAR(50) NOT NULL, -- "123456" など
+    f_type VARCHAR(50) NOT NULL, -- "EMAIL_VERIFY", "PASSWORD_RESET", "2FA_SMS"
+
+    f_expires_at TIMESTAMP NOT NULL, -- 有効期限 (発行から10分後など)
+    f_is_used BOOLEAN DEFAULT FALSE, -- 使用済みか
+
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- 期限切れデータの掃除をしやすくするためのインデックス
+CREATE INDEX idx_verify_code_email ON t_verification_codes (f_email, f_code, f_type);
+
+
+-- -----------------------------------------------------
+-- 27. アプリバージョン管理 (m_app_versions)
+-- -----------------------------------------------------
+CREATE TABLE m_app_versions (
+    f_version_id BIGSERIAL PRIMARY KEY,
+    f_platform VARCHAR(20) NOT NULL DEFAULT 'pwa',
+    f_version_name VARCHAR(20) NOT NULL, -- '1.2.0'
+    f_version_code INTEGER NOT NULL,     -- 120
+
+    -- 最低稼働バージョン (これ未満は強制アップデート対象)
+    f_min_supported_version INTEGER NOT NULL DEFAULT 0,
+
+    f_released_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 公開日時
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+COMMENT ON TABLE m_app_versions IS 'アプリバージョン管理';
+CREATE TRIGGER set_timestamp_m_app_versions BEFORE UPDATE ON m_app_versions FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+-- -----------------------------------------------------
+-- 28. アプリ更新内容 (m_app_update_notes)
+-- -----------------------------------------------------
+CREATE TABLE m_app_update_notes (
+    f_update_note_id BIGSERIAL PRIMARY KEY,
+    f_version_id BIGINT NOT NULL,
+
+    f_title VARCHAR(100) NOT NULL,
+    f_message TEXT NOT NULL,
+
+    -- 重要度 (UI表示用: 'HIGH', 'NORMAL' など)
+    f_importance VARCHAR(20) DEFAULT 'NORMAL',
+
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_notes_version FOREIGN KEY (f_version_id) REFERENCES m_app_versions (f_version_id) ON DELETE CASCADE
+);
+COMMENT ON TABLE m_app_update_notes IS 'アプリ更新内容詳細';
+CREATE TRIGGER set_timestamp_m_app_update_notes BEFORE UPDATE ON m_app_update_notes FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
