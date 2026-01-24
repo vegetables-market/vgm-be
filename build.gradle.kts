@@ -71,9 +71,19 @@ dependencies {
     // Dotenv-kotlin for custom MultiEnvFileLoader
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
+    // OpenAPI (Swagger UI)
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
+
     constraints {
         implementation("com.beust:jcommander:1.82") {
             because("Previous versions have security vulnerability WS-2019-0490")
+        }
+        // 脆弱性のある 3.17.0 を避け、3.16.0 を強制する
+        implementation("org.apache.commons:commons-lang3") {
+            version {
+                strictly("3.16.0")
+            }
+            because("CVE-2025-48924: Vulnerability found in version 3.17.0. Downgrading until a fix is released.")
         }
     }
 }
