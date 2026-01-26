@@ -28,16 +28,7 @@ package com.example.myapp.controller
 //        }
 //    }
 //
-//    @PostMapping("/login")
-//    fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<LoginResponse> {
-//        val response = authService.login(loginRequest)
-//        // requireTotpがtrueの場合はHTTP 200で返す（フロントエンドがレスポンスを受け取れるように）
-//        return if (response.success || response.requireTotp) {
-//            ResponseEntity.ok(response)
-//        } else {
-//            ResponseEntity.badRequest().body(response)
-//        }
-//    }
+
 //
 //    @GetMapping("/user/{userId}")
 //    fun getUserById(@PathVariable userId: Int): ResponseEntity<LoginResponse> {
