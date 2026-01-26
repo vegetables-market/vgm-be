@@ -1,30 +1,40 @@
 package com.example.myapp.entity
 
-//import jakarta.persistence.*
-//
-//@Entity
-//@Table(name = "m_users")
-//data class User(
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    @Column(name = "f_user_id")
-//    val id: Int = 0,
-//
-//    @Column(name = "f_username", nullable = false, unique = true)
-//    val username: String = "",
-//
-//    @Column(name = "f_password_hash", nullable = false)
-//    val password: String = "",
-//
-//    // @Column(name = "f_email")
-//    // val email: String = "",
-//
-//    @Column(name = "f_created_at")
-//    val createdAt: java.time.LocalDateTime = java.time.LocalDateTime.now(),
-//
-//    @Column(name = "f_totp_secret", length = 32)
-//    var totpSecret: String? = null,
-//
-//    @Column(name = "f_two_factor_verified")
-//    var totpEnabled: Boolean = false
-//)
+import jakarta.persistence.*
+import java.time.LocalDateTime
+
+@Entity
+@Table(name = "m_users")
+data class User(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "f_user_id")
+    val userId: Int = 0,
+
+    @Column(name = "f_username", nullable = false, unique = true, length = 100)
+    val username: String,
+
+    @Column(name = "f_email", unique = true, length = 255)
+    var email: String? = null,
+
+    @Column(name = "f_display_name", nullable = false, length = 100)
+    val displayName: String,
+
+    @Column(name = "f_password_hash", nullable = false, length = 255)
+    val passwordHash: String,
+
+    @Column(name = "f_last_login_at")
+    var lastLoginAt: LocalDateTime? = null,
+
+    @Column(name = "f_status")
+    var status: Short = 1, // 0:無効, 1:仮登録, 2:有効, 3:停止, 4:削除
+
+    @Column(name = "f_email_verified")
+    var emailVerified: Short = 0, // 0:未認証, 1:認証済み
+
+    @Column(name = "f_created_at")
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "f_updated_at")
+    val updatedAt: LocalDateTime = LocalDateTime.now()
+)
