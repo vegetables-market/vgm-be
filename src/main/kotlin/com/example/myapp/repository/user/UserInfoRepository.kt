@@ -1,4 +1,4 @@
-package com.example.myapp.repository.auth
+package com.example.myapp.repository.user
 
 import com.example.myapp.entity.user.UserInfoEntity
 import org.springframework.data.jpa.repository.JpaRepository

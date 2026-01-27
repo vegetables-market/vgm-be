@@ -8,9 +8,9 @@ import com.example.myapp.entity.user.User
 import com.example.myapp.entity.user.UserInfoEntity
 import com.example.myapp.entity.user.UserProfile
 import com.example.myapp.entity.auth.UserSession
-import com.example.myapp.repository.auth.UserInfoRepository
-import com.example.myapp.repository.auth.UserRepository
-import com.example.myapp.repository.auth.UserProfileRepository
+import com.example.myapp.repository.user.UserInfoRepository
+import com.example.myapp.repository.user.UserRepository
+import com.example.myapp.repository.user.UserProfileRepository
 import com.example.myapp.repository.auth.UserSessionRepository
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service

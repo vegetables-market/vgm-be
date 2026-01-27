@@ -1,4 +1,4 @@
-package com.example.myapp.repository
+package com.example.myapp.repository.market
 
 //import com.example.myapp.entity.market.Order
 //import com.example.myapp.entity.market.Payment

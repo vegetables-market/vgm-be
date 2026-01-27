@@ -1,4 +1,4 @@
-package com.example.myapp.repository
+package com.example.myapp.repository.auth
 
 import com.example.myapp.entity.auth.TwoFactorAuth
 import org.springframework.data.jpa.repository.JpaRepository

@@ -1,4 +1,4 @@
-package com.example.myapp.repository
+package com.example.myapp.repository.common
 
 import com.example.myapp.entity.common.AppVersion
 import org.springframework.data.jpa.repository.JpaRepository

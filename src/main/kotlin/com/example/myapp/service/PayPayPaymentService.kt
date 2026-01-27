@@ -1,8 +1,8 @@
 package com.example.myapp.service
 //
 //import com.example.myapp.entity.*
-//import com.example.myapp.repository.PaymentRepository
-//import com.example.myapp.repository.TransactionRepository
+//import com.example.myapp.repository.market.PaymentRepository
+//import com.example.myapp.repository.market.TransactionRepository
 //import com.fasterxml.jackson.databind.JsonNode
 //import com.fasterxml.jackson.databind.ObjectMapper
 //import org.slf4j.LoggerFactory

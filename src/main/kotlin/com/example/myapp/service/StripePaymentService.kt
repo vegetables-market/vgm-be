@@ -1,8 +1,8 @@
 package com.example.myapp.service
 //
 //import com.example.myapp.entity.*
-//import com.example.myapp.repository.PaymentRepository
-//import com.example.myapp.repository.TransactionRepository
+//import com.example.myapp.repository.market.PaymentRepository
+//import com.example.myapp.repository.market.TransactionRepository
 //import com.stripe.Stripe
 //import com.stripe.model.PaymentIntent
 //import com.stripe.model.Refund

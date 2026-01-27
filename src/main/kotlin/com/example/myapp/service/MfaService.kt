@@ -2,7 +2,7 @@ package com.example.myapp.service
 
 import com.example.myapp.dto.user.*
 import com.example.myapp.entity.auth.TwoFactorAuth
-import com.example.myapp.repository.TwoFactorAuthRepository
+import com.example.myapp.repository.auth.TwoFactorAuthRepository
 import dev.samstevens.totp.code.*
 import dev.samstevens.totp.qr.QrData
 import dev.samstevens.totp.qr.QrDataFactory
@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 @Service
 class MfaService(
     private val twoFactorAuthRepository: TwoFactorAuthRepository,
-    private val userRepository: com.example.myapp.repository.auth.UserRepository,
+    private val userRepository: com.example.myapp.repository.user.UserRepository,
     private val secretGenerator: SecretGenerator,
     private val passwordEncoder: PasswordEncoder
 ) {
