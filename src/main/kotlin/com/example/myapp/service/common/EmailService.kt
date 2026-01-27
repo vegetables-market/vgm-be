@@ -1,4 +1,4 @@
-package com.example.myapp.service
+package com.example.myapp.service.common
 
 import jakarta.mail.internet.MimeMessage
 import org.springframework.beans.factory.annotation.Value

@@ -1,4 +1,4 @@
-package com.example.myapp.service
+package com.example.myapp.service.auth
 
 import com.example.myapp.dto.user.*
 import com.example.myapp.entity.auth.TwoFactorAuth

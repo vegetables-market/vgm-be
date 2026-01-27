@@ -29,7 +29,7 @@ class AuthService(
     private val userInfoRepository: UserInfoRepository,
     private val userSessionRepository: UserSessionRepository,
     private val emailVerificationService: EmailVerificationService,
-    private val mfaService: com.example.myapp.service.MfaService
+    private val mfaService: com.example.myapp.service.auth.MfaService
 ) {
     private val passwordEncoder = BCryptPasswordEncoder()
     private val mfaTokenSecret = "vgm-mfa-token-secret-key-change-in-production-environment" // TODO: Use environment variable

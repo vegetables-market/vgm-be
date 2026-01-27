@@ -2,7 +2,7 @@ package com.example.myapp.controller.user
 
 import com.example.myapp.dto.user.*
 import com.example.myapp.repository.auth.UserSessionRepository
-import com.example.myapp.service.MfaService
+import com.example.myapp.service.auth.MfaService
 import com.example.myapp.service.auth.AuthService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus

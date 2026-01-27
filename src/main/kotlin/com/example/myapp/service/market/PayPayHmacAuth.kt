@@ -1,4 +1,4 @@
-package com.example.myapp.service
+package com.example.myapp.service.market
 //
 //import java.nio.charset.StandardCharsets
 //import java.security.MessageDigest

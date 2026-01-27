@@ -3,7 +3,7 @@ package com.example.myapp.service.auth
 import com.example.myapp.entity.auth.VerificationCode
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.repository.auth.VerificationCodeRepository
-import com.example.myapp.service.EmailService
+import com.example.myapp.service.common.EmailService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime

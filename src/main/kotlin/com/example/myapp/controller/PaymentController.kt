@@ -6,8 +6,8 @@ package com.example.myapp.controller
 //import com.example.myapp.repository.market.OrderRepository
 //import com.example.myapp.repository.market.PaymentRepository
 //import com.example.myapp.repository.UserRepository
-//import com.example.myapp.service.PayPayPaymentService
-//import com.example.myapp.service.StripePaymentService
+//import com.example.myapp.service.market.PayPayPaymentService
+//import com.example.myapp.service.market.StripePaymentService
 //import org.springframework.http.ResponseEntity
 //import org.springframework.web.bind.annotation.*
 //import java.math.BigDecimal
