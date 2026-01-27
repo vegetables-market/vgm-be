@@ -1,9 +1,9 @@
 package com.example.myapp.repository
 
-//import com.example.myapp.entity.Order
-//import com.example.myapp.entity.Payment
-//import com.example.myapp.entity.PaymentStatus
-//import com.example.myapp.entity.User
+//import com.example.myapp.entity.market.Order
+//import com.example.myapp.entity.market.Payment
+//import com.example.myapp.entity.market.PaymentStatus
+//import com.example.myapp.entity.user.User
 //import org.springframework.data.jpa.repository.JpaRepository
 //import org.springframework.stereotype.Repository
 //import java.util.*

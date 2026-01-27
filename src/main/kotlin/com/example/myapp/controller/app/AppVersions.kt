@@ -1,6 +1,6 @@
 package com.example.myapp
 
-import com.example.myapp.entity.AppVersion
+import com.example.myapp.entity.common.AppVersion
 import com.example.myapp.repository.AppVersionRepository
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController

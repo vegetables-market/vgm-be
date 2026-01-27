@@ -1,6 +1,6 @@
 package com.example.myapp.service.auth
 
-import com.example.myapp.entity.VerificationCode
+import com.example.myapp.entity.auth.VerificationCode
 import com.example.myapp.repository.auth.UserRepository
 import com.example.myapp.repository.auth.VerificationCodeRepository
 import com.example.myapp.service.EmailService
@@ -142,6 +142,25 @@ class EmailVerificationService(
             userRepository.save(user)
         }
 
+        return true
+    }
+    /**
+     * MFA用のコード検証（User IDベース）
+     */
+    @Transactional
+    fun verifyCodeForMfa(userId: Int, code: String): Boolean {
+        // userIdで検索（typeはEMAIL_VERIFYを流用、またはEMAIL_MFAと分ける手もあるが、今回は流用）
+        val codes = verificationCodeRepository.findByUserIdAndTypeAndIsUsedFalse(userId, "EMAIL_VERIFY")
+        
+        // 有効期限内かつコードが一致するものを探す
+        val now = LocalDateTime.now()
+        val validCode = codes.find {
+            it.code == code && it.expiresAt > now
+        } ?: return false
+        
+        validCode.isUsed = true
+        verificationCodeRepository.save(validCode)
+        
         return true
     }
 }

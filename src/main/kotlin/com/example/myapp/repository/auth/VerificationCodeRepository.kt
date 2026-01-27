@@ -1,6 +1,6 @@
 package com.example.myapp.repository.auth
 
-import com.example.myapp.entity.VerificationCode
+import com.example.myapp.entity.auth.VerificationCode
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime

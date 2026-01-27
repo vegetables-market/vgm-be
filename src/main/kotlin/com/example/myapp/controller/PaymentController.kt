@@ -1,8 +1,8 @@
 package com.example.myapp.controller
 
 //import com.example.myapp.dto.*
-//import com.example.myapp.entity.PaymentMethod
-//import com.example.myapp.entity.User
+//import com.example.myapp.entity.market.PaymentMethod
+//import com.example.myapp.entity.user.User
 //import com.example.myapp.repository.OrderRepository
 //import com.example.myapp.repository.PaymentRepository
 //import com.example.myapp.repository.UserRepository

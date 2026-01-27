@@ -1,8 +1,8 @@
 package com.example.myapp.controller
 
 //import com.example.myapp.dto.*
-//import com.example.myapp.entity.Product
-//import com.example.myapp.entity.ProductStatus
+//import com.example.myapp.entity.market.Product
+//import com.example.myapp.entity.market.ProductStatus
 //import com.example.myapp.repository.ProductRepository
 //import com.example.myapp.repository.UserRepository
 //import org.springframework.http.ResponseEntity

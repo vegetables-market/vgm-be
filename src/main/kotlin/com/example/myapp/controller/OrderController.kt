@@ -1,9 +1,9 @@
 package com.example.myapp.controller
 
 //import com.example.myapp.dto.*
-//import com.example.myapp.entity.Order
-//import com.example.myapp.entity.OrderStatus
-//import com.example.myapp.entity.ProductStatus
+//import com.example.myapp.entity.market.Order
+//import com.example.myapp.entity.market.OrderStatus
+//import com.example.myapp.entity.market.ProductStatus
 //import com.example.myapp.repository.OrderRepository
 //import com.example.myapp.repository.ProductRepository
 //import com.example.myapp.repository.UserRepository

@@ -1,8 +1,8 @@
 package com.example.myapp.repository
 
-//import com.example.myapp.entity.Product
-//import com.example.myapp.entity.ProductStatus
-//import com.example.myapp.entity.User
+//import com.example.myapp.entity.market.Product
+//import com.example.myapp.entity.market.ProductStatus
+//import com.example.myapp.entity.user.User
 //import org.springframework.data.jpa.repository.EntityGraph
 //import org.springframework.data.jpa.repository.JpaRepository
 //import org.springframework.stereotype.Repository
