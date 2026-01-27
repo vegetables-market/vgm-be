@@ -1,5 +1,13 @@
 server:
   port: ${PORT:8080}
+  servlet:
+    session:
+      cookie:
+        http-only: true          # JavaScriptからアクセス不可
+        secure: false            # 開発環境ではfalse（本番環境ではtrue）
+        same-site: lax           # CSRF対策
+        max-age: 86400           # 24時間
+        path: /
 #  servlet:
 #    context-path: /api
 
@@ -9,6 +17,15 @@ spring:
     import: "optional:file:./.env.local[.properties]"
   application:
     name: vgm-backend
+  # Actuator設定
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,metrics
+    endpoint:
+      health:
+        show-details: always
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
