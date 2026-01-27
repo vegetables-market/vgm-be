@@ -17,15 +17,8 @@ spring:
     import: "optional:file:./.env.local[.properties]"
   application:
     name: vgm-backend
-  # Actuator設定
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health,info,metrics
-    endpoint:
-      health:
-        show-details: always
+
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USER}
@@ -39,8 +32,8 @@ spring:
     clean-disabled: true
   jpa:
     hibernate:
-#      コード修正後に、置き換える
-#      ddl-auto: validate
+  #      コード修正後に、置き換える
+  #      ddl-auto: validate
       ddl-auto: none
     properties:
       hibernate:
@@ -61,6 +54,16 @@ spring:
           connectiontimeout: ${MAIL_SMTP_CONNECTION_TIMEOUT:5000}
           timeout: ${MAIL_SMTP_TIMEOUT:5000}
           writetimeout: ${MAIL_SMTP_WRITE_TIMEOUT:5000}
+
+# Actuator設定
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
 
 # メール設定
 mail:
