@@ -1,8 +1,5 @@
-package com.example.myapp.controller.auth
+package com.example.myapp.controller.auth.signinoptions
 
-import com.example.myapp.dto.auth.LoginRequest
-import com.example.myapp.dto.auth.LoginResponse
-import com.example.myapp.dto.auth.SignupRequest
 import com.example.myapp.dto.auth.VerifyEmailRequest
 import com.example.myapp.service.auth.AuthService
 import com.example.myapp.service.auth.EmailVerificationService
@@ -15,58 +12,10 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/v1/auth")
-class AuthController(
+class EmailVerificationController(
     private val authService: AuthService,
     private val emailVerificationService: EmailVerificationService
 ) {
-    @PostMapping("/login")
-    fun login(
-        @RequestBody request: LoginRequest,
-        servletRequest: HttpServletRequest
-    ): ResponseEntity<LoginResponse> {
-        val ipAddress = servletRequest.remoteAddr
-        val userAgent = servletRequest.getHeader("User-Agent")
-        val deviceId = servletRequest.cookies?.find { it.name == "vgm_session" }?.value
-        val finalRequest = if (deviceId != null) request.copy(device_id = deviceId) else request
-        
-        val response = authService.login(finalRequest, ipAddress, userAgent)
-        
-        return if (response.status == "AUTHENTICATED" || response.status == "VERIFICATION_REQUIRED" || response.status == "PASSWORD_REQUIRED") {
-            ResponseEntity.ok(response)
-        } else {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
-        }
-    }
-
-    @PostMapping("/logout")
-    fun logout(
-        servletRequest: HttpServletRequest,
-        servletResponse: HttpServletResponse
-    ): ResponseEntity<Map<String, Any>> {
-        val deviceId = servletRequest.cookies?.find { it.name == "vgm_session" }?.value
-        
-        if (deviceId != null) {
-            authService.logout(deviceId)
-        }
-        
-        val cookie = Cookie("vgm_session", null)
-        cookie.isHttpOnly = true
-        cookie.maxAge = 0
-        cookie.path = "/"
-        servletResponse.addCookie(cookie)
-        
-        return ResponseEntity.ok(mapOf("success" to true, "message" to "Logged out successfully"))
-    }
-
-    @PostMapping("/signup")
-    fun signup(@RequestBody request: SignupRequest): ResponseEntity<Any> {
-        return try {
-            val response = authService.signup(request)
-            ResponseEntity.status(HttpStatus.CREATED).body(response)
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mapOf("message" to e.message))
-        }
-    }
 
     /**
      * 認証コード再送信
@@ -109,6 +58,12 @@ class AuthController(
             if (user != null) {
                 val ipAddress = servletRequest.remoteAddr
                 val userAgent = servletRequest.getHeader("User-Agent")
+                
+                // 初回認証完了時、MFAタイプが未設定ならEmail MFAを有効化
+                if (user.preferredMfaType == null) {
+                    authService.enableEmailMfa(user.userId)
+                }
+
                 val sessionKey = authService.createSession(user.userId, ipAddress, userAgent)
                 
                 val cookie = Cookie("vgm_session", sessionKey)
