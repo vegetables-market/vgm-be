@@ -145,7 +145,8 @@ class AuthService(
                     return LoginResponse(
                         status = "MFA_REQUIRED",
                         user = null,
-                        mfa_token = generateMfaToken(user.userId)
+                        mfa_token = generateMfaToken(user.userId),
+                        mfa_type = "TOTP"
                     )
                 } else if (user.preferredMfaType == "EMAIL") {
                     // Email MFAの場合、ここでメール送信
@@ -154,7 +155,8 @@ class AuthService(
                     return LoginResponse(
                         status = "MFA_REQUIRED",
                         user = null,
-                        mfa_token = generateMfaToken(user.userId)
+                        mfa_token = generateMfaToken(user.userId),
+                        mfa_type = "EMAIL"
                     )
                 }
             }
@@ -178,17 +180,19 @@ class AuthService(
         // MFAチェック
         if (user!!.isMfaEnabled) {
             if (user.preferredMfaType == "TOTP") {
-                return LoginResponse(
-                    status = "MFA_REQUIRED",
-                    user = null,
-                    mfa_token = generateMfaToken(user.userId)
-                )
-            } else if (user.preferredMfaType == "EMAIL") {
+                    return LoginResponse(
+                        status = "MFA_REQUIRED",
+                        user = null,
+                        mfa_token = generateMfaToken(user.userId),
+                        mfa_type = "TOTP"
+                    )
+                } else if (user.preferredMfaType == "EMAIL") {
                  emailVerificationService.sendVerificationEmail(user.userId, user.email!!)
                  return LoginResponse(
                     status = "MFA_REQUIRED",
                     user = null,
-                    mfa_token = generateMfaToken(user.userId)
+                    mfa_token = generateMfaToken(user.userId),
+                    mfa_type = "EMAIL"
                 )
             }
         }

@@ -9,7 +9,8 @@ data class LoginResponse(
     val require_verification: Boolean = false,
     val flow_id: String? = null,
     val masked_email: String? = null,
-    val mfa_token: String? = null // MFA検証用の一時トークン
+    val mfa_token: String? = null, // MFA検証用の一時トークン
+    val mfa_type: String? = null // "TOTP", "EMAIL" etc.
 )
 
 data class UserInfo(

@@ -91,14 +91,8 @@ class SecurityConfig(
                     .maxSessionsPreventsLogin(false) // 新しいログインで古いセッションを無効化
             }
             
-            // ログアウト設定
-            .logout { logout ->
-                logout
-                    .logoutUrl("/v1/auth/logout")
-                    .deleteCookies("JSESSIONID", "XSRF-TOKEN")
-                    .invalidateHttpSession(true)
-                    .clearAuthentication(true)
-            }
+            // ログアウト設定 (無効化し、LoginControllerで独自実装を使用)
+            .logout { it.disable() }
 
         return http.build()
     }
