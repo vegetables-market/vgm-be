@@ -17,7 +17,7 @@ class MfaVerificationController(
 
     @PostMapping("/verify-mfa")
     fun verifyMfa(
-        @RequestBody request: com.example.myapp.dto.auth.VerifyMfaLoginRequest,
+        @RequestBody request: com.example.myapp.dto.auth.signinoptions.VerifyMfaLoginRequest,
         servletRequest: HttpServletRequest,
         servletResponse: HttpServletResponse
     ): ResponseEntity<LoginResponse> {

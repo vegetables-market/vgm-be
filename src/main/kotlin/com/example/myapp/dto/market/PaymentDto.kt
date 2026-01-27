@@ -1,4 +1,4 @@
-package com.example.myapp.dto
+package com.example.myapp.dto.market
 
 //import com.example.myapp.entity.PaymentMethod
 //import com.example.myapp.entity.PaymentStatus

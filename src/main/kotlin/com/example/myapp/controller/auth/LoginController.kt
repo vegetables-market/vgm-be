@@ -3,7 +3,7 @@ package com.example.myapp.controller.auth
 import com.example.myapp.dto.auth.LoginRequest
 import com.example.myapp.dto.auth.LoginResponse
 import com.example.myapp.dto.auth.SignupRequest
-import com.example.myapp.dto.auth.VerifyEmailRequest
+
 import com.example.myapp.service.auth.AuthService
 import com.example.myapp.service.auth.EmailVerificationService
 import jakarta.servlet.http.Cookie

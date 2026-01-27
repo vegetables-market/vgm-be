@@ -1,6 +1,6 @@
 package com.example.myapp.controller.auth.signinoptions
 
-import com.example.myapp.dto.auth.VerifyEmailRequest
+import com.example.myapp.dto.auth.signinoptions.VerifyEmailRequest
 import com.example.myapp.service.auth.AuthService
 import com.example.myapp.service.auth.EmailVerificationService
 import jakarta.servlet.http.Cookie
