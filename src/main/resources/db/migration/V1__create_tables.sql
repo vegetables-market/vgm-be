@@ -2,7 +2,7 @@
   System: grand market
   Database: PostgreSQL 16+
   Version: 1.0.0
-  Description: Initial Schema Creation with PostGIS & Amazon-style Shipping
+  Description: Initial Schema Creation with PostGIS & Amazon-style Shipping & Auth Enhancements (Unified V1)
 */
 
 -- -----------------------------------------------------
@@ -29,17 +29,27 @@ CREATE TABLE m_users (
     f_user_id SERIAL PRIMARY KEY,
     f_username VARCHAR(100) NOT NULL UNIQUE,
     f_display_name VARCHAR(100) NOT NULL,
+    f_email VARCHAR(255) UNIQUE, -- V2 added
     f_password_hash VARCHAR(255) NOT NULL,
     f_last_login_at TIMESTAMP,
     f_status SMALLINT DEFAULT 1, -- 0:無効,1:有効,2:停止,3:削除
+    
+    -- Verification Flags
     f_email_verified SMALLINT DEFAULT 0,
     f_phone_verified SMALLINT DEFAULT 0,
     f_two_factor_verified SMALLINT DEFAULT 0,
     f_identity_verified SMALLINT DEFAULT 0,
+    
+    -- MFA Settings (V5, V6 added)
+    f_is_mfa_enabled BOOLEAN DEFAULT FALSE NOT NULL,
+    f_preferred_mfa_type VARCHAR(20) DEFAULT NULL, -- 'TOTP', 'EMAIL', etc.
+
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 COMMENT ON TABLE m_users IS 'ユーザーマスター';
+COMMENT ON COLUMN m_users.f_email IS 'メールアドレス';
+COMMENT ON COLUMN m_users.f_preferred_mfa_type IS '優先MFA方式 (TOTP, EMAIL, etc). NULLなら無効';
 CREATE TRIGGER set_timestamp_m_users BEFORE UPDATE ON m_users FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
@@ -511,6 +521,7 @@ CREATE TABLE t_verification_codes (
 
     f_code VARCHAR(50) NOT NULL, -- "123456" など
     f_type VARCHAR(50) NOT NULL, -- "EMAIL_VERIFY", "PASSWORD_RESET", "2FA_SMS"
+    f_flow_id VARCHAR(255) UNIQUE, -- V4 added
 
     f_expires_at TIMESTAMP NOT NULL, -- 有効期限 (発行から10分後など)
     f_is_used BOOLEAN DEFAULT FALSE, -- 使用済みか
@@ -519,6 +530,8 @@ CREATE TABLE t_verification_codes (
 );
 -- 期限切れデータの掃除をしやすくするためのインデックス
 CREATE INDEX idx_verify_code_email ON t_verification_codes (f_email, f_code, f_type);
+CREATE INDEX idx_verify_flow_id ON t_verification_codes (f_flow_id); -- V4 added
+COMMENT ON COLUMN t_verification_codes.f_flow_id IS '認証フロー識別用UUID';
 
 
 -- -----------------------------------------------------
@@ -561,3 +574,44 @@ CREATE TABLE m_app_update_notes (
 );
 COMMENT ON TABLE m_app_update_notes IS 'アプリ更新内容詳細';
 CREATE TRIGGER set_timestamp_m_app_update_notes BEFORE UPDATE ON m_app_update_notes FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+-- -----------------------------------------------------
+-- 29. ユーザーセッション管理 (t_user_sessions) (V3 added)
+-- 役割: ログイン中の端末管理、セッション維持
+-- -----------------------------------------------------
+CREATE TABLE t_user_sessions (
+    f_session_id BIGSERIAL PRIMARY KEY,
+    f_user_id INTEGER NOT NULL,
+
+    -- セッション識別子（Cookieに保存する値。連番IDの代わりにUUID等を使用）
+    f_session_key VARCHAR(255) NOT NULL UNIQUE,
+
+    -- リフレッシュトークン（ハッシュ化して保存）
+    f_refresh_token_hash VARCHAR(255) NOT NULL,
+
+    -- 端末情報
+    f_device_name VARCHAR(100), -- 例: "Chrome on MacOS"
+    f_ip_address VARCHAR(45),   -- IPv6対応
+
+    -- 状態管理
+    f_is_revoked BOOLEAN DEFAULT FALSE, -- TRUEなら無効化済み
+
+    -- 有効期限
+    f_expires_at TIMESTAMP NOT NULL,
+
+    -- タイムスタンプ
+    f_last_accessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_sessions_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
+);
+
+-- インデックス
+CREATE INDEX idx_sessions_key ON t_user_sessions (f_session_key);
+CREATE INDEX idx_sessions_user ON t_user_sessions (f_user_id);
+CREATE INDEX idx_sessions_token ON t_user_sessions (f_refresh_token_hash);
+
+COMMENT ON TABLE t_user_sessions IS 'ユーザーセッション管理';
+COMMENT ON COLUMN t_user_sessions.f_session_key IS 'Cookie照合用ランダムキー';
+COMMENT ON COLUMN t_user_sessions.f_is_revoked IS 'セッション無効化フラグ';
