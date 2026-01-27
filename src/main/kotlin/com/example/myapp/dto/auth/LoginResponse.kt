@@ -13,10 +13,10 @@ data class LoginResponse(
 )
 
 data class UserInfo(
-    val user_id: Int,
+    val username: String,
     val display_name: String,
     val email: String?,
     val avatar_url: String? = null,
     @JsonProperty("is_email_verified")
-    val is_email_verified: Any // Boolean or Short
+    val is_email_verified: Boolean // Boolean
 )

@@ -110,15 +110,6 @@ class AuthService(
     fun login(request: LoginRequest, ipAddress: String? = null, userAgent: String? = null): LoginResponse {
         val user = userRepository.findByUsernameOrEmail(request.username, request.username)
         
-        val session = request.device_id?.let {
-            userSessionRepository.findBySessionKeyAndIsRevokedFalseAndExpiresAtAfter(it, LocalDateTime.now())
-        }
-        val isKnownDevice = session != null && user != null && session.userId == user.userId
-
-        val isPasswordCorrect = request.password?.let {
-            user != null && passwordEncoder.matches(it, user.passwordHash)
-        } ?: false
-
         if (request.password == null) {
             return LoginResponse(
                 status = "PASSWORD_REQUIRED",
@@ -126,51 +117,59 @@ class AuthService(
             )
         }
 
-        if (!isKnownDevice || !isPasswordCorrect) {
-            var flowId: String? = null
-            var maskedEmail: String? = null
-            var status = "VERIFICATION_REQUIRED"
-            var mfaToken: String? = null
+        // パスワードチェック：ユーザーが存在しない、またはパスワードが一致しない場合は即座にエラー
+        val isPasswordCorrect = user != null && passwordEncoder.matches(request.password, user.passwordHash)
+        if (!isPasswordCorrect) {
+             return LoginResponse(
+                status = "INVALID_CREDENTIALS", // 具体的な理由は返さない
+                user = null,
+                message = "ユーザー名またはパスワードが間違っています"
+            )
+        }
+        
+        // ここから先はパスワードが正しいユーザーのみ到達
+        
+        val session = request.device_id?.let {
+            userSessionRepository.findBySessionKeyAndIsRevokedFalseAndExpiresAtAfter(it, LocalDateTime.now())
+        }
+        // セッションが有効で、かつ現在のユーザーとIDが一致するか
+        val isKnownDevice = session != null && session.userId == user!!.userId
 
-            if (user != null) {
-                 // パスワードが正しい場合のみMFAチェックを行う
-                if (isPasswordCorrect) {
-                    // 最適化: Userエンティティのフラグを確認
-                    if (user.isMfaEnabled) {
-                        if (user.preferredMfaType == "TOTP") {
-                            status = "MFA_REQUIRED"
-                            mfaToken = generateMfaToken(user.userId)
-                            return LoginResponse(
-                                status = status,
-                                user = null,
-                                mfa_token = mfaToken
-                            )
-                        } else if (user.preferredMfaType == "EMAIL") {
-                            // Email MFAの場合、ここでメール送信
-                            emailVerificationService.sendVerificationEmail(user.userId, user.email!!)
-                            
-                            status = "MFA_REQUIRED"
-                            mfaToken = generateMfaToken(user.userId)
-                            return LoginResponse(
-                                status = status,
-                                user = null,
-                                mfa_token = mfaToken
-                            )
-                        }
-                    }
+        if (!isKnownDevice) {
+            // 未知のデバイスからのログイン -> MFAチェックへ
+            // パスワードは合っているので、ここで初めてMFAフローなどの分岐を行う
+            
+            // 最適化: Userエンティティのフラグを確認
+            if (user!!.isMfaEnabled) {
+                if (user.preferredMfaType == "TOTP") {
+                    return LoginResponse(
+                        status = "MFA_REQUIRED",
+                        user = null,
+                        mfa_token = generateMfaToken(user.userId)
+                    )
+                } else if (user.preferredMfaType == "EMAIL") {
+                    // Email MFAの場合、ここでメール送信
+                    emailVerificationService.sendVerificationEmail(user.userId, user.email!!)
+                    
+                    return LoginResponse(
+                        status = "MFA_REQUIRED",
+                        user = null,
+                        mfa_token = generateMfaToken(user.userId)
+                    )
                 }
-
-                flowId = emailVerificationService.sendVerificationEmail(user.userId, user.email ?: user.username)
-                maskedEmail = user.email?.let { maskEmail(it) }
             }
+
+            // MFAが無効な場合でも、新しいデバイスからのログイン通知などはここで行う（必要であれば）
+            // 現状はメール認証フローへ
+            val flowId = emailVerificationService.sendVerificationEmail(user.userId, user.email ?: user.username)
+            val maskedEmail = user.email?.let { maskEmail(it) }
             
             return LoginResponse(
-                status = status,
+                status = "VERIFICATION_REQUIRED",
                 user = null,
                 require_verification = true,
                 flow_id = flowId,
                 masked_email = maskedEmail,
-                 // パスワード間違いの場合はmfa_tokenは返さない
                 mfa_token = null
             )
         }
@@ -208,11 +207,11 @@ class AuthService(
         return LoginResponse(
             status = "AUTHENTICATED",
             user = UserInfo(
-                user_id = user.userId,
+                username = user.username,
                 display_name = user.displayName,
                 email = user.email,
                 avatar_url = userProfile?.profileImageUrl,
-                is_email_verified = user.emailVerified == 1.toShort()
+                is_email_verified = user.emailVerified.toInt() == 1
             )
         )
     }
@@ -249,11 +248,11 @@ class AuthService(
         return LoginResponse(
             status = "AUTHENTICATED",
             user = UserInfo(
-                user_id = user.userId,
+                username = user.username,
                 display_name = user.displayName,
                 email = user.email,
                 avatar_url = userProfile?.profileImageUrl,
-                is_email_verified = user.emailVerified == 1.toShort()
+                is_email_verified = user.emailVerified.toInt() == 1
             ),
             flow_id = sessionKey // セッションキーをflow_idとして返す（コントローラーでCookieにセットする）
         )
@@ -354,7 +353,7 @@ class AuthService(
         return LoginResponse(
             status = "REGISTERED",
             user = UserInfo(
-                user_id = savedUser.userId,
+                username = savedUser.username,
                 display_name = savedUser.displayName,
                 email = savedUser.email,
                 avatar_url = null,
