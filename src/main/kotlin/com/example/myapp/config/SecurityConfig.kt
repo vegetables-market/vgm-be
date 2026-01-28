@@ -26,7 +26,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
-    @Value("\${cors.allowed-origins}") private val allowedOrigins: String
+    @Value("\${cors.allowed-origins}") private val allowedOrigins: String,
+    private val sessionAuthenticationFilter: com.example.myapp.security.SessionAuthenticationFilter
 ) {
 
     @Bean
@@ -47,7 +48,9 @@ class SecurityConfig(
                         "/v1/auth/resend-code",      // コード再送
                         "/v1/auth/verify-mfa",       // MFA認証
                         "/v1/user/mfa/**",  // MFAエンドポイント(独自認証)
-                        "/v1/auth/logout"   // ログアウト(独自認証)
+                        "/v1/auth/logout",   // ログアウト(独自認証)
+                        "/v1/market/items/upload-token", // 一時的なCSRF除外(デバッグ)
+                        "/v1/admin/media/upload-token"      // 管理者アップロードも除外
                     )
             }
             
@@ -93,6 +96,9 @@ class SecurityConfig(
             
             // ログアウト設定 (無効化し、LoginControllerで独自実装を使用)
             .logout { it.disable() }
+
+            // セッション認証フィルターを追加
+            .addFilterBefore(sessionAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }

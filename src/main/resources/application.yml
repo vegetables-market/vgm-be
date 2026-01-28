@@ -93,3 +93,8 @@ paypay:
 # マーケットプレイス設定
 marketplace:
   platform-fee-rate: ${PLATFORM_FEE_RATE:0.10}
+
+# メディア設定
+vgm:
+  media:
+    jwt-secret: ${MEDIA_JWT_SECRET:your-256-bit-secret-must-be-very-long-and-secure}

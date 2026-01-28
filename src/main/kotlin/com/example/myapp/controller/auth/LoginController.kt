@@ -21,7 +21,8 @@ class LoginController(
     @PostMapping("/login")
     fun login(
         @RequestBody request: LoginRequest,
-        servletRequest: HttpServletRequest
+        servletRequest: HttpServletRequest,
+        servletResponse: HttpServletResponse
     ): ResponseEntity<LoginResponse> {
         val ipAddress = servletRequest.remoteAddr
         val userAgent = servletRequest.getHeader("User-Agent")
@@ -29,6 +30,14 @@ class LoginController(
         val finalRequest = if (deviceId != null) request.copy(device_id = deviceId) else request
         
         val response = authService.login(finalRequest, ipAddress, userAgent)
+        
+        if (response.status == "AUTHENTICATED" && response.flow_id != null) {
+            val cookie = Cookie("vgm_session", response.flow_id)
+            cookie.isHttpOnly = true
+            cookie.maxAge = 30 * 24 * 60 * 60 // 30 days
+            cookie.path = "/"
+            servletResponse.addCookie(cookie)
+        }
         
         return if (response.status == "AUTHENTICATED" || response.status == "VERIFICATION_REQUIRED" || response.status == "PASSWORD_REQUIRED" || response.status == "MFA_REQUIRED") {
             ResponseEntity.ok(response)

@@ -201,9 +201,13 @@ class AuthService(
         user.lastLoginAt = LocalDateTime.now()
         userRepository.save(user)
 
-        session?.let {
-            it.lastAccessedAt = LocalDateTime.now()
-            userSessionRepository.save(it)
+        val sessionKey = if (session != null) {
+            session.lastAccessedAt = LocalDateTime.now()
+            userSessionRepository.save(session)
+            session.sessionKey
+        } else {
+            // 新規セッション作成
+            createSession(user.userId, ipAddress, userAgent) // userAgentをdeviceNameとして使用
         }
 
         val userProfile = userProfileRepository.findById(user.userId).orElse(null)
@@ -216,7 +220,8 @@ class AuthService(
                 email = user.email,
                 avatar_url = userProfile?.profileImageUrl,
                 is_email_verified = user.emailVerified.toInt() == 1
-            )
+            ),
+            flow_id = sessionKey // セッションキーを返す
         )
     }
 

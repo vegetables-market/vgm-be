@@ -42,5 +42,8 @@ data class User(
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "f_preferred_mfa_type", length = 20)
-    var preferredMfaType: String? = null
+    var preferredMfaType: String? = null,
+
+    @Column(name = "f_role", nullable = false, length = 20)
+    var role: String = "USER"
 )
