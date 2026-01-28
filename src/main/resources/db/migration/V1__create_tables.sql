@@ -32,7 +32,7 @@ CREATE TABLE m_users (
     f_email VARCHAR(255) UNIQUE, -- V2 added
     f_password_hash VARCHAR(255) NOT NULL,
     f_last_login_at TIMESTAMP,
-    f_status SMALLINT DEFAULT 1, -- 0:無効,1:有効,2:停止,3:削除
+    f_status SMALLINT DEFAULT 1, -- 0:無効,1:仮登録,2:有効,3:停止,4:削除
     
     -- Verification Flags
     f_email_verified SMALLINT DEFAULT 0,
