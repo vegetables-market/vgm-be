@@ -48,7 +48,8 @@ class AuthController(
                 message = "ユーザー情報を取得しました",
                 userId = user.id,
                 username = user.username,
-                email = user.email
+                email = user.email,
+                theme = user.theme
             ))
         } else {
             ResponseEntity.notFound().build()

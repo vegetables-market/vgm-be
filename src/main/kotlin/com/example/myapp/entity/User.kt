@@ -25,5 +25,14 @@ data class User(
     var totpSecret: String? = null,
 
     @Column(name = "totp_enabled")
-    var totpEnabled: Boolean = false
+    var totpEnabled: Boolean = false,
+
+    /**
+     * User preference: theme.
+     * DB: stored in table `users`, column name `theme` (VARCHAR).
+     * If your database uses a different table/column name, update this annotation accordingly.
+     * Possible values: "light" (default), "dark".
+     */
+    @Column(name = "theme")
+    var theme: String? = "light"
 )

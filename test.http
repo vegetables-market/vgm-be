@@ -1,0 +1,35 @@
+### Register user
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "themeuser",
+  "email": "themeuser@example.com",
+  "password": "secret123"
+}
+
+### Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "themeuser",
+  "password": "secret123"
+}
+
+### Get user info (replace {{userId}} with the id returned by register or login)
+GET http://localhost:8080/api/auth/user/{{userId}}
+
+### Get theme
+GET http://localhost:8080/api/users/{{userId}}/theme
+
+### Set theme to dark
+PUT http://localhost:8080/api/users/{{userId}}/theme
+Content-Type: application/json
+
+{
+  "theme": "dark"
+}
+
+### Verify theme changed
+GET http://localhost:8080/api/users/{{userId}}/theme
