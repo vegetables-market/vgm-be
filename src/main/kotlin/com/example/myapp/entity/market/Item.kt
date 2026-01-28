@@ -19,38 +19,38 @@ data class Item(
     @Column(name = "f_spot_id")
     val spotId: Long? = null,
 
-    @Column(name = "f_name", nullable = false)
-    val name: String,
+    @Column(name = "f_name")
+    val name: String? = null,
 
-    @Column(name = "f_description", columnDefinition = "TEXT", nullable = false)
-    val description: String,
+    @Column(name = "f_description", columnDefinition = "TEXT")
+    val description: String? = null,
 
-    @Column(name = "f_categories_id", nullable = false)
-    val categoryId: Long,
+    @Column(name = "f_categories_id")
+    val categoryId: Long? = null,
 
-    @Column(name = "f_price", nullable = false)
-    val price: Int,
+    @Column(name = "f_price")
+    val price: Int? = null,
 
     @Column(name = "f_quantity", nullable = false)
     val quantity: Int = 1,
 
-    // 0:下書き, 1:出品中, 2:取引中, 3:売切, 4:停止
+    // 0:出品作業中, 1:下書き, 2:出品中, 3:取引中, 4:売切, 5:停止
     @Column(name = "f_status", nullable = false)
-    var status: Int = 1,
+    var status: Short = 0,
 
     // 0:送料込(出品者負担), 1:着払い
     @Column(name = "f_shipping_payer_type")
     val shippingPayerType: Int = 0,
 
     // 都道府県ID
-    @Column(name = "f_shipping_origin_area", nullable = false)
-    val shippingOriginArea: Int,
+    @Column(name = "f_shipping_origin_area")
+    val shippingOriginArea: Int? = null,
 
-    @Column(name = "f_shipping_days_id", nullable = false)
-    val shippingDaysId: Int,
+    @Column(name = "f_shipping_days_id")
+    val shippingDaysId: Int? = null,
 
-    @Column(name = "f_shipping_method_id", nullable = false)
-    val shippingMethodId: Int,
+    @Column(name = "f_shipping_method_id")
+    val shippingMethodId: Int? = null,
 
     // 0:新品...
     @Column(name = "f_item_condition")

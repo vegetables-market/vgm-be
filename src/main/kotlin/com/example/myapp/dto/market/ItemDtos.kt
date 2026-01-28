@@ -28,15 +28,25 @@ data class CreateItemRequest(
     val itemCondition: Int,
     
     @JsonProperty("image_urls")
-    val imageUrls: List<String>
+    val imageUrls: List<String>? = null
 )
 
 data class ItemResponse(
     val id: Long,
-    val name: String,
-    val price: Int,
+    val name: String?,
+    val price: Int?,
     val status: Int,
     val imageUrl: String?, // 1枚目
     @JsonProperty("created_at")
     val createdAt: String
+)
+
+data class CreateDraftResponse(
+    @JsonProperty("item_id")
+    val itemId: Long
+)
+
+data class LinkImagesRequest(
+    @JsonProperty("filenames")
+    val filenames: List<String>
 )

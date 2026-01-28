@@ -50,6 +50,7 @@ class SecurityConfig(
                         "/v1/user/mfa/**",  // MFAエンドポイント(独自認証)
                         "/v1/auth/logout",   // ログアウト(独自認証)
                         "/v1/market/items/upload-token", // 一時的なCSRF除外(デバッグ)
+                        "/v1/market/items/**",     // 商品関連API(一時的除外)
                         "/v1/admin/media/upload-token"      // 管理者アップロードも除外
                     )
             }
@@ -78,7 +79,8 @@ class SecurityConfig(
                     // 独自セッション認証を使用するエンドポイント（Controller内で認証チェック）
                     .requestMatchers(
                         "/v1/user/mfa/**",           // MFA設定
-                        "/v1/auth/logout"            // ログアウト
+                        "/v1/auth/logout",           // ログアウト
+                        "/v1/market/items/**"        // デバッグ用: 一時的に許可
                     ).permitAll()
                     
                     // その他のエンドポイントは認証必須
