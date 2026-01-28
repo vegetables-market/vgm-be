@@ -157,7 +157,7 @@ tasks.register("flywayRepair") {
 
         val flyway = org.flywaydb.core.Flyway.configure()
             .dataSource(dbUrl, dbUser, dbPassword)
-            .locations("classpath:db/migration") // Ensure this matches application.yml
+            .locations("filesystem:src/main/resources/db/migration") // Use filesystem path to ensure files are found
             .baselineOnMigrate(true) // Should match application.yml
             .baselineVersion("0") // Should match application.yml
             .load()
