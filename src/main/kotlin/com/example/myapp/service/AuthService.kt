@@ -58,7 +58,8 @@ class AuthService(
             success = true,
             message = "登録が完了しました",
             userId = savedUser.id,
-            username = savedUser.username
+            username = savedUser.username,
+            theme = savedUser.theme
         )
     }
 
@@ -97,7 +98,8 @@ class AuthService(
             message = "ログインに成功しました",
             userId = user.id,
             username = user.username,
-            email = user.email
+            email = user.email,
+            theme = user.theme ?: "light"
         )
     }
 

@@ -6,5 +6,6 @@ data class LoginResponse(
     val requireTotp: Boolean = false,
     val userId: Long? = null,
     val username: String? = null,
-    val email: String? = null
+    val email: String? = null,
+    val theme: String? = null
 )
