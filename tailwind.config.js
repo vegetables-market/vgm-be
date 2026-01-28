@@ -5,3 +5,12 @@ export default {
   },
   plugins: [],
 };
+
+module.exports = {
+  darkMode: "class",
+  content: ["./src/**/*.{html,ts,tsx,js}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
