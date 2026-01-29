@@ -71,7 +71,7 @@ class SecurityConfig(
                         "/v1/auth/verify-challenge", // チャレンジ認証
                         "/v1/auth/resend-code",      // コード再送
                         "/v1/auth/verify-mfa",       // MFA認証
-                        "/health",
+                        "/v1/version",               // アプリバージョン
                         "/actuator/health",
                         "/error"
                     ).permitAll()

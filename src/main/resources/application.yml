@@ -1,6 +1,7 @@
 server:
   port: ${PORT:8080}
   servlet:
+    context-path: /api
     session:
       cookie:
         http-only: true # JavaScriptからアクセス不可
@@ -8,8 +9,6 @@ server:
         same-site: lax # CSRF対策
         max-age: 86400 # 24時間
         path: /
-#  servlet:
-#    context-path: /api
 
 spring:
   config:
