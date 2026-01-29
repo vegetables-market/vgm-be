@@ -50,19 +50,7 @@ class EmailVerificationService(
         println("Email: $email")
         println("=======================================")
         
-        val subject = "【VGM】メールアドレス認証コード"
-        val content = """
-            <html>
-            <body>
-                <h2>メールアドレス認証</h2>
-                <p>以下の認証コードをアプリに入力してください。</p>
-                <p style="font-size: 24px; font-weight: bold; letter-spacing: 5px;">$code</p>
-                <p>有効期限: 20分</p>
-            </body>
-            </html>
-        """.trimIndent()
-        
-        emailService.sendHtmlEmail(email, subject, content)
+        emailService.sendVerificationCodeEmail(email, code)
         return flowId
     }
 
