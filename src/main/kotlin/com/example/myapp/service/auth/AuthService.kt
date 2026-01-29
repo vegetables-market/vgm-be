@@ -146,7 +146,8 @@ class AuthService(
                         status = "MFA_REQUIRED",
                         user = null,
                         mfa_token = generateMfaToken(user.userId),
-                        mfa_type = "TOTP"
+                        mfa_type = "TOTP",
+                        masked_email = user.email?.let { maskEmail(it) }
                     )
                 } else if (user.preferredMfaType == "EMAIL") {
                     // Email MFAの場合、ここでメール送信
@@ -156,7 +157,8 @@ class AuthService(
                         status = "MFA_REQUIRED",
                         user = null,
                         mfa_token = generateMfaToken(user.userId),
-                        mfa_type = "EMAIL"
+                        mfa_type = "EMAIL",
+                        masked_email = maskEmail(user.email!!)
                     )
                 }
             }
@@ -184,7 +186,8 @@ class AuthService(
                         status = "MFA_REQUIRED",
                         user = null,
                         mfa_token = generateMfaToken(user.userId),
-                        mfa_type = "TOTP"
+                        mfa_type = "TOTP",
+                        masked_email = user.email?.let { maskEmail(it) }
                     )
                 } else if (user.preferredMfaType == "EMAIL") {
                  emailVerificationService.sendVerificationEmail(user.userId, user.email!!)
@@ -192,7 +195,8 @@ class AuthService(
                     status = "MFA_REQUIRED",
                     user = null,
                     mfa_token = generateMfaToken(user.userId),
-                    mfa_type = "EMAIL"
+                    mfa_type = "EMAIL",
+                    masked_email = maskEmail(user.email!!)
                 )
             }
         }
