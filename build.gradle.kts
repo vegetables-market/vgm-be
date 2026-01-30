@@ -21,6 +21,8 @@ plugins {
 group = "com.example"
 version = "0.0.1-SNAPSHOT"
 description = "myapp"
+extra["commons-lang3.version"] = "3.18.0"
+extra["netty.version"] = "4.1.129.Final"
 
 java {
     toolchain {
@@ -30,6 +32,14 @@ java {
 
 repositories {
     mavenCentral()
+}
+
+// Force commons-lang3 version at global level to override any transitive dependencies or BOMs
+configurations.all {
+    resolutionStrategy {
+        force("org.apache.commons:commons-lang3:3.18.0")
+        force("com.google.protobuf:protobuf-java:3.25.5")
+    }
 }
 
 dependencies {
@@ -62,6 +72,12 @@ dependencies {
     // totp
     implementation("dev.samstevens.totp:totp:1.7.1")
 
+    // Firebase Admin SDK
+    implementation("com.google.firebase:firebase-admin:9.7.0") {
+        exclude(group = "io.grpc", module = "grpc-netty-shaded")
+    }
+    implementation("io.grpc:grpc-netty:1.71.0")
+
     // Stripe SDK for payment processing
     implementation("com.stripe:stripe-java:26.3.0")
 
@@ -81,12 +97,11 @@ dependencies {
         implementation("com.beust:jcommander:1.82") {
             because("Previous versions have security vulnerability WS-2019-0490")
         }
-        // 脆弱性のある 3.17.0 を避け、3.16.0 を強制する
-        implementation("org.apache.commons:commons-lang3") {
+        implementation("com.google.guava:guava") {
             version {
-                strictly("3.16.0")
+                strictly("33.4.0-jre")
             }
-            because("CVE-2025-48924: Vulnerability found in version 3.17.0. Downgrading until a fix is released.")
+            because("CVE-2023-2976, CVE-2020-8908: Vulnerability found in older versions.")
         }
     }
 }
