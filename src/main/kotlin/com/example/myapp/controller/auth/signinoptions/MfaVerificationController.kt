@@ -1,7 +1,8 @@
 package com.example.myapp.controller.auth.signinoptions
 
 import com.example.myapp.dto.auth.LoginResponse
-import com.example.myapp.service.auth.AuthService
+import com.example.myapp.service.auth.LoginService
+import com.example.myapp.service.auth.MfaService
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -12,7 +13,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/v1/auth")
 class MfaVerificationController(
-    private val authService: AuthService
+    private val mfaService: MfaService,
+    private val loginService: LoginService
 ) {
 
     @PostMapping("/verify-mfa")
@@ -25,7 +27,11 @@ class MfaVerificationController(
             val ipAddress = servletRequest.remoteAddr
             val userAgent = servletRequest.getHeader("User-Agent")
             
-            val response = authService.verifyMfa(request.mfa_token, request.code, ipAddress, userAgent)
+            // 1. Verify MFA
+            val userId = mfaService.verifyLoginMfa(request.mfa_token, request.code)
+            
+            // 2. Complete Login
+            val response = loginService.completeLogin(userId, ipAddress, userAgent)
             
             // flow_idにはセッションキーが入っている
             val sessionKey = response.flow_id
