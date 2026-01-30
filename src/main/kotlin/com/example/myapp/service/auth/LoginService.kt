@@ -7,11 +7,10 @@ import com.example.myapp.entity.user.User
 import com.example.myapp.repository.auth.UserAuthStatusRepository
 import com.example.myapp.repository.auth.UserSessionRepository
 import com.example.myapp.repository.user.UserEmailRepository
-import com.example.myapp.repository.user.UserInfoRepository
-import com.example.myapp.repository.user.UserProfileRepository
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.util.AuthUtils
 import com.example.myapp.service.email.EmailVerificationService
+import com.example.myapp.service.user.profile.UserInfoBuilderService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,14 +19,13 @@ import java.time.LocalDateTime
 @Service
 class LoginService(
     private val userRepository: UserRepository,
-    private val userProfileRepository: UserProfileRepository,
-    private val userInfoRepository: UserInfoRepository,
     private val userEmailRepository: UserEmailRepository,
     private val userSessionRepository: UserSessionRepository,
     private val userAuthStatusRepository: UserAuthStatusRepository,
     private val emailVerificationService: EmailVerificationService,
     private val mfaService: MfaService,
-    private val sessionService: SessionService
+    private val sessionService: SessionService,
+    private val userInfoBuilderService: UserInfoBuilderService
 ) {
     private val passwordEncoder = BCryptPasswordEncoder()
 
@@ -185,18 +183,11 @@ class LoginService(
             sessionService.createSession(user.userId, ipAddress, userAgent)
         }
 
-        val userProfile = userProfileRepository.findById(user.userId).orElse(null)
-        val authStatusForResponse = userAuthStatusRepository.findByUserId(user.userId)
+        val userInfo = userInfoBuilderService.buildUserInfo(user.userId)
         
         return LoginResponse(
             status = "AUTHENTICATED",
-            user = UserInfo(
-                username = user.username,
-                display_name = user.displayName,
-                email = getPrimaryEmail(user.userId),
-                avatar_url = userProfile?.profileImageUrl,
-                is_email_verified = authStatusForResponse?.emailVerified ?: false
-            ),
+            user = userInfo,
             flow_id = sessionKey
         )
     }
@@ -212,18 +203,12 @@ class LoginService(
         userRepository.save(user)
 
         val sessionKey = sessionService.createSession(userId, ipAddress, userAgent)
-        val userProfile = userProfileRepository.findById(userId).orElse(null)
-        val authStatusForResponse = userAuthStatusRepository.findByUserId(userId)
+
+        val userInfo = userInfoBuilderService.buildUserInfo(userId)
 
         return LoginResponse(
             status = "AUTHENTICATED",
-            user = UserInfo(
-                username = user.username,
-                display_name = user.displayName,
-                email = getPrimaryEmail(user.userId),
-                avatar_url = userProfile?.profileImageUrl,
-                is_email_verified = authStatusForResponse?.emailVerified ?: false
-            ),
+            user = userInfo,
             flow_id = sessionKey
         )
     }
