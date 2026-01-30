@@ -1,8 +1,10 @@
 package com.example.myapp.controller.auth.signinoptions
 
 import com.example.myapp.dto.auth.signinoptions.VerifyEmailRequest
-import com.example.myapp.service.auth.AuthService
-import com.example.myapp.service.auth.EmailVerificationService
+import com.example.myapp.service.email.EmailVerificationService
+import com.example.myapp.service.auth.LoginService
+import com.example.myapp.service.auth.MfaService
+import com.example.myapp.service.auth.SessionService
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -13,8 +15,12 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/v1/auth")
 class EmailVerificationController(
-    private val authService: AuthService,
-    private val emailVerificationService: EmailVerificationService
+    private val loginService: LoginService,
+    private val mfaService: MfaService,
+    private val sessionService: SessionService,
+    private val emailVerificationService: EmailVerificationService,
+    private val userAuthStatusRepository: com.example.myapp.repository.auth.UserAuthStatusRepository,
+    private val userEmailRepository: com.example.myapp.repository.user.UserEmailRepository
 ) {
 
     /**
@@ -50,9 +56,9 @@ class EmailVerificationController(
         
         return if (verification != null) {
             val user = if (verification.userId != null) {
-                authService.getUserById(verification.userId)
+                loginService.getUserById(verification.userId)
             } else {
-                authService.getUserByIdentifier(verification.email!!)
+                loginService.getUserByIdentifier(verification.email!!)
             }
 
             if (user != null) {
@@ -60,11 +66,12 @@ class EmailVerificationController(
                 val userAgent = servletRequest.getHeader("User-Agent")
                 
                 // 初回認証完了時、MFAタイプが未設定ならEmail MFAを有効化
-                if (user.preferredMfaType == null) {
-                    authService.enableEmailMfa(user.userId)
+                val authStatus = userAuthStatusRepository.findByUserId(user.userId)
+                if (authStatus?.primaryMfaType == null) {
+                    mfaService.enableEmailMfa(user.userId)
                 }
 
-                val sessionKey = authService.createSession(user.userId, ipAddress, userAgent)
+                val sessionKey = sessionService.createSession(user.userId, ipAddress, userAgent)
                 
                 val cookie = Cookie("vgm_session", sessionKey)
                 cookie.isHttpOnly = true
@@ -72,12 +79,14 @@ class EmailVerificationController(
                 cookie.path = "/"
                 servletResponse.addCookie(cookie)
                 
+                val primaryEmail = userEmailRepository.findByUserIdAndIsPrimaryTrue(user.userId)?.email
+                
                 ResponseEntity.ok(mapOf(
                     "success" to true,
                     "user" to mapOf(
                         "user_id" to user.userId,
                         "display_name" to user.displayName,
-                        "email" to user.email,
+                        "email" to primaryEmail,
                         "is_email_verified" to true
                     )
                 ))

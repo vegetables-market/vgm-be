@@ -1,9 +1,10 @@
-package com.example.myapp.service.auth
+package com.example.myapp.service.email
 
 import com.example.myapp.entity.auth.VerificationCode
 import com.example.myapp.repository.user.UserRepository
+import com.example.myapp.repository.user.UserEmailRepository
+import com.example.myapp.repository.auth.UserAuthStatusRepository
 import com.example.myapp.repository.auth.VerificationCodeRepository
-import com.example.myapp.service.common.EmailService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -13,7 +14,9 @@ import java.util.UUID
 class EmailVerificationService(
     private val verificationCodeRepository: VerificationCodeRepository,
     private val userRepository: UserRepository,
-    private val emailService: EmailService
+    private val userEmailRepository: UserEmailRepository,
+    private val userAuthStatusRepository: UserAuthStatusRepository,
+    private val emailNotificationService: EmailNotificationService
 ) {
 
     /**
@@ -50,7 +53,7 @@ class EmailVerificationService(
         println("Email: $email")
         println("=======================================")
         
-        emailService.sendVerificationCodeEmail(email, code)
+        emailNotificationService.sendVerificationCodeEmail(email, code)
         return flowId
     }
 
@@ -94,12 +97,24 @@ class EmailVerificationService(
         verification.isUsed = true
         verificationCodeRepository.save(verification)
 
-        // ユーザーのステータス更新
+        // UserAuthStatus と User のステータス更新
         if (verification.userId != null) {
+            // Update AuthStatus
+            val authStatus = userAuthStatusRepository.findByUserId(verification.userId)
+            if (authStatus != null) {
+                authStatus.emailVerified = true
+                userAuthStatusRepository.save(authStatus)
+            }
+            // Update User status
             userRepository.findById(verification.userId).ifPresent { user ->
-                user.emailVerified = 1
-                user.status = 2
+                user.status = 2  // Active
                 userRepository.save(user)
+            }
+            // Update email verified status
+            val emailRecord = userEmailRepository.findByUserIdAndIsPrimaryTrue(verification.userId)
+            if (emailRecord != null) {
+                emailRecord.isVerified = true
+                userEmailRepository.save(emailRecord)
             }
         }
 
@@ -111,8 +126,12 @@ class EmailVerificationService(
      */
     @Transactional
     fun verifyEmail(identifier: String, code: String): Boolean {
-        val user = userRepository.findByUsernameOrEmail(identifier, identifier)
-        val targetEmail = user?.email ?: identifier
+        // メールアドレスまたはユーザー名で検索
+        val user = userRepository.findByUsername(identifier) 
+            ?: userEmailRepository.findByEmail(identifier)?.let { 
+                userRepository.findById(it.userId).orElse(null) 
+            }
+        val targetEmail = userEmailRepository.findByUserIdAndIsPrimaryTrue(user?.userId ?: 0)?.email ?: identifier
 
         val verification = verificationCodeRepository.findByEmailAndCodeAndTypeAndIsUsedFalseAndExpiresAtAfter(
             email = targetEmail,
@@ -125,13 +144,20 @@ class EmailVerificationService(
         verificationCodeRepository.save(verification)
 
         if (user != null) {
-            user.emailVerified = 1
+            // Update AuthStatus
+            val authStatus = userAuthStatusRepository.findByUserId(user.userId)
+            if (authStatus != null) {
+                authStatus.emailVerified = true
+                userAuthStatusRepository.save(authStatus)
+            }
+            // Update User status
             user.status = 2
             userRepository.save(user)
         }
 
         return true
     }
+
     /**
      * MFA用のコード検証（User IDベース）
      */
