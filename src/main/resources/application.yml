@@ -97,3 +97,9 @@ marketplace:
 vgm:
   media:
     jwt-secret: ${MEDIA_JWT_SECRET:your-256-bit-secret-must-be-very-long-and-secure}
+
+# Firebase設定
+firebase:
+  credentials:
+    path: ${FIREBASE_CREDENTIALS_PATH:}
+    json: ${FIREBASE_CREDENTIALS_JSON:}
