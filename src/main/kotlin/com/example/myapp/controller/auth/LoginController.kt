@@ -2,10 +2,8 @@ package com.example.myapp.controller.auth
 
 import com.example.myapp.dto.auth.LoginRequest
 import com.example.myapp.dto.auth.LoginResponse
-import com.example.myapp.dto.auth.SignupRequest
 
-import com.example.myapp.service.auth.AuthService
-import com.example.myapp.service.auth.EmailVerificationService
+import com.example.myapp.service.auth.LoginService
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -16,7 +14,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/v1/auth")
 class LoginController(
-    private val authService: AuthService
+    private val loginService: LoginService
 ) {
     @PostMapping("/login")
     fun login(
@@ -29,7 +27,7 @@ class LoginController(
         val deviceId = servletRequest.cookies?.find { it.name == "vgm_session" }?.value
         val finalRequest = if (deviceId != null) request.copy(device_id = deviceId) else request
         
-        val response = authService.login(finalRequest, ipAddress, userAgent)
+        val response = loginService.login(finalRequest, ipAddress, userAgent)
         
         if (response.status == "AUTHENTICATED" && response.flow_id != null) {
             val cookie = Cookie("vgm_session", response.flow_id)
@@ -45,28 +43,4 @@ class LoginController(
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
     }
-
-    @PostMapping("/logout")
-    fun logout(
-        servletRequest: HttpServletRequest,
-        servletResponse: HttpServletResponse
-    ): ResponseEntity<Map<String, Any>> {
-        val deviceId = servletRequest.cookies?.find { it.name == "vgm_session" }?.value
-        
-        if (deviceId != null) {
-            authService.logout(deviceId)
-        }
-        
-        val cookie = Cookie("vgm_session", null)
-        cookie.isHttpOnly = true
-        cookie.maxAge = 0
-        cookie.path = "/"
-        servletResponse.addCookie(cookie)
-        
-        return ResponseEntity.ok(mapOf("success" to true, "message" to "Logged out successfully"))
-    }
-
-
-
-
 }
