@@ -233,7 +233,7 @@ CREATE TABLE m_spots (
     CONSTRAINT fk_spots_user_id FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE
 );
 -- 空間インデックス（検索高速化）
-CREATE INDEX idx_spots_location ON m_spots USING GIST (location);
+CREATE INDEX idx_spots_location ON m_spots USING GIST (f_location);
 CREATE TRIGGER set_timestamp_m_spots BEFORE UPDATE ON m_spots FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
@@ -641,7 +641,7 @@ CREATE TABLE t_user_auth_status (
 
 COMMENT ON TABLE t_user_auth_status IS 'ユーザー認証ステータス（認証関連フラグを集約）';
 COMMENT ON COLUMN t_user_auth_status.f_last_auth_method IS 'PASSWORD, GOOGLE, APPLE, TOTP等';
-COMMENT ON COLUMN t_user_auth_status.f_mfa_type IS '自動選択（セキュリティ高い順）';
+COMMENT ON COLUMN t_user_auth_status.f_primary_mfa_type IS '自動選択（セキュリティ高い順）';
 CREATE TRIGGER set_timestamp_t_user_auth_status BEFORE UPDATE ON t_user_auth_status FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
