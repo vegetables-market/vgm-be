@@ -42,12 +42,21 @@ class SecurityConfig(
                     .ignoringRequestMatchers(
                         "/v1/auth/signup",
                         "/v1/auth/login",
+                        "/v1/auth/login/google",
+                        "/v1/auth/login/microsoft",
+                        "/v1/auth/login/github",
+                        "/v1/auth/login/apple",
                         "/v1/auth/verify-email",
                         "/v1/auth/verify-challenge",
                         "/v1/auth/verify-challenge", // チャレンジ認証
                         "/v1/auth/resend-code",      // コード再送
                         "/v1/auth/verify-mfa",       // MFA認証
                         "/v1/user/mfa/**",  // MFAエンドポイント(独自認証)
+                        "/v1/user/account/**",  // アカウント管理(独自認証)
+                        "/v1/user/profile/**",  // プロフィール管理(独自認証)
+                        "/v1/user/emails/**",  // メール管理(独自認証)
+                        "/v1/user/sessions/**",  // セッション管理(独自認証)
+                        "/v1/user/oauth/**",  // OAuth管理(独自認証)
                         "/v1/auth/logout",   // ログアウト(独自認証)
                         "/v1/market/items/upload-token", // 一時的なCSRF除外(デバッグ)
                         "/v1/market/items/**",     // 商品関連API(一時的除外)
@@ -67,6 +76,10 @@ class SecurityConfig(
                     .requestMatchers(
                         "/v1/auth/signup",           // 新規登録
                         "/v1/auth/login",            // ログイン
+                        "/v1/auth/login/google",     // Googleログイン (Firebase)
+                        "/v1/auth/login/microsoft",  // Microsoftログイン (Firebase)
+                        "/v1/auth/login/github",     // GitHubログイン (Firebase)
+                        "/v1/auth/login/apple",      // Appleログイン (Firebase)
                         "/v1/auth/verify-email",     // メール認証
                         "/v1/auth/verify-challenge", // チャレンジ認証
                         "/v1/auth/resend-code",      // コード再送
@@ -79,6 +92,11 @@ class SecurityConfig(
                     // 独自セッション認証を使用するエンドポイント（Controller内で認証チェック）
                     .requestMatchers(
                         "/v1/user/mfa/**",           // MFA設定
+                        "/v1/user/account/**",       // アカウント管理（削除等）
+                        "/v1/user/profile/**",       // プロフィール管理
+                        "/v1/user/emails/**",        // メール管理
+                        "/v1/user/sessions/**",      // セッション管理
+                        "/v1/user/oauth/**",         // OAuth管理
                         "/v1/auth/logout",           // ログアウト
                         "/v1/market/items/**"        // デバッグ用: 一時的に許可
                     ).permitAll()
@@ -101,6 +119,8 @@ class SecurityConfig(
 
             // セッション認証フィルターを追加
             .addFilterBefore(sessionAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter::class.java)
+
+
 
         return http.build()
     }
@@ -126,11 +146,4 @@ class SecurityConfig(
         }
     }
 
-    /**
-     * パスワードエンコーダー
-     */
-    @Bean
-    fun passwordEncoder(): org.springframework.security.crypto.password.PasswordEncoder {
-        return org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder()
-    }
 }
