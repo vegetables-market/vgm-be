@@ -88,7 +88,7 @@ CREATE TRIGGER set_timestamp_t_user_profile BEFORE UPDATE ON t_user_profile FOR 
 CREATE TABLE t_user_address (
     f_address_id SERIAL PRIMARY KEY,
     f_user_id INTEGER NOT NULL,
-    f_postal_code VARCHAR(8) NOT NULL,
+    f_postal_code VARCHAR(100) NOT NULL,
     f_prefecture VARCHAR(50) NOT NULL,
     f_city VARCHAR(100) NOT NULL,
     f_address_line1 VARCHAR(255) NOT NULL,
@@ -222,11 +222,11 @@ CREATE TABLE m_spots (
     f_name VARCHAR(100), -- 拠点名（例: 第1農園）
 
     -- 地球球面座標系 (SRID=4326: WGS84)
-    location GEOGRAPHY(POINT, 4326) NOT NULL,
+    f_location GEOGRAPHY(POINT, 4326) NOT NULL,
 
     -- 0:正確(ピン), 1:あいまい(円), 2:都道府県/市のみ
-    disclosure_type SMALLINT NOT NULL DEFAULT 0,
-    fuzzy_radius INTEGER DEFAULT 500, -- あいまい時の半径(m)
+    f_disclosure_type SMALLINT NOT NULL DEFAULT 0,
+    f_fuzzy_radius INTEGER DEFAULT 500, -- あいまい時の半径(m)
 
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -619,12 +619,17 @@ CREATE TABLE t_user_auth_status (
     
     -- MFA設定
     f_is_mfa_enabled BOOLEAN DEFAULT FALSE,
-    f_mfa_type VARCHAR(20),  -- 現在有効なMFA方式 (TOTP, EMAIL, SMS)
+    f_primary_mfa_type VARCHAR(20),  -- 優先MFA方式 (TOTP, SMS, EMAIL)
     
+    -- ログイン試行制限
+    f_failed_attempts INT DEFAULT 0,            -- 連続失敗回数
+    f_locked_until TIMESTAMP,                   -- ロック終了日時
+    f_last_failed_at TIMESTAMP,                 -- 最終失敗日時
+
     -- 認証方式
     f_has_password BOOLEAN DEFAULT FALSE,       -- パスワード設定済み
-    f_last_auth_method VARCHAR(20),             -- 最後に使用した認証方式 (PASSWORD, GOOGLE, APPLE)
-    f_last_auth_at TIMESTAMP,                   -- 最後に認証した日時
+    f_last_auth_method VARCHAR(20),             -- 直近のログインで使用した手段 (PASSWORD, GOOGLE等)
+    f_last_auth_at TIMESTAMP,                   -- 最後に認証に成功した日時
     
     -- タイムスタンプ
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
