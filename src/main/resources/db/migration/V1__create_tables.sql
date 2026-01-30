@@ -29,27 +29,15 @@ CREATE TABLE m_users (
     f_user_id SERIAL PRIMARY KEY,
     f_username VARCHAR(100) NOT NULL UNIQUE,
     f_display_name VARCHAR(100) NOT NULL,
-    f_email VARCHAR(255) UNIQUE, -- V2 added
-    f_password_hash VARCHAR(255) NOT NULL,
+    f_password_hash VARCHAR(255), -- NULL許容（OAuth専用ユーザー対応）
     f_last_login_at TIMESTAMP,
-    f_status SMALLINT DEFAULT 1, -- 0:無効,1:仮登録,2:有効,3:停止,4:削除
-    
-    -- Verification Flags
-    f_email_verified SMALLINT DEFAULT 0,
-    f_phone_verified SMALLINT DEFAULT 0,
-    f_two_factor_verified SMALLINT DEFAULT 0,
-    f_identity_verified SMALLINT DEFAULT 0,
-    
-    -- MFA Settings (V5, V6 added)
-    f_is_mfa_enabled BOOLEAN DEFAULT FALSE NOT NULL,
-    f_preferred_mfa_type VARCHAR(20) DEFAULT NULL, -- 'TOTP', 'EMAIL', etc.
-
+    f_status SMALLINT DEFAULT 1,  -- 0:無効,1:仮登録,2:有効,3:停止,4:削除
+    f_role VARCHAR(20) NOT NULL DEFAULT 'USER',
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 COMMENT ON TABLE m_users IS 'ユーザーマスター';
-COMMENT ON COLUMN m_users.f_email IS 'メールアドレス';
-COMMENT ON COLUMN m_users.f_preferred_mfa_type IS '優先MFA方式 (TOTP, EMAIL, etc). NULLなら無効';
+COMMENT ON COLUMN m_users.f_password_hash IS 'パスワードハッシュ（OAuth専用ユーザーはNULL）';
 CREATE TRIGGER set_timestamp_m_users BEFORE UPDATE ON m_users FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 
@@ -257,17 +245,17 @@ CREATE TABLE t_items (
     f_user_id INTEGER NOT NULL,
     f_spot_id BIGINT, -- 発送元・生産地拠点
 
-    f_name VARCHAR(100) NOT NULL,
-    f_description TEXT NOT NULL,
-    f_categories_id BIGINT NOT NULL,
-    f_price INTEGER NOT NULL,
+    f_name VARCHAR(100),
+    f_description TEXT,
+    f_categories_id BIGINT,
+    f_price INTEGER,
     f_quantity INTEGER DEFAULT 1 NOT NULL,
     f_status SMALLINT DEFAULT 1 NOT NULL, -- 0:下書き, 1:出品中, 2:取引中, 3:売切, 4:停止
 
     f_shipping_payer_type SMALLINT DEFAULT 0, -- 0:送料込(出品者負担), 1:着払い
-    f_shipping_origin_area INTEGER NOT NULL, -- 都道府県ID (検索用テキストインデックス代わり)
-    f_shipping_days_id INTEGER NOT NULL,
-    f_shipping_method_id INTEGER NOT NULL,
+    f_shipping_origin_area INTEGER, -- 都道府県ID (検索用テキストインデックス代わり)
+    f_shipping_days_id INTEGER,
+    f_shipping_method_id INTEGER,
 
     f_item_condition SMALLINT DEFAULT 0, -- 0:新品...
     f_preservation_method SMALLINT DEFAULT 0, -- 0:常温, 1:冷蔵, 2:冷凍
@@ -577,7 +565,7 @@ CREATE TRIGGER set_timestamp_m_app_update_notes BEFORE UPDATE ON m_app_update_no
 
 
 -- -----------------------------------------------------
--- 29. ユーザーセッション管理 (t_user_sessions) (V3 added)
+-- 29. ユーザーセッション管理 (t_user_sessions)
 -- 役割: ログイン中の端末管理、セッション維持
 -- -----------------------------------------------------
 CREATE TABLE t_user_sessions (
@@ -615,3 +603,100 @@ CREATE INDEX idx_sessions_token ON t_user_sessions (f_refresh_token_hash);
 COMMENT ON TABLE t_user_sessions IS 'ユーザーセッション管理';
 COMMENT ON COLUMN t_user_sessions.f_session_key IS 'Cookie照合用ランダムキー';
 COMMENT ON COLUMN t_user_sessions.f_is_revoked IS 'セッション無効化フラグ';
+
+
+-- -----------------------------------------------------
+-- 30. ユーザー認証ステータス (t_user_auth_status)
+-- 認証関連フラグを集約管理
+-- -----------------------------------------------------
+CREATE TABLE t_user_auth_status (
+    f_user_id INTEGER PRIMARY KEY,
+    
+    -- 認証済みフラグ
+    f_email_verified BOOLEAN DEFAULT FALSE,
+    f_phone_verified BOOLEAN DEFAULT FALSE,
+    f_identity_verified BOOLEAN DEFAULT FALSE,  -- 本人確認
+    
+    -- MFA設定
+    f_is_mfa_enabled BOOLEAN DEFAULT FALSE,
+    f_mfa_type VARCHAR(20),  -- 現在有効なMFA方式 (TOTP, EMAIL, SMS)
+    
+    -- 認証方式
+    f_has_password BOOLEAN DEFAULT FALSE,       -- パスワード設定済み
+    f_last_auth_method VARCHAR(20),             -- 最後に使用した認証方式 (PASSWORD, GOOGLE, APPLE)
+    f_last_auth_at TIMESTAMP,                   -- 最後に認証した日時
+    
+    -- タイムスタンプ
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_auth_status_user FOREIGN KEY (f_user_id) 
+        REFERENCES m_users (f_user_id) ON DELETE CASCADE
+);
+
+COMMENT ON TABLE t_user_auth_status IS 'ユーザー認証ステータス（認証関連フラグを集約）';
+COMMENT ON COLUMN t_user_auth_status.f_last_auth_method IS 'PASSWORD, GOOGLE, APPLE, TOTP等';
+COMMENT ON COLUMN t_user_auth_status.f_mfa_type IS '自動選択（セキュリティ高い順）';
+CREATE TRIGGER set_timestamp_t_user_auth_status BEFORE UPDATE ON t_user_auth_status FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+-- -----------------------------------------------------
+-- 31. ユーザーメールアドレス (t_user_emails)
+-- 複数メールアドレス対応
+-- -----------------------------------------------------
+CREATE TABLE t_user_emails (
+    f_email_id BIGSERIAL PRIMARY KEY,
+    f_user_id INTEGER NOT NULL,
+    f_email VARCHAR(255) NOT NULL,
+    f_type VARCHAR(20) NOT NULL,  -- 'PRIMARY', 'OAUTH', 'SUB'
+    f_source VARCHAR(50),         -- 'MANUAL', 'GOOGLE', 'APPLE' 等（どこから取得したか）
+    f_is_verified BOOLEAN DEFAULT FALSE,
+    f_is_primary BOOLEAN DEFAULT FALSE,
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- 同一メールアドレスは1つのみ（ユーザー横断）
+    UNIQUE (f_email),
+    
+    CONSTRAINT fk_emails_user FOREIGN KEY (f_user_id) 
+        REFERENCES m_users (f_user_id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_emails_user ON t_user_emails (f_user_id);
+CREATE INDEX idx_emails_primary ON t_user_emails (f_user_id, f_is_primary) WHERE f_is_primary = TRUE;
+COMMENT ON TABLE t_user_emails IS 'ユーザーメールアドレス（複数対応）';
+COMMENT ON COLUMN t_user_emails.f_type IS 'PRIMARY:メイン, OAUTH:OAuth連携, SUB:サブ';
+COMMENT ON COLUMN t_user_emails.f_source IS '取得元（MANUAL, GOOGLE, APPLE等）';
+CREATE TRIGGER set_timestamp_t_user_emails BEFORE UPDATE ON t_user_emails FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+
+-- -----------------------------------------------------
+-- 32. OAuth連携情報 (t_user_oauth_connections)
+-- 複数OAuthプロバイダー対応
+-- -----------------------------------------------------
+CREATE TABLE t_user_oauth_connections (
+    f_connection_id BIGSERIAL PRIMARY KEY,
+    f_user_id INTEGER NOT NULL,
+    f_provider VARCHAR(50) NOT NULL,           -- 'google', 'apple', 'line'
+    f_provider_user_id VARCHAR(255) NOT NULL,  -- Firebase UIDまたはプロバイダーのsub
+    f_email_id BIGINT,                         -- t_user_emails への参照
+    f_display_name VARCHAR(255),               -- プロバイダーから取得した表示名
+    f_avatar_url VARCHAR(500),                 -- プロバイダーから取得したアバター
+    f_linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- 連携日時
+    f_last_used_at TIMESTAMP,                  -- 最後に使用した日時
+    f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- 複合ユニーク制約
+    UNIQUE (f_provider, f_provider_user_id),   -- 同じプロバイダーユーザーIDは1つのみ
+    UNIQUE (f_user_id, f_provider),            -- 1ユーザー1プロバイダーは1連携のみ
+    
+    CONSTRAINT fk_oauth_user FOREIGN KEY (f_user_id) 
+        REFERENCES m_users (f_user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_oauth_email FOREIGN KEY (f_email_id) 
+        REFERENCES t_user_emails (f_email_id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_oauth_provider ON t_user_oauth_connections (f_provider, f_provider_user_id);
+COMMENT ON TABLE t_user_oauth_connections IS 'OAuth連携情報（複数プロバイダー対応）';
+CREATE TRIGGER set_timestamp_t_user_oauth_connections BEFORE UPDATE ON t_user_oauth_connections FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
