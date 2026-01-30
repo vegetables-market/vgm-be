@@ -14,4 +14,5 @@ interface UserSessionRepository : JpaRepository<UserSession, Long> {
     ): UserSession?
 
     fun findByUserIdAndIsRevokedFalse(userId: Int): List<UserSession>
+    fun findByUserId(userId: Int): List<UserSession>
 }
