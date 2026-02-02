@@ -2,6 +2,7 @@ package com.example.myapp.controller.auth
 
 import com.example.myapp.dto.WebAuthnRegistrationFinishRequest
 import com.example.myapp.dto.WebAuthnRegistrationStartResponse
+import com.example.myapp.dto.WebAuthnAuthenticationFinishRequest
 import com.example.myapp.entity.user.User
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.service.auth.WebAuthnService
@@ -26,9 +27,6 @@ class WebAuthnController(
         session: HttpSession,
         @AuthenticationPrincipal principal: Principal?
     ): ResponseEntity<PublicKeyCredentialCreationOptions> {
-        // In a real app, you get the authenticated user from SecurityContext
-        // For this demo/skeleton, we assume user is logged in via session or JWT
-        // If principal is null, we return 401
         if (principal == null) return ResponseEntity.status(401).build()
         
         val user = userRepository.findByUsername(principal.name).orElseThrow { RuntimeException("User not found") }
@@ -54,5 +52,49 @@ class WebAuthnController(
             request.credentialName
         )
         return ResponseEntity.ok("Passkey registered")
+    }
+
+    @GetMapping("/credentials")
+    fun listCredentials(@AuthenticationPrincipal principal: Principal?): ResponseEntity<List<com.example.myapp.dto.UserCredentialResponse>> {
+        if (principal == null) return ResponseEntity.status(401).build()
+        val user = userRepository.findByUsername(principal.name).orElseThrow { RuntimeException("User not found") }
+        
+        return ResponseEntity.ok(webAuthnService.getCredentials(user))
+    }
+
+    @DeleteMapping("/credentials/{credentialId}")
+    fun deleteCredential(
+        @PathVariable credentialId: String,
+        @AuthenticationPrincipal principal: Principal?
+    ): ResponseEntity<String> {
+        if (principal == null) return ResponseEntity.status(401).build()
+        val user = userRepository.findByUsername(principal.name).orElseThrow { RuntimeException("User not found") }
+
+        webAuthnService.deleteCredential(user, credentialId)
+        return ResponseEntity.ok("Credential deleted")
+    }
+
+    @PostMapping("/login/start")
+    fun startLogin(session: HttpSession): ResponseEntity<com.webauthn4j.data.PublicKeyCredentialRequestOptions> {
+        val options = webAuthnService.startLogin(session)
+        return ResponseEntity.ok(options)
+    }
+    
+    @PostMapping("/login/finish")
+    fun finishLogin(
+        @RequestBody request: WebAuthnAuthenticationFinishRequest,
+        session: HttpSession
+    ): ResponseEntity<String> {
+        val user = webAuthnService.finishLogin(session, request.credentialId, request.response)
+        
+        // Manual Login
+        val authorities = org.springframework.security.core.authority.AuthorityUtils.createAuthorityList("ROLE_USER")
+        val auth = org.springframework.security.authentication.UsernamePasswordAuthenticationToken(user.username, null, authorities)
+        SecurityContextHolder.getContext().authentication = auth
+        
+        // Save to session explicitly to ensure persistence across requests
+        session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext())
+        
+        return ResponseEntity.ok("Login successful")
     }
 }

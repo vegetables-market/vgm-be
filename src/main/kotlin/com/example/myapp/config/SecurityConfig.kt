@@ -60,7 +60,8 @@ class SecurityConfig(
                         "/v1/auth/logout",   // ログアウト(独自認証)
                         "/v1/market/items/upload-token", // 一時的なCSRF除外(デバッグ)
                         "/v1/market/items/**",     // 商品関連API(一時的除外)
-                        "/v1/admin/media/upload-token"      // 管理者アップロードも除外
+                        "/v1/admin/media/upload-token",      // 管理者アップロードも除外
+                        "/v1/auth/webauthn/login/**" // Passkey login
                     )
             }
             
@@ -86,7 +87,8 @@ class SecurityConfig(
                         "/v1/auth/verify-mfa",       // MFA認証
                         "/v1/version",               // アプリバージョン
                         "/actuator/health",
-                        "/error"
+                        "/error",
+                        "/v1/auth/webauthn/login/**" // Passkey Login
                     ).permitAll()
 
                     // 独自セッション認証を使用するエンドポイント（Controller内で認証チェック）
