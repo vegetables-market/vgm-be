@@ -5,14 +5,14 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "t_items_images")
-data class ItemImage(
+class ItemImage(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "f_image_id")
     val imageId: Long? = null,
 
     @Column(name = "f_item_id", nullable = false)
-    val itemId: Long, // ItemとのRelationは一旦ID参照にするか、@ManyToOneにするか。シンプルにIDで。
+    val itemId: Long,
 
     @Column(name = "f_image_url", nullable = false, columnDefinition = "TEXT")
     val imageUrl: String,
