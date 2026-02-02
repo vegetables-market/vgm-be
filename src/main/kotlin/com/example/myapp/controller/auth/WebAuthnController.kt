@@ -29,7 +29,7 @@ class WebAuthnController(
     ): ResponseEntity<PublicKeyCredentialCreationOptions> {
         if (principal == null) return ResponseEntity.status(401).build()
         
-        val user = userRepository.findByUsername(principal.name).orElseThrow { RuntimeException("User not found") }
+        val user = userRepository.findByUsername(principal.name) ?: throw RuntimeException("User not found")
         
         val options = webAuthnService.startRegistration(user, session)
         return ResponseEntity.ok(options)
@@ -42,7 +42,7 @@ class WebAuthnController(
         @AuthenticationPrincipal principal: Principal?
     ): ResponseEntity<String> {
         if (principal == null) return ResponseEntity.status(401).build()
-        val user = userRepository.findByUsername(principal.name).orElseThrow { RuntimeException("User not found") }
+        val user = userRepository.findByUsername(principal.name) ?: throw RuntimeException("User not found")
 
         webAuthnService.finishRegistration(
             user, 
@@ -57,7 +57,7 @@ class WebAuthnController(
     @GetMapping("/credentials")
     fun listCredentials(@AuthenticationPrincipal principal: Principal?): ResponseEntity<List<com.example.myapp.dto.UserCredentialResponse>> {
         if (principal == null) return ResponseEntity.status(401).build()
-        val user = userRepository.findByUsername(principal.name).orElseThrow { RuntimeException("User not found") }
+        val user = userRepository.findByUsername(principal.name) ?: throw RuntimeException("User not found")
         
         return ResponseEntity.ok(webAuthnService.getCredentials(user))
     }
@@ -68,7 +68,7 @@ class WebAuthnController(
         @AuthenticationPrincipal principal: Principal?
     ): ResponseEntity<String> {
         if (principal == null) return ResponseEntity.status(401).build()
-        val user = userRepository.findByUsername(principal.name).orElseThrow { RuntimeException("User not found") }
+        val user = userRepository.findByUsername(principal.name) ?: throw RuntimeException("User not found")
 
         webAuthnService.deleteCredential(user, credentialId)
         return ResponseEntity.ok("Credential deleted")

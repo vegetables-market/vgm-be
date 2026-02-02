@@ -85,19 +85,5 @@ class UserController {
  */
 class UnauthorizedException(message: String) : RuntimeException(message)
 
-/**
- * グローバル例外ハンドラー
- * ※別ファイル（GlobalExceptionHandler.kt）に配置することを推奨
- */
-@RestControllerAdvice
-class GlobalExceptionHandler {
+// Note: GlobalExceptionHandler は config パッケージに実装済み
 
-    @ExceptionHandler(UnauthorizedException::class)
-    @ResponseStatus(org.springframework.http.HttpStatus.UNAUTHORIZED)
-    fun handleUnauthorizedException(ex: UnauthorizedException): Map<String, String> {
-        return mapOf(
-            "error" to "Unauthorized",
-            "message" to (ex.message ?: "Authentication required")
-        )
-    }
-}
