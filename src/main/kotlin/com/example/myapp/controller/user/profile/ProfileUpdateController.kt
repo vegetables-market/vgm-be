@@ -1,18 +1,21 @@
 package com.example.myapp.controller.user.profile
 
 import com.example.myapp.dto.user.profile.ChangeUsernameRequest
+import com.example.myapp.dto.user.profile.UpdateDisplayNameRequest
+import com.example.myapp.dto.user.profile.UpdateBioRequest
+import com.example.myapp.dto.user.profile.UpdateUserInfoRequest
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.repository.auth.UserSessionRepository
 import com.example.myapp.repository.auth.UserAuthStatusRepository
+import com.example.myapp.service.user.profile.UserProfileService
+import com.example.myapp.service.user.profile.UserInfoService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @RestController
@@ -20,7 +23,9 @@ import java.time.LocalDateTime
 class ProfileUpdateController(
     private val userRepository: UserRepository,
     private val userSessionRepository: UserSessionRepository,
-    private val userAuthStatusRepository: UserAuthStatusRepository
+    private val userAuthStatusRepository: UserAuthStatusRepository,
+    private val userProfileService: UserProfileService,
+    private val userInfoService: UserInfoService
 ) {
     private val passwordEncoder = BCryptPasswordEncoder()
 
@@ -96,6 +101,132 @@ class ProfileUpdateController(
             "success" to true,
             "message" to "ユーザー名を変更しました",
             "username" to newUsername
+        ))
+    }
+
+    /**
+     * 表示名変更
+     */
+    @PutMapping("/display-name")
+    @Transactional
+    fun updateDisplayName(
+        @RequestBody request: UpdateDisplayNameRequest,
+        servletRequest: HttpServletRequest
+    ): ResponseEntity<Map<String, Any>> {
+        val userId = getUserIdFromSession(servletRequest)
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(mapOf("error" to "ログインが必要です"))
+
+        val user = userRepository.findById(userId).orElse(null)
+            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(mapOf("error" to "ユーザーが見つかりません"))
+
+        val authStatus = userAuthStatusRepository.findByUserId(userId)
+
+        // パスワードを持っているユーザーの場合はパスワード確認
+        if (authStatus?.hasPassword == true) {
+            if (request.password.isNullOrBlank()) {
+                return ResponseEntity.badRequest()
+                    .body(mapOf("error" to "パスワードを入力してください"))
+            }
+            if (!passwordEncoder.matches(request.password, user.passwordHash)) {
+                return ResponseEntity.badRequest()
+                    .body(mapOf("error" to "パスワードが正しくありません"))
+            }
+        }
+
+        // 表示名のバリデーション
+        val newDisplayName = request.displayName.trim()
+        if (newDisplayName.isEmpty()) {
+            return ResponseEntity.badRequest()
+                .body(mapOf("error" to "表示名を入力してください"))
+        }
+        if (newDisplayName.length > 100) {
+            return ResponseEntity.badRequest()
+                .body(mapOf("error" to "表示名は100文字以下で入力してください"))
+        }
+
+        // 表示名を更新
+        user.displayName = newDisplayName
+        userRepository.save(user)
+
+        return ResponseEntity.ok(mapOf(
+            "success" to true,
+            "message" to "表示名を変更しました",
+            "displayName" to newDisplayName
+        ))
+    }
+
+    /**
+     * プロフィールテキスト更新
+     */
+    @PutMapping("/bio")
+    @Transactional
+    fun updateBio(
+        @RequestBody request: UpdateBioRequest,
+        servletRequest: HttpServletRequest
+    ): ResponseEntity<Map<String, Any?>> {
+        val userId = getUserIdFromSession(servletRequest)
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(mapOf("error" to "ログインが必要です"))
+
+        // バリデーション
+        if (request.bio.length > 1000) {
+            return ResponseEntity.badRequest()
+                .body(mapOf("error" to "自己紹介は1000文字以下で入力してください"))
+        }
+
+        val profile = userProfileService.updateProfileText(userId, request.bio)
+
+        return ResponseEntity.ok(mapOf<String, Any?>(
+            "success" to true,
+            "message" to "自己紹介を更新しました",
+            "bio" to profile.profileText
+        ))
+    }
+
+    /**
+     * ユーザー情報更新
+     */
+    @PutMapping("/info")
+    @Transactional
+    fun updateUserInfo(
+        @RequestBody request: UpdateUserInfoRequest,
+        servletRequest: HttpServletRequest
+    ): ResponseEntity<Map<String, Any?>> {
+        val userId = getUserIdFromSession(servletRequest)
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(mapOf("error" to "ログインが必要です"))
+
+        // バリデーション
+        request.gender?.let { gender ->
+            if (gender !in 0..3) {
+                return ResponseEntity.badRequest()
+                    .body(mapOf("error" to "性別の値が不正です"))
+            }
+        }
+
+        val birthDate = request.birthDate?.let { dateStr ->
+            try {
+                val date = LocalDate.parse(dateStr)
+                if (date.isAfter(LocalDate.now())) {
+                    return ResponseEntity.badRequest()
+                        .body(mapOf("error" to "生年月日は過去の日付を入力してください"))
+                }
+                date
+            } catch (e: Exception) {
+                return ResponseEntity.badRequest()
+                    .body(mapOf("error" to "生年月日の形式が不正です（YYYY-MM-DD）"))
+            }
+        }
+
+        val userInfo = userInfoService.updateUserInfo(userId, request.gender, birthDate)
+
+        return ResponseEntity.ok(mapOf<String, Any?>(
+            "success" to true,
+            "message" to "ユーザー情報を更新しました",
+            "gender" to userInfo.gender,
+            "birthDate" to userInfo.birthDate?.toString()
         ))
     }
 }
