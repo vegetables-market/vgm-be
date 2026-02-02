@@ -149,10 +149,10 @@ class ItemService(
             .firstOrNull()?.imageUrl
         
         return SimpleItemResponse(
-            itemId = item.itemId!!,
+            id = item.itemId!!,
             name = item.name ?: "",
             price = item.price ?: 0,
-            status = item.status,
+            status = item.status.toInt(),
             imageUrl = imageUrl,
             createdAt = item.createdAt.toString()
         )

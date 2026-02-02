@@ -6,7 +6,7 @@
 */
 
 -- インデックス追加（検索最適化）
-CREATE INDEX IF NOT EXISTS idx_items_title ON t_items USING gin(to_tsvector('simple', f_title));
+CREATE INDEX IF NOT EXISTS idx_items_title ON t_items USING gin(to_tsvector('simple', f_name));
 CREATE INDEX IF NOT EXISTS idx_items_price ON t_items(f_price);
 CREATE INDEX IF NOT EXISTS idx_items_category ON t_items(f_categories_id);
 CREATE INDEX IF NOT EXISTS idx_items_status ON t_items(f_status);
