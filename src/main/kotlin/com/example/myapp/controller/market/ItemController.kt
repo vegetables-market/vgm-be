@@ -2,6 +2,7 @@ package com.example.myapp.controller.market
 
 import com.example.myapp.dto.market.CreateItemRequest
 import com.example.myapp.dto.market.ItemResponse
+import com.example.myapp.dto.market.SimpleItemResponse
 import com.example.myapp.entity.auth.UserSession
 import com.example.myapp.service.market.ItemService
 import com.example.myapp.service.market.MediaService
@@ -46,7 +47,7 @@ class ItemController(
         @AuthenticationPrincipal userSession: UserSession?,
         @PathVariable itemId: Long,
         @RequestBody request: CreateItemRequest
-    ): ResponseEntity<ItemResponse> {
+    ): ResponseEntity<SimpleItemResponse> {
         if (userSession == null) throw RuntimeException("Unauthorized")
         val response = itemService.publishItem(userSession.userId, itemId, request)
         return ResponseEntity.ok(response)
@@ -58,7 +59,7 @@ class ItemController(
     fun createItem(
         @AuthenticationPrincipal userSession: UserSession?,
         @RequestBody request: CreateItemRequest
-    ): ResponseEntity<ItemResponse> {
+    ): ResponseEntity<SimpleItemResponse> {
         if (userSession == null) throw RuntimeException("Unauthorized")
         val response = itemService.createItem(userSession.userId, request)
         return ResponseEntity.ok(response)
@@ -67,7 +68,7 @@ class ItemController(
     @GetMapping("/me")
     fun getMyItems(
         @AuthenticationPrincipal userSession: UserSession?
-    ): ResponseEntity<List<ItemResponse>> {
+    ): ResponseEntity<List<SimpleItemResponse>> {
         if (userSession == null) throw RuntimeException("Unauthorized")
         val response = itemService.getMyItems(userSession.userId)
         return ResponseEntity.ok(response)

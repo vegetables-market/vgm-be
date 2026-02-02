@@ -31,17 +31,15 @@ class UserProfileService(
      */
     @Transactional
     fun updateProfile(userId: Int, profileText: String?, profileImageUrl: String?): UserProfile {
-        val existingProfile = userProfileRepository.findById(userId).orElseGet {
+        val profile = userProfileRepository.findById(userId).orElseGet {
             // プロフィールが存在しない場合は新規作成
             UserProfile(userId = userId)
         }
 
-        val updatedProfile = existingProfile.copy(
-            profileText = profileText ?: existingProfile.profileText,
-            profileImageUrl = profileImageUrl ?: existingProfile.profileImageUrl
-        )
+        profileText?.let { profile.profileText = it }
+        profileImageUrl?.let { profile.profileImageUrl = it }
 
-        return userProfileRepository.save(updatedProfile)
+        return userProfileRepository.save(profile)
     }
 
     /**
@@ -52,12 +50,12 @@ class UserProfileService(
      */
     @Transactional
     fun updateAvatarUrl(userId: Int, avatarUrl: String): UserProfile {
-        val existingProfile = userProfileRepository.findById(userId).orElseGet {
+        val profile = userProfileRepository.findById(userId).orElseGet {
             UserProfile(userId = userId)
         }
 
-        val updatedProfile = existingProfile.copy(profileImageUrl = avatarUrl)
-        return userProfileRepository.save(updatedProfile)
+        profile.profileImageUrl = avatarUrl
+        return userProfileRepository.save(profile)
     }
 
     /**
@@ -68,11 +66,11 @@ class UserProfileService(
      */
     @Transactional
     fun updateProfileText(userId: Int, profileText: String): UserProfile {
-        val existingProfile = userProfileRepository.findById(userId).orElseGet {
+        val profile = userProfileRepository.findById(userId).orElseGet {
             UserProfile(userId = userId)
         }
 
-        val updatedProfile = existingProfile.copy(profileText = profileText)
-        return userProfileRepository.save(updatedProfile)
+        profile.profileText = profileText
+        return userProfileRepository.save(profile)
     }
 }

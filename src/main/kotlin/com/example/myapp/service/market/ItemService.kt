@@ -2,6 +2,7 @@ package com.example.myapp.service.market
 
 import com.example.myapp.dto.market.CreateItemRequest
 import com.example.myapp.dto.market.ItemResponse
+import com.example.myapp.dto.market.SimpleItemResponse
 import com.example.myapp.entity.market.Item
 import com.example.myapp.entity.market.ItemImage
 import com.example.myapp.repository.market.ItemImageRepository
@@ -62,7 +63,7 @@ class ItemService(
     }
 
     @Transactional
-    fun publishItem(userId: Int, itemId: Long, request: CreateItemRequest): ItemResponse {
+    fun publishItem(userId: Int, itemId: Long, request: CreateItemRequest): SimpleItemResponse {
         val item = itemRepository.findById(itemId).orElseThrow { RuntimeException("Item not found") }
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
 
@@ -70,21 +71,20 @@ class ItemService(
         // ここでバリデーションを行っても良い
         
         // 更新
-        val updatedItem = item.copy(
-            name = request.name,
-            description = request.description,
-            categoryId = request.categoryId,
-            price = request.price,
-            quantity = request.quantity,
-            status = 2, // 出品中
-            shippingPayerType = request.shippingPayerType,
-            shippingOriginArea = request.shippingOriginArea,
-            shippingDaysId = request.shippingDaysId,
-            shippingMethodId = request.shippingMethodId,
-            itemCondition = request.itemCondition,
-            updatedAt = java.time.LocalDateTime.now()
-        )
-        val savedItem = itemRepository.save(updatedItem)
+        item.name = request.name
+        item.description = request.description
+        item.categoryId = request.categoryId
+        item.price = request.price
+        item.quantity = request.quantity
+        item.status = 2 // 出品中
+        item.shippingPayerType = request.shippingPayerType
+        item.shippingOriginArea = request.shippingOriginArea
+        item.shippingDaysId = request.shippingDaysId
+        item.shippingMethodId = request.shippingMethodId
+        item.itemCondition = request.itemCondition
+        item.updatedAt = java.time.LocalDateTime.now()
+        
+        val savedItem = itemRepository.save(item)
 
         // 画像URLリストがリクエストに含まれている場合、
         // もし「LinkImages」で既に紐付いているなら何もしないか、
@@ -99,14 +99,14 @@ class ItemService(
         // 今回は「既にlinkImagesで保存されている」前提とし、request.imageUrlsは無視する
         // （または確認用に使う）
         
-        return toResponse(savedItem)
+        return toSimpleResponse(savedItem)
     }
 
     // 既存のcreateItemも残すが、内部実体はDraft->Publishフローにするか、
     // あるいはレガシーとして維持しつつnullable対応だけするか。
     // ここではLegacy維持+nullable対応
     @Transactional
-    fun createItem(userId: Int, request: CreateItemRequest): ItemResponse {
+    fun createItem(userId: Int, request: CreateItemRequest): SimpleItemResponse {
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
 
         val item = Item(
@@ -136,26 +136,53 @@ class ItemService(
             itemImageRepository.save(itemImage)
         }
         
-        return toResponse(savedItem)
+        return toSimpleResponse(savedItem)
     }
 
-    fun getMyItems(userId: Int): List<ItemResponse> {
+    fun getMyItems(userId: Int): List<SimpleItemResponse> {
         val items = itemRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
-        return items.map { toResponse(it) }
+        return items.map { toSimpleResponse(it) }
     }
     
-    private fun toResponse(item: Item): ItemResponse {
-        val itemId = item.itemId!!
-        val images = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
-        val firstImage = images.firstOrNull()?.imageUrl
+    private fun toSimpleResponse(item: Item): SimpleItemResponse {
+        val imageUrl = itemImageRepository.findByItemIdOrderByDisplayOrder(item.itemId!!)
+            .firstOrNull()?.imageUrl
         
-        return ItemResponse(
-            id = itemId,
-            name = item.name,
-            price = item.price,
+        return SimpleItemResponse(
+            id = item.itemId!!,
+            name = item.name ?: "",
+            price = item.price ?: 0,
             status = item.status.toInt(),
-            imageUrl = firstImage,
+            imageUrl = imageUrl,
             createdAt = item.createdAt.toString()
         )
+    }
+
+    @Transactional
+    fun deleteItem(userId: Int, itemId: Long) {
+        val item = itemRepository.findById(itemId).orElseThrow { RuntimeException("Item not found") }
+        if (item.user.userId != userId) throw RuntimeException("Not authorized")
+        
+        // ソフトデリート: ステータスを削除済みに変更
+        item.status = 6 // DELETED
+        item.updatedAt = java.time.LocalDateTime.now()
+        itemRepository.save(item)
+    }
+
+    @Transactional
+    fun updateItemStatus(userId: Int, itemId: Long, newStatus: Int) {
+        val item = itemRepository.findById(itemId).orElseThrow { RuntimeException("Item not found") }
+        if (item.user.userId != userId) throw RuntimeException("Not authorized")
+        
+        // ステータス変更（出品中⇔停止中など）
+        // 許可されたステータス遷移のみ実行
+        when (newStatus) {
+            2 -> item.status = 2 // ON_SALE (出品中)
+            5 -> item.status = 5 // SUSPENDED (停止中)
+            else -> throw RuntimeException("Invalid status transition")
+        }
+        
+        item.updatedAt = java.time.LocalDateTime.now()
+        itemRepository.save(item)
     }
 }

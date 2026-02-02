@@ -5,16 +5,16 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "t_user_profile")
-data class UserProfile(
+class UserProfile(
     @Id
     @Column(name = "f_user_id")
     val userId: Int,
 
     @Column(name = "f_profile_text")
-    val profileText: String? = null,
+    var profileText: String? = null,
 
     @Column(name = "f_profile_image_url", length = 500)
-    val profileImageUrl: String? = null,
+    var profileImageUrl: String? = null,
 
     @Column(name = "f_rating_count")
     val ratingCount: Int = 0,
@@ -29,10 +29,10 @@ data class UserProfile(
     val purchasesCount: Int = 0,
 
     @Column(name = "f_following_count")
-    val followingCount: Int = 0,
+    var followingCount: Int = 0,
 
     @Column(name = "f_followers_count")
-    val followersCount: Int = 0,
+    var followersCount: Int = 0,
 
     @Column(name = "f_created_at")
     val createdAt: LocalDateTime = LocalDateTime.now(),

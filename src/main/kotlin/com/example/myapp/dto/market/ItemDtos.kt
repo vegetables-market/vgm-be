@@ -31,7 +31,31 @@ data class CreateItemRequest(
     val imageUrls: List<String>? = null
 )
 
+// 検索・一覧用のレスポンス
 data class ItemResponse(
+    val itemId: Long,
+    val title: String,
+    val description: String?,
+    val price: Int,
+    val categoryId: Long?,
+    val categoryName: String?,
+    val condition: Int,
+    val status: Short,
+    val likesCount: Int,
+    val thumbnailUrl: String?,
+    val seller: SellerInfo,
+    val createdAt: String
+)
+
+data class SellerInfo(
+    val userId: Int,
+    val username: String,
+    val displayName: String,
+    val avatarUrl: String?
+)
+
+// 既存の簡易レスポンス（下位互換性のため残す）
+data class SimpleItemResponse(
     val id: Long,
     val name: String?,
     val price: Int?,

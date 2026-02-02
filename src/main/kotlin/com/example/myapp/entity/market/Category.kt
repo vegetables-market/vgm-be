@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "m_categories")
-data class Category(
+class Category(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "f_category_id")
@@ -32,13 +32,6 @@ data class Category(
     @Column(name = "f_updated_at")
     var updatedAt: LocalDateTime = LocalDateTime.now()
 ) {
-    @PrePersist
-    fun onPrePersist() {
-        if (this.categoryId == null) {
-            // 新規作成時は必要なら初期値をセット
-        }
-    }
-
     @PreUpdate
     fun onPreUpdate() {
         updatedAt = LocalDateTime.now()
