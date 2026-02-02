@@ -145,17 +145,44 @@ class ItemService(
     }
     
     private fun toSimpleResponse(item: Item): SimpleItemResponse {
-        val itemId = item.itemId!!
-        val images = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
-        val firstImage = images.firstOrNull()?.imageUrl
+        val imageUrl = itemImageRepository.findByItemIdOrderByDisplayOrder(item.itemId!!)
+            .firstOrNull()?.imageUrl
         
         return SimpleItemResponse(
-            id = itemId,
-            name = item.name,
-            price = item.price,
-            status = item.status.toInt(),
-            imageUrl = firstImage,
+            itemId = item.itemId!!,
+            name = item.name ?: "",
+            price = item.price ?: 0,
+            status = item.status,
+            imageUrl = imageUrl,
             createdAt = item.createdAt.toString()
         )
+    }
+
+    @Transactional
+    fun deleteItem(userId: Int, itemId: Long) {
+        val item = itemRepository.findById(itemId).orElseThrow { RuntimeException("Item not found") }
+        if (item.user.userId != userId) throw RuntimeException("Not authorized")
+        
+        // ソフトデリート: ステータスを削除済みに変更
+        item.status = 6 // DELETED
+        item.updatedAt = java.time.LocalDateTime.now()
+        itemRepository.save(item)
+    }
+
+    @Transactional
+    fun updateItemStatus(userId: Int, itemId: Long, newStatus: Int) {
+        val item = itemRepository.findById(itemId).orElseThrow { RuntimeException("Item not found") }
+        if (item.user.userId != userId) throw RuntimeException("Not authorized")
+        
+        // ステータス変更（出品中⇔停止中など）
+        // 許可されたステータス遷移のみ実行
+        when (newStatus) {
+            2 -> item.status = 2 // ON_SALE (出品中)
+            5 -> item.status = 5 // SUSPENDED (停止中)
+            else -> throw RuntimeException("Invalid status transition")
+        }
+        
+        item.updatedAt = java.time.LocalDateTime.now()
+        itemRepository.save(item)
     }
 }
