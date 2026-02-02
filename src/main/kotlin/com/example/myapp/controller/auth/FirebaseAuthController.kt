@@ -64,7 +64,7 @@ class FirebaseAuthController(
             val sessionKey = oauthService.processOAuth2User(email, name, provider, providerUserId)
 
             // 3. Set Cookie
-            val cookie = Cookie("SESSION_ID", sessionKey)
+            val cookie = Cookie("vgm_session", sessionKey)
             cookie.path = "/"
             cookie.isHttpOnly = true
             cookie.maxAge = 60 * 60 * 24 * 30 // 30 days
