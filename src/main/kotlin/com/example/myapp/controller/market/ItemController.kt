@@ -4,9 +4,11 @@ import com.example.myapp.dto.market.CreateItemRequest
 import com.example.myapp.dto.market.ItemResponse
 import com.example.myapp.dto.market.SimpleItemResponse
 import com.example.myapp.entity.auth.UserSession
+import com.example.myapp.exception.BusinessException
 import com.example.myapp.service.market.ItemService
 import com.example.myapp.service.market.MediaService
 import com.example.myapp.service.market.UploadTokenResponse
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -18,16 +20,24 @@ class ItemController(
     private val mediaService: MediaService
 ) {
 
+    private fun requireAuth(userSession: UserSession?): UserSession {
+        return userSession ?: throw BusinessException(
+            errorCode = "UNAUTHORIZED",
+            message = "ログインが必要です",
+            httpStatus = HttpStatus.UNAUTHORIZED
+        )
+    }
+
     @PostMapping("/upload-token")
     fun getUploadToken(@AuthenticationPrincipal userSession: UserSession?): UploadTokenResponse {
-        if (userSession == null) throw RuntimeException("Unauthorized")
-        return mediaService.generateUploadToken(userSession.userId, "USER")
+        val session = requireAuth(userSession)
+        return mediaService.generateUploadToken(session.userId, "USER")
     }
 
     @PostMapping("/draft")
     fun createDraft(@AuthenticationPrincipal userSession: UserSession?): ResponseEntity<Map<String, Long>> {
-        if (userSession == null) throw RuntimeException("Unauthorized")
-        val item = itemService.createDraft(userSession.userId)
+        val session = requireAuth(userSession)
+        val item = itemService.createDraft(session.userId)
         return ResponseEntity.ok(mapOf("item_id" to item.itemId!!))
     }
 
@@ -37,8 +47,8 @@ class ItemController(
         @PathVariable itemId: Long,
         @RequestBody request: com.example.myapp.dto.market.LinkImagesRequest
     ): ResponseEntity<Void> {
-        if (userSession == null) throw RuntimeException("Unauthorized")
-        itemService.linkImages(userSession.userId, itemId, request.filenames)
+        val session = requireAuth(userSession)
+        itemService.linkImages(session.userId, itemId, request.filenames)
         return ResponseEntity.ok().build()
     }
 
@@ -48,8 +58,8 @@ class ItemController(
         @PathVariable itemId: Long,
         @RequestBody request: CreateItemRequest
     ): ResponseEntity<SimpleItemResponse> {
-        if (userSession == null) throw RuntimeException("Unauthorized")
-        val response = itemService.publishItem(userSession.userId, itemId, request)
+        val session = requireAuth(userSession)
+        val response = itemService.publishItem(session.userId, itemId, request)
         return ResponseEntity.ok(response)
     }
 
@@ -60,8 +70,8 @@ class ItemController(
         @AuthenticationPrincipal userSession: UserSession?,
         @RequestBody request: CreateItemRequest
     ): ResponseEntity<SimpleItemResponse> {
-        if (userSession == null) throw RuntimeException("Unauthorized")
-        val response = itemService.createItem(userSession.userId, request)
+        val session = requireAuth(userSession)
+        val response = itemService.createItem(session.userId, request)
         return ResponseEntity.ok(response)
     }
 
@@ -69,8 +79,8 @@ class ItemController(
     fun getMyItems(
         @AuthenticationPrincipal userSession: UserSession?
     ): ResponseEntity<List<SimpleItemResponse>> {
-        if (userSession == null) throw RuntimeException("Unauthorized")
-        val response = itemService.getMyItems(userSession.userId)
+        val session = requireAuth(userSession)
+        val response = itemService.getMyItems(session.userId)
         return ResponseEntity.ok(response)
     }
 }
