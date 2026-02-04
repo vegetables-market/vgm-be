@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="MyappApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <envs>
+      <env name="DB_URL" value="jdbc:postgresql://localhost:5433/myapp" />
+      <env name="DB_USER" value="postgres" />
+      <env name="DB_PASSWORD" value="postgres" />
+    </envs>
+    <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+    <module name="myapp.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.myapp.MyappApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
