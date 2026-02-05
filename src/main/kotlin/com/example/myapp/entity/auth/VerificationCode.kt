@@ -32,6 +32,9 @@ data class VerificationCode(
     @Column(name = "f_is_used")
     var isUsed: Boolean = false,
 
+    @Column(name = "f_resend_count")
+    val resendCount: Int = 0,
+
     @Column(name = "f_created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
 )

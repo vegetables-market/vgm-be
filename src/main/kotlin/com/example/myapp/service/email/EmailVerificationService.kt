@@ -21,10 +21,10 @@ class EmailVerificationService(
 
     /**
      * 認証コードを生成してメール送信
-     * @return 生成された flowId
+     * @return flowId と expiresAt のペア
      */
     @Transactional
-    fun sendVerificationEmail(userId: Int, email: String): String {
+    fun sendVerificationEmail(userId: Int, email: String, resendCount: Int = 0): Triple<String, LocalDateTime, LocalDateTime> {
         // 既存の未使用コードを無効化
         val existingCodes = verificationCodeRepository.findByUserIdAndTypeAndIsUsedFalse(userId, "EMAIL_VERIFY")
         existingCodes.forEach {
@@ -34,6 +34,8 @@ class EmailVerificationService(
 
         val code = (100000..999999).random().toString()
         val flowId = UUID.randomUUID().toString()
+        val now = LocalDateTime.now()
+        val expiresAt = now.plusMinutes(10)
         
         val verificationCode = VerificationCode(
             userId = userId,
@@ -41,7 +43,8 @@ class EmailVerificationService(
             code = code,
             flowId = flowId,
             type = "EMAIL_VERIFY",
-            expiresAt = LocalDateTime.now().plusMinutes(20)
+            expiresAt = expiresAt,
+            resendCount = resendCount
         )
         
         verificationCodeRepository.save(verificationCode)
@@ -54,22 +57,83 @@ class EmailVerificationService(
         println("=======================================")
         
         emailNotificationService.sendVerificationCodeEmail(email, code)
-        return flowId
+        return Triple(flowId, expiresAt, now)
+    }
+
+    /**
+     * 未登録ユーザー向けの認証コード送信
+     */
+    @Transactional
+    fun sendPreRegistrationVerificationEmail(email: String, resendCount: Int = 0): Triple<String, LocalDateTime, LocalDateTime> {
+        // 既存の未使用コードを無効化 (Emailベース)
+        val existingCodes = verificationCodeRepository.findByEmailAndTypeAndIsUsedFalse(email, "EMAIL_VERIFY")
+        existingCodes.forEach {
+            it.isUsed = true
+            verificationCodeRepository.save(it)
+        }
+
+        val code = (100000..999999).random().toString()
+        val flowId = UUID.randomUUID().toString()
+        val now = LocalDateTime.now()
+        val expiresAt = now.plusMinutes(10)
+
+        val verificationCode = VerificationCode(
+            userId = null, // 未登録ユーザー
+            email = email,
+            code = code,
+            flowId = flowId,
+            type = "EMAIL_VERIFY",
+            expiresAt = expiresAt,
+            resendCount = resendCount
+        )
+
+        verificationCodeRepository.save(verificationCode)
+        
+        // 開発用ログ
+        println("===== Pre-Registration Code Generated =====")
+        println("FlowID: $flowId")
+        println("Code: $code")
+        println("Email: $email")
+        println("=======================================")
+
+        emailNotificationService.sendVerificationCodeEmail(email, code)
+        return Triple(flowId, expiresAt, now)
     }
 
     /**
      * flowId に基づいてコードを再送信
-     * @return 新しい flowId
+     * @return 新しい flowId と expiresAt
+     */
+    /**
+     * flowId に基づいてコードを再送信
+     * @return 新しい flowId, expiresAt, createdAt
      */
     @Transactional
-    fun resendVerificationEmail(oldFlowId: String): String? {
+    fun resendVerificationEmail(oldFlowId: String): Triple<String, LocalDateTime, LocalDateTime>? {
         // 古いflowIdからユーザー情報を特定
         val oldRecord = verificationCodeRepository.findByFlowId(oldFlowId) ?: return null
         
-        if (oldRecord.userId == null || oldRecord.email == null) return null
-        
+        // 再送信回数チェック (最大3回まで再送信可能 = 計4回送信)
+        // ユーザー要望: "3回再送信すると、その認証はできなくなる" -> resendCountが3に達したらNG
+        if (oldRecord.resendCount >= 3) {
+            throw RuntimeException("RESEND_LIMIT_EXCEEDED")
+        }
+
+        // レート制限チェック (30秒)
+        val now = LocalDateTime.now()
+        if (oldRecord.createdAt.plusSeconds(30).isAfter(now)) {
+            throw RuntimeException("Please wait at least 30 seconds before resending.")
+        }
+
+        val email = oldRecord.email ?: return null
+        val nextResendCount = oldRecord.resendCount + 1
+
         // 新しいコードを発行（内部で古いコードは無効化される）
-        return sendVerificationEmail(oldRecord.userId, oldRecord.email)
+        return if (oldRecord.userId != null) {
+             sendVerificationEmail(oldRecord.userId, email, nextResendCount)
+        } else {
+             sendPreRegistrationVerificationEmail(email, nextResendCount)
+        }
     }
 
     /**
@@ -176,5 +240,18 @@ class EmailVerificationService(
         verificationCodeRepository.save(validCode)
         
         return true
+    }
+
+    /**
+     * flowId がメール認証済みかどうかを確認 (ユーザー登録時用)
+     */
+    @Transactional(readOnly = true)
+    fun isFlowVerified(flowId: String, email: String): Boolean {
+        val verification = verificationCodeRepository.findByFlowId(flowId) ?: return false
+        
+        // メールアドレスが一致し、使用済み(認証成功済み)であり、タイプがEMAIL_VERIFYであること
+        return verification.email == email && 
+               verification.isUsed && 
+               verification.type == "EMAIL_VERIFY"
     }
 }

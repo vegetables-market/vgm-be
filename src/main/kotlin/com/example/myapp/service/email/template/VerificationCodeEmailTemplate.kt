@@ -51,7 +51,7 @@ class VerificationCodeEmailTemplate {
                             $code
                         </div>
 
-                        <p>このコードの有効期限は <strong>20分間</strong> です。</p>
+                        <p>このコードの有効期限は <strong>10分間</strong> です。</p>
 
                         <div class="warning">
                             <strong>⚠️ ご注意：</strong><br>

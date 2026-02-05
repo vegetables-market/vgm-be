@@ -61,7 +61,9 @@ class SecurityConfig(
                         "/v1/market/items/upload-token", // 一時的なCSRF除外(デバッグ)
                         "/v1/market/items/**",     // 商品関連API(一時的除外)
                         "/v1/admin/media/upload-token",      // 管理者アップロードも除外
-                        "/v1/auth/webauthn/login/**" // Passkey login
+                        "/v1/auth/check-username",   // ユーザー名重複チェック 
+                        "/v1/auth/suggestions",      // 初期おすすめID
+                        "/v1/auth/init-flow",        // 認証フロー開始
                     )
             }
             
@@ -88,7 +90,9 @@ class SecurityConfig(
                         "/v1/version",               // アプリバージョン
                         "/actuator/health",
                         "/error",
-                        "/v1/auth/webauthn/login/**" // Passkey Login
+                        "/v1/auth/check-username",   // ユーザー名重複チェック
+                        "/v1/auth/suggestions",      // 初期おすすめID
+                        "/v1/auth/init-flow",        // 認証フロー開始
                     ).permitAll()
 
                     // 独自セッション認証を使用するエンドポイント（Controller内で認証チェック）

@@ -23,25 +23,6 @@ class EmailVerificationController(
     private val userEmailRepository: com.example.myapp.repository.user.UserEmailRepository
 ) {
 
-    /**
-     * 認証コード再送信
-     */
-    @PostMapping("/resend-code")
-    fun resendCode(@RequestBody request: Map<String, String>): ResponseEntity<Map<String, Any>> {
-        val flowId = request["flow_id"] ?: return ResponseEntity.badRequest().build()
-        
-        val newFlowId = emailVerificationService.resendVerificationEmail(flowId)
-        
-        return if (newFlowId != null) {
-            ResponseEntity.ok(mapOf(
-                "success" to true,
-                "message" to "Verification code resent",
-                "flow_id" to newFlowId
-            ))
-        } else {
-            ResponseEntity.badRequest().body(mapOf("success" to false, "message" to "Invalid flow_id"))
-        }
-    }
 
     @PostMapping("/verify-challenge")
     fun verifyChallenge(
@@ -83,6 +64,7 @@ class EmailVerificationController(
                 
                 ResponseEntity.ok(mapOf(
                     "success" to true,
+                    "is_registered" to true,
                     "user" to mapOf(
                         "user_id" to user.userId,
                         "display_name" to user.displayName,
@@ -91,7 +73,14 @@ class EmailVerificationController(
                     )
                 ))
             } else {
-                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf("error" to "User not found after verification"))
+                // 新規ユーザー: 登録フローへ
+                ResponseEntity.ok(mapOf(
+                    "success" to true,
+                    "is_registered" to false,
+                    "email" to verification.email!!,
+                    "flow_id" to flowId,
+                    "message" to "Email verified. Please proceed to registration."
+                ))
             }
         } else {
             ResponseEntity.badRequest().body(mapOf("success" to false, "message" to "Invalid or expired code"))

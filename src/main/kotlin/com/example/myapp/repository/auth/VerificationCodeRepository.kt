@@ -26,4 +26,7 @@ interface VerificationCodeRepository : JpaRepository<VerificationCode, Long> {
     
     // 特定のユーザーの未使用コードを検索
     fun findByUserIdAndTypeAndIsUsedFalse(userId: Int, type: String): List<VerificationCode>
+
+    // 特定のメールアドレスの未使用コードを検索 (未登録ユーザー用)
+    fun findByEmailAndTypeAndIsUsedFalse(email: String, type: String): List<VerificationCode>
 }
