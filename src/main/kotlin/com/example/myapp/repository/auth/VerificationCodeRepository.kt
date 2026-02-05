@@ -29,4 +29,18 @@ interface VerificationCodeRepository : JpaRepository<VerificationCode, Long> {
 
     // 特定のメールアドレスの未使用コードを検索 (未登録ユーザー用)
     fun findByEmailAndTypeAndIsUsedFalse(email: String, type: String): List<VerificationCode>
+
+    // FlowIdとCodeで検索（Type問わず）
+    fun findByFlowIdAndCodeAndIsUsedFalseAndExpiresAtAfter(
+        flowId: String,
+        code: String,
+        now: LocalDateTime
+    ): VerificationCode?
+
+    // FlowIdとTypeで検索 (ActionToken用)
+    fun findByFlowIdAndTypeAndIsUsedFalseAndExpiresAtAfter(
+        flowId: String,
+        type: String,
+        now: LocalDateTime
+    ): VerificationCode?
 }

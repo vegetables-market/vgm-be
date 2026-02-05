@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/v1/auth")
 class MfaVerificationController(
     private val mfaService: MfaService,
-    private val loginService: LoginService
+    private val loginService: LoginService,
+    private val sensitiveActionService: com.example.myapp.service.auth.SensitiveActionService // Inject
 ) {
 
     @PostMapping("/verify-mfa")
@@ -22,7 +23,7 @@ class MfaVerificationController(
         @RequestBody request: com.example.myapp.dto.auth.signinoptions.VerifyMfaLoginRequest,
         servletRequest: HttpServletRequest,
         servletResponse: HttpServletResponse
-    ): ResponseEntity<LoginResponse> {
+    ): ResponseEntity<Map<String, Any?>> { // Return type changed to generic Map to support ActionToken
         return try {
             val ipAddress = servletRequest.remoteAddr
             val userAgent = servletRequest.getHeader("User-Agent")
@@ -30,7 +31,21 @@ class MfaVerificationController(
             // 1. Verify MFA
             val userId = mfaService.verifyLoginMfa(request.mfa_token, request.code)
             
-            // 2. Complete Login
+            // Action Token 発行 (もしアクション指定があれば)
+            if (request.action != null) {
+                val actionToken = sensitiveActionService.issueActionToken(userId, request.action)
+                
+                return ResponseEntity.ok(mapOf(
+                    "success" to true,
+                    "action_token" to actionToken,
+                    // LoginResponse互換のuserオブジェクトなども必要なら返す
+                    // 現状のTOTPVerificationはLoginResponseを期待しているため、Userは返した方が親切
+                    "user" to mapOf("user_id" to userId), // Minimal fields
+                    "action" to request.action
+                ))
+            }
+
+            // 2. Complete Login (Normal Flow)
             val response = loginService.completeLogin(userId, ipAddress, userAgent)
             
             // flow_idにはセッションキーが入っている
@@ -44,7 +59,18 @@ class MfaVerificationController(
                 servletResponse.addCookie(cookie)
             }
             
-            ResponseEntity.ok(response)
+            // Convert LoginResponse to Map for consistency with this method signature
+            val responseMap = mapOf(
+                "status" to response.status,
+                "user" to response.user,
+                "flow_id" to response.flow_id,
+                "mfa_token" to response.mfa_token,
+                "mfa_type" to response.mfa_type,
+                "masked_email" to response.masked_email,
+                "require_verification" to response.require_verification
+            )
+            
+            ResponseEntity.ok(responseMap)
         } catch (e: Exception) {
             // エラー時は401または400
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()

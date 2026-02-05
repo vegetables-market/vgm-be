@@ -145,10 +145,10 @@ class EmailVerificationService(
         println("Input FlowID: $flowId")
         println("Input Code: $code")
         
-        val verification = verificationCodeRepository.findByFlowIdAndCodeAndTypeAndIsUsedFalseAndExpiresAtAfter(
+        // Typeを指定せずに検索 (EMAIL_VERIFY or ACTION_VERIFY)
+        val verification = verificationCodeRepository.findByFlowIdAndCodeAndIsUsedFalseAndExpiresAtAfter(
             flowId = flowId,
             code = code,
-            type = "EMAIL_VERIFY",
             now = LocalDateTime.now()
         )
         
@@ -157,12 +157,19 @@ class EmailVerificationService(
             return null
         }
 
+        // 許可されたタイプかチェック
+        if (verification.type != "EMAIL_VERIFY" && verification.type != "ACTION_VERIFY") {
+             println("Result: Verification failed (Invalid type: ${verification.type})")
+             return null
+        }
+
         println("Result: Verification success")
         verification.isUsed = true
         verificationCodeRepository.save(verification)
 
-        // UserAuthStatus と User のステータス更新
-        if (verification.userId != null) {
+        // EMAIL_VERIFYの場合のみ、User/AuthStatusの更新を行う
+        // ACTION_VERIFYの場合は、単に本人確認完了として返すのみ（その後Token発行へ）
+        if (verification.type == "EMAIL_VERIFY" && verification.userId != null) {
             // Update AuthStatus
             val authStatus = userAuthStatusRepository.findByUserId(verification.userId)
             if (authStatus != null) {
