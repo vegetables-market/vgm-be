@@ -47,3 +47,7 @@ application-local.properties
 .env.test.local
 .env.production.local
 *.env
+
+# Firebase credentials (DO NOT COMMIT)
+firebase-service-account.json
+*-firebase-adminsdk-*.json

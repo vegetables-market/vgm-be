@@ -140,7 +140,9 @@ class ItemService(
     }
 
     fun getMyItems(userId: Int): List<SimpleItemResponse> {
-        val items = itemRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
+        // 出品中(2)、取引中(3)、売切(4)、停止(5)のみ表示（ドラフト・削除済みは除外）
+        val visibleStatuses = listOf<Short>(2, 3, 4, 5)
+        val items = itemRepository.findByUser_UserIdAndStatusInOrderByCreatedAtDesc(userId, visibleStatuses)
         return items.map { toSimpleResponse(it) }
     }
     

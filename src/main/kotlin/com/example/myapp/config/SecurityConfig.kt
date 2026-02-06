@@ -86,6 +86,7 @@ class SecurityConfig(
                         "/v1/auth/resend-code",      // コード再送
                         "/v1/auth/verify-mfa",       // MFA認証
                         "/v1/version",               // アプリバージョン
+                        "/v1/market/categories",     // カテゴリ一覧（公開）
                         "/actuator/health",
                         "/error",
                         "/v1/auth/webauthn/login/**" // Passkey Login
