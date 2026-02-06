@@ -1,5 +1,7 @@
 package com.example.myapp.controller.auth
 
+import com.example.myapp.exception.AppException
+import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.user.UserEmailRepository
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.service.email.EmailVerificationService
@@ -58,31 +60,23 @@ class AuthFlowController(
         try {
             val result = emailVerificationService.resendVerificationEmail(request.flow_id)
             
-            return if (result != null) {
+            if (result != null) {
                 val (newFlowId, expiresAt, createdAt) = result
-                ResponseEntity.ok(mapOf(
+                return ResponseEntity.ok(mapOf(
                     "flow_id" to newFlowId,
                     "expires_at" to expiresAt.toString(),
                     "next_resend_at" to createdAt.plusSeconds(30).toString(),
                     "message" to "Verification code resent."
                 ))
             } else {
-                 ResponseEntity.badRequest().body(mapOf(
-                    "message" to "Invalid flow_id."
-                ))
+                throw AppException(ErrorCode.INVALID_INPUT, "Invalid flow_id")
             }
         } catch (e: RuntimeException) {
             if (e.message == "RESEND_LIMIT_EXCEEDED") {
-                return ResponseEntity.badRequest().body(mapOf(
-                    "success" to false,
-                    "error" to "RESEND_LIMIT_EXCEEDED",
-                    "message" to "再送信回数の上限に達しました。最初からやり直してください。"
-                ))
+                throw AppException(ErrorCode.AUTH_RESEND_LIMIT_EXCEEDED)
             }
             // レート制限などのエラー
-            return ResponseEntity.status(429).body(mapOf(
-                "message" to (e.message ?: "Too many requests.")
-            ))
+            throw AppException(ErrorCode.AUTH_TOO_MANY_REQUESTS, e.message)
         }
     }
 
@@ -90,16 +84,13 @@ class AuthFlowController(
     fun verifyCode(@RequestBody request: VerifyCodeRequest): ResponseEntity<Map<String, Any>> {
         val verification = emailVerificationService.verifyByFlowId(request.flow_id, request.code)
         
-        return if (verification != null) {
-            ResponseEntity.ok(mapOf(
+        if (verification != null) {
+            return ResponseEntity.ok(mapOf(
                 "verified" to true,
                 "email" to verification.email!!
             ))
         } else {
-            ResponseEntity.badRequest().body(mapOf(
-                "verified" to false,
-                "message" to "Invalid code or expired."
-            ))
+            throw AppException(ErrorCode.AUTH_CODE_INVALID)
         }
     }
 }
