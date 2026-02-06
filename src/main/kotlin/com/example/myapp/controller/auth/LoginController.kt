@@ -29,7 +29,9 @@ class LoginController(
         val deviceId = servletRequest.cookies?.find { it.name == "vgm_session" }?.value
         val finalRequest = if (deviceId != null) request.copy(device_id = deviceId) else request
         
-        val response = loginService.login(finalRequest, ipAddress, userAgent)
+        val guestId = servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.GuestSessionService.GUEST_COOKIE_NAME }?.value
+
+        val response = loginService.login(finalRequest, ipAddress, userAgent, guestId)
         
         if (response.status == "AUTHENTICATED" && response.flow_id != null) {
             val cookie = Cookie("vgm_session", response.flow_id)

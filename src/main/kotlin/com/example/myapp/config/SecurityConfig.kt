@@ -48,8 +48,8 @@ class SecurityConfig(
                         "/v1/auth/login/microsoft",
                         "/v1/auth/login/github",
                         "/v1/auth/login/apple",
-                        "/v1/auth/verify-email",
-                        "/v1/auth/verify",           // 統一検証エンドポイント
+                        "/v1/auth/verify-login",     // ログイン完了
+                        "/v1/auth/verify-code",      // コード検証エンドポイント
                         "/v1/auth/resend-code",      // コード再送
                         "/v1/user/mfa/**",  // MFAエンドポイント(独自認証)
                         "/v1/user/account/**",  // アカウント管理(独自認証)
@@ -60,6 +60,8 @@ class SecurityConfig(
                         "/v1/auth/logout",   // ログアウト(独自認証)
                         "/v1/market/items/upload-token", // 一時的なCSRF除外(デバッグ)
                         "/v1/market/items/**",     // 商品関連API(一時的除外)
+                        "/v1/market/cart/**",      // カート機能(ゲストPOST用)
+                        "/v1/user/favorites/**",   // お気に入り機能(ゲストPOST用)
                         "/v1/admin/media/upload-token",      // 管理者アップロードも除外
                         "/v1/auth/check-username",   // ユーザー名重複チェック 
                         "/v1/auth/suggestions",      // 初期おすすめID
@@ -82,8 +84,8 @@ class SecurityConfig(
                         "/v1/auth/login/google",     // Googleログイン (Firebase)
                         "/v1/auth/login/microsoft",  // Microsoftログイン (Firebase)
                         "/v1/auth/login/github",     // GitHubログイン (Firebase)
-                        "/v1/auth/verify-email",     // メール認証
-                        "/v1/auth/verify",           // 統一検証エンドポイント
+                        "/v1/auth/verify-login",     // ログイン完了
+                        "/v1/auth/verify-code",      // コード検証エンドポイント
                         "/v1/auth/resend-code",      // コード再送
                         "/v1/version",               // アプリバージョン
                         "/v1/market/categories",     // カテゴリ一覧（公開）
@@ -103,7 +105,9 @@ class SecurityConfig(
                         "/v1/user/sessions/**",      // セッション管理
                         "/v1/user/oauth/**",         // OAuth管理
                         "/v1/auth/logout",           // ログアウト
-                        "/v1/market/items/**"        // デバッグ用: 一時的に許可
+                        "/v1/market/items/**",       // デバッグ用: 一時的に許可
+                        "/v1/market/cart/**",         // ゲストカート機能（未認証アクセス許可）
+                        "/v1/user/favorites/**"      // ゲストお気に入り機能（未認証アクセス許可）
                     ).permitAll()
                     
                     // その他のエンドポイントは認証必須

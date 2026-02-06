@@ -31,14 +31,20 @@ class ItemDetailController(
     /**
      * 商品詳細取得
      */
+    /**
+     * 商品詳細取得
+     */
     @GetMapping("/{itemId}")
     fun getItemDetail(
         @PathVariable itemId: Long,
         servletRequest: HttpServletRequest
     ): ResponseEntity<ItemDetailResponse> {
         val userId = getUserIdFromSession(servletRequest)
+        val guestId = if (userId == null) {
+            servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.GuestSessionService.GUEST_COOKIE_NAME }?.value
+        } else null
 
-        val result = itemDetailService.getItemDetail(itemId, userId)
+        val result = itemDetailService.getItemDetail(itemId, userId, guestId)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
 
         return ResponseEntity.ok(result)

@@ -2,13 +2,13 @@ package com.example.myapp.controller.auth
 
 import com.example.myapp.dto.auth.AuthMethod
 import com.example.myapp.dto.auth.VerifyAuthRequest
+import com.example.myapp.exception.AppException
+import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.LoginService
 import com.example.myapp.service.auth.MfaService
 import com.example.myapp.service.auth.SensitiveActionService
-import com.example.myapp.service.auth.SessionService
 import com.example.myapp.service.email.EmailVerificationService
 import com.example.myapp.repository.auth.UserAuthStatusRepository
-import com.example.myapp.repository.user.UserEmailRepository
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -23,47 +23,29 @@ import org.springframework.web.bind.annotation.RestController
 class VerificationController(
     private val loginService: LoginService,
     private val mfaService: MfaService,
-    private val sessionService: SessionService,
     private val emailVerificationService: EmailVerificationService,
     private val sensitiveActionService: SensitiveActionService,
-    private val userAuthStatusRepository: UserAuthStatusRepository,
-    private val userEmailRepository: UserEmailRepository
+    private val userAuthStatusRepository: UserAuthStatusRepository
 ) {
 
-    @PostMapping("/verify")
-    fun verify(
+    /**
+     * ログイン完了エンドポイント
+     * EMAIL/TOTP認証後にセッションを作成してログインを完了する
+     */
+    @PostMapping("/verify-login")
+    fun verifyLogin(
         @RequestBody request: VerifyAuthRequest,
         servletRequest: HttpServletRequest,
         servletResponse: HttpServletResponse
     ): ResponseEntity<Map<String, Any?>> {
         return try {
-            val userId = when (request.method) {
-                AuthMethod.EMAIL -> verifyEmail(request.identifier, request.code)
-                AuthMethod.TOTP -> verifyTotp(request.identifier, request.code)
-            }
+            // 認証コードを検証してユーザーIDを取得
+            val userId = verifyAuthCode(request.method, request.identifier, request.code)
+                ?: return ResponseEntity.badRequest().body(
+                    mapOf("success" to false, "message" to "Invalid or expired code")
+                )
 
-            if (userId == null) {
-                return ResponseEntity.badRequest().body(mapOf("success" to false, "message" to "Invalid or expired code"))
-            }
-
-            val user = loginService.getUserById(userId) ?: return ResponseEntity.badRequest().build()
-
-            // Action Token Flow
-            if (request.action != null) {
-                val actionToken = sensitiveActionService.issueActionToken(userId, request.action)
-                return ResponseEntity.ok(mapOf(
-                    "success" to true,
-                    "action_token" to actionToken,
-                    "user" to mapOf("user_id" to userId),
-                    "action" to request.action
-                ))
-            }
-
-            // Login Flow
-            val ipAddress = servletRequest.remoteAddr
-            val userAgent = servletRequest.getHeader("User-Agent")
-
-            // Enable Email MFA if primary type is null (Logic from EmailVerificationController)
+            // Email MFAを有効化（プライマリMFAタイプがnullの場合）
             if (request.method == AuthMethod.EMAIL) {
                 val authStatus = userAuthStatusRepository.findByUserId(userId)
                 if (authStatus?.primaryMfaType == null) {
@@ -71,16 +53,13 @@ class VerificationController(
                 }
             }
 
-            // Create Session
-            // Note: LoginService.completeLogin does similar things but specific to LoginResponse.
-            // Here we want to share logic. 
-            // For now, let's execute the logic directly here closely matching EmailVerificationController
-            // but for TOTP, MfaVerificationController called loginService.completeLogin.
-            // We should aim for consistency. loginService.completeLogin is more robust for Login.
-            
+            // ログイン完了処理（セッション作成）
+            val ipAddress = servletRequest.remoteAddr
+            val userAgent = servletRequest.getHeader("User-Agent")
             val response = loginService.completeLogin(userId, ipAddress, userAgent)
-            
-            val sessionKey = response.flow_id // completeLogin puts session key in flow_id
+
+            // セッションCookieを設定
+            val sessionKey = response.flow_id
             if (sessionKey != null) {
                 val cookie = Cookie("vgm_session", sessionKey)
                 cookie.isHttpOnly = true
@@ -89,7 +68,8 @@ class VerificationController(
                 servletResponse.addCookie(cookie)
             }
 
-             val responseMap = mapOf(
+            // レスポンス
+            ResponseEntity.ok(mapOf(
                 "success" to true,
                 "status" to response.status,
                 "user" to response.user,
@@ -98,21 +78,76 @@ class VerificationController(
                 "mfa_type" to response.mfa_type,
                 "masked_email" to response.masked_email,
                 "require_verification" to response.require_verification
-            )
-            ResponseEntity.ok(responseMap)
+            ))
 
+        } catch (e: AppException) {
+            throw e
         } catch (e: Exception) {
-            ResponseEntity.badRequest().body(mapOf("success" to false, "message" to e.message))
+            throw AppException(ErrorCode.AUTH_CODE_INVALID, e.message ?: "認証に失敗しました")
         }
     }
 
-    private fun verifyEmail(flowId: String, code: String): Int? {
+    /**
+     * セキュリティ確認エンドポイント
+     * 重要アクション実行前の再認証でアクショントークンを発行する
+     */
+    @PostMapping("/verify-action")
+    fun verifyAction(
+        @RequestBody request: VerifyAuthRequest,
+        servletRequest: HttpServletRequest
+    ): ResponseEntity<Map<String, Any?>> {
+        return try {
+            // actionパラメータは必須
+            if (request.action == null) {
+                throw AppException(ErrorCode.INVALID_INPUT, "Action parameter is required")
+            }
+
+            // 認証コードを検証してユーザーIDを取得
+            val userId = verifyAuthCode(request.method, request.identifier, request.code)
+                ?: return ResponseEntity.badRequest().body(
+                    mapOf("success" to false, "message" to "Invalid or expired code")
+                )
+
+            // アクショントークンを発行
+            val actionToken = sensitiveActionService.issueActionToken(userId, request.action)
+
+            ResponseEntity.ok(mapOf(
+                "success" to true,
+                "action_token" to actionToken,
+                "user" to mapOf("user_id" to userId),
+                "action" to request.action
+            ))
+
+        } catch (e: AppException) {
+            throw e
+        } catch (e: Exception) {
+            throw AppException(ErrorCode.AUTH_CODE_INVALID, e.message ?: "認証に失敗しました")
+        }
+    }
+
+    /**
+     * 共通の認証コード検証ロジック
+     * EMAIL/TOTPの認証コードを検証してユーザーIDを返す
+     */
+    private fun verifyAuthCode(method: AuthMethod, identifier: String, code: String): Int? {
+        return when (method) {
+            AuthMethod.EMAIL -> verifyEmailCode(identifier, code)
+            AuthMethod.TOTP -> verifyTotpCode(identifier, code)
+        }
+    }
+
+    /**
+     * Email認証コードの検証
+     */
+    private fun verifyEmailCode(flowId: String, code: String): Int? {
         val verification = emailVerificationService.verifyByFlowId(flowId, code) ?: return null
         return verification.userId ?: loginService.getUserByIdentifier(verification.email!!)?.userId
     }
 
-    private fun verifyTotp(mfaToken: String, code: String): Int? {
-        // verifyLoginMfa throws exception on failure
+    /**
+     * TOTP認証コードの検証
+     */
+    private fun verifyTotpCode(mfaToken: String, code: String): Int? {
         return try {
             mfaService.verifyLoginMfa(mfaToken, code)
         } catch (e: Exception) {

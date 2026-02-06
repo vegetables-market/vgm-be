@@ -14,7 +14,8 @@ import java.time.LocalDateTime
 @RequestMapping("/v1/user/favorites")
 class FavoriteController(
     private val favoriteService: FavoriteService,
-    private val userSessionRepository: UserSessionRepository
+    private val userSessionRepository: UserSessionRepository,
+    private val guestSessionService: com.example.myapp.service.auth.GuestSessionService
 ) {
 
     private fun getUserIdFromSession(request: HttpServletRequest): Int? {
@@ -35,14 +36,18 @@ class FavoriteController(
     @PostMapping("/{itemId}")
     fun addFavorite(
         @PathVariable itemId: Long,
-        servletRequest: HttpServletRequest
+        servletRequest: HttpServletRequest,
+        servletResponse: jakarta.servlet.http.HttpServletResponse
     ): ResponseEntity<Map<String, Any>> {
         val userId = getUserIdFromSession(servletRequest)
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(mapOf("error" to "ログインが必要です"))
+        
+        val guestId = if (userId == null) {
+             val currentGuestId = servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.GuestSessionService.GUEST_COOKIE_NAME }?.value
+             guestSessionService.ensureGuestSession(currentGuestId, servletResponse)
+        } else null
 
         return try {
-            favoriteService.addFavorite(userId, itemId)
+            favoriteService.addFavorite(userId, guestId, itemId)
             ResponseEntity.ok(mapOf(
                 "success" to true,
                 "message" to "お気に入りに追加しました"
@@ -62,10 +67,16 @@ class FavoriteController(
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
         val userId = getUserIdFromSession(servletRequest)
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(mapOf("error" to "ログインが必要です"))
+        val guestId = if (userId == null) {
+            servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.GuestSessionService.GUEST_COOKIE_NAME }?.value
+        } else null
 
-        favoriteService.removeFavorite(userId, itemId)
+        if (userId == null && guestId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(mapOf("error" to "ログインが必要です"))
+        }
+
+        favoriteService.removeFavorite(userId, guestId, itemId)
         return ResponseEntity.ok(mapOf(
             "success" to true,
             "message" to "お気に入りから削除しました"
@@ -82,9 +93,18 @@ class FavoriteController(
         servletRequest: HttpServletRequest
     ): ResponseEntity<PaginatedResponse<ItemResponse>> {
         val userId = getUserIdFromSession(servletRequest)
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        val guestId = if (userId == null) {
+            servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.GuestSessionService.GUEST_COOKIE_NAME }?.value
+        } else null
 
-        val result = favoriteService.getFavorites(userId, page, limit)
+        if (userId == null && guestId == null) {
+            // ゲストIDもない場合は空リストを返すべきか認証エラーか。フロントエンドの挙動によるが、一旦空リストでなく401を維持（既存踏襲）
+            // ただしゲスト利用を促進するなら空リストの方が優しいかもしれない。
+            // ここでは既存の「ログインが必要です」の代わりに、認証コンテキストがない場合は401を返す。
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
+
+        val result = favoriteService.getFavorites(userId, guestId, page, limit)
         return ResponseEntity.ok(result)
     }
 }

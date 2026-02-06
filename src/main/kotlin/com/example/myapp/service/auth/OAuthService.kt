@@ -14,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional
 class OAuthService(
     private val oauthConnectionService: OAuthConnectionService,
     private val oauthUserService: OAuthUserService,
-    private val sessionService: SessionService
+    private val sessionService: SessionService,
+    private val dataMergeService: DataMergeService
 ) {
 
     /**
@@ -23,10 +24,11 @@ class OAuthService(
      * @param name 表示名
      * @param provider プロバイダ名 (google, github など)
      * @param providerUserId プロバイダ側のユーザーID
+     * @param guestId ゲストID (データ統合用)
      * @return セッションキー
      */
     @Transactional
-    fun processOAuth2User(email: String, name: String, provider: String, providerUserId: String): String {
+    fun processOAuth2User(email: String, name: String, provider: String, providerUserId: String, guestId: String? = null): String {
         // 1. Check if OAuth connection exists
         val existingConnection = oauthConnectionService.findConnection(provider, providerUserId)
         
@@ -75,6 +77,13 @@ class OAuthService(
         oauthUserService.updateLoginInfo(user.userId, provider)
 
         // Create Session via SessionService
-        return sessionService.createSession(user.userId, null, "OAuth2: $provider")
+        val sessionKey = sessionService.createSession(user.userId, null, "OAuth2: $provider")
+        
+        // ゲストデータ統合
+        if (guestId != null) {
+            dataMergeService.mergeGuestData(user.userId, guestId)
+        }
+        
+        return sessionKey
     }
 }

@@ -24,18 +24,18 @@ class FirebaseAuthController(
 ) {
 
     @PostMapping("/login/google")
-    fun googleLogin(@RequestBody request: FirebaseLoginRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
-        return processFirebaseLogin(request, response, "google")
+    fun googleLogin(@RequestBody request: FirebaseLoginRequest, servletRequest: jakarta.servlet.http.HttpServletRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
+        return processFirebaseLogin(request, servletRequest, response, "google")
     }
 
     @PostMapping("/login/microsoft")
-    fun microsoftLogin(@RequestBody request: FirebaseLoginRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
-        return processFirebaseLogin(request, response, "microsoft")
+    fun microsoftLogin(@RequestBody request: FirebaseLoginRequest, servletRequest: jakarta.servlet.http.HttpServletRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
+        return processFirebaseLogin(request, servletRequest, response, "microsoft")
     }
 
     @PostMapping("/login/github")
-    fun githubLogin(@RequestBody request: FirebaseLoginRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
-        return processFirebaseLogin(request, response, "github")
+    fun githubLogin(@RequestBody request: FirebaseLoginRequest, servletRequest: jakarta.servlet.http.HttpServletRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
+        return processFirebaseLogin(request, servletRequest, response, "github")
     }
 
 
@@ -44,6 +44,7 @@ class FirebaseAuthController(
      */
     private fun processFirebaseLogin(
         request: FirebaseLoginRequest,
+        servletRequest: jakarta.servlet.http.HttpServletRequest,
         response: HttpServletResponse,
         provider: String
     ): ResponseEntity<LoginResponse> {
@@ -61,7 +62,8 @@ class FirebaseAuthController(
 
             // 2. Process Login/Signup logic
             val providerUserId = decodedToken.uid  // Firebase UID
-            val sessionKey = oauthService.processOAuth2User(email, name, provider, providerUserId)
+            val guestId = servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.GuestSessionService.GUEST_COOKIE_NAME }?.value
+            val sessionKey = oauthService.processOAuth2User(email, name, provider, providerUserId, guestId)
 
             // 3. Set Cookie
             val cookie = Cookie("vgm_session", sessionKey)

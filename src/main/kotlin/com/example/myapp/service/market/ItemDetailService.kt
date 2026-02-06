@@ -24,7 +24,7 @@ class ItemDetailService(
     /**
      * 商品詳細取得
      */
-    fun getItemDetail(itemId: Long, userId: Int?): ItemDetailResponse? {
+    fun getItemDetail(itemId: Long, userId: Int?, guestId: String?): ItemDetailResponse? {
         val item = itemRepository.findById(itemId).orElse(null) ?: return null
         
         // 画像取得
@@ -43,9 +43,13 @@ class ItemDetailService(
         val profile = userProfileRepository.findById(item.user.userId).orElse(null)
         
         // お気に入り状態確認
-        val isLiked = userId?.let { 
-            itemFavoriteRepository.existsByUserIdAndItemId(it, itemId) 
-        } ?: false
+        val isLiked = if (userId != null) {
+            itemFavoriteRepository.existsByUserIdAndItemId(userId, itemId)
+        } else if (guestId != null) {
+            itemFavoriteRepository.existsByGuestIdAndItemId(guestId, itemId)
+        } else {
+            false
+        }
 
         // 評価平均計算
         val ratingAverage = if (profile != null && profile.ratingCount > 0) {

@@ -25,9 +25,12 @@ class LoginService(
     private val emailVerificationService: EmailVerificationService,
     private val mfaService: MfaService,
     private val sessionService: SessionService,
-    private val userInfoBuilderService: UserInfoBuilderService
+    private val userInfoBuilderService: UserInfoBuilderService,
+    private val dataMergeService: DataMergeService
 ) {
     private val passwordEncoder = BCryptPasswordEncoder()
+
+    // ... (keep private helper methods same) ...
 
     /**
      * ユーザーのプライマリメールアドレスを取得
@@ -64,7 +67,7 @@ class LoginService(
      * ログイン処理
      */
     @Transactional
-    fun login(request: LoginRequest, ipAddress: String? = null, userAgent: String? = null): LoginResponse {
+    fun login(request: LoginRequest, ipAddress: String? = null, userAgent: String? = null, guestId: String? = null): LoginResponse {
         // ユーザー名またはメールでユーザーを検索
         var user = userRepository.findByUsername(request.username)
         if (user == null) {
@@ -183,6 +186,11 @@ class LoginService(
             sessionService.createSession(user.userId, ipAddress, userAgent)
         }
 
+        // ゲストデータの統合
+        if (guestId != null) {
+            dataMergeService.mergeGuestData(user.userId, guestId)
+        }
+
         val userInfo = userInfoBuilderService.buildUserInfo(user.userId)
         
         return LoginResponse(
@@ -196,13 +204,18 @@ class LoginService(
      * MFA認証後などのログイン完了処理
      */
     @Transactional
-    fun completeLogin(userId: Int, ipAddress: String? = null, userAgent: String? = null): LoginResponse {
+    fun completeLogin(userId: Int, ipAddress: String? = null, userAgent: String? = null, guestId: String? = null): LoginResponse {
         val user = userRepository.findById(userId).orElseThrow { IllegalStateException("User not found") }
         
         user.lastLoginAt = LocalDateTime.now()
         userRepository.save(user)
 
         val sessionKey = sessionService.createSession(userId, ipAddress, userAgent)
+
+        // ゲストデータの統合
+        if (guestId != null) {
+            dataMergeService.mergeGuestData(userId, guestId)
+        }
 
         val userInfo = userInfoBuilderService.buildUserInfo(userId)
 
