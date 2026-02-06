@@ -8,3 +8,15 @@ Content-Type: application/json
 
 ### 登録されたアイテムを全件取得する
 GET http://localhost:8080/api/items
+
+### Get theme of user 1
+GET http://localhost:8080/api/users/1/theme
+Accept: application/json
+
+### Update theme of user 1
+PUT http://localhost:8080/api/users/1/theme
+Content-Type: application/json
+
+{
+  "theme": "dark"
+}
