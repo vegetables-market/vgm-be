@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 
+
+
 @RestController
 @RequestMapping("/api/users")
 class UserPreferenceController(
@@ -44,11 +46,24 @@ class UserPreferenceController(
 
         val newTheme = parseThemeFromBody(body) ?: return ResponseEntity.badRequest().body(mapOf("error" to "theme is required or invalid"))
 
-        val userId = userSession.userId.toLong()
+        val userId = userSession.userId
         val user = userRepository.findById(userId).orElse(null) ?: return ResponseEntity.notFound().build()
         user.theme = newTheme
         userRepository.save(user)
         return ResponseEntity.ok(mapOf("theme" to user.theme))
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me/theme")
+    fun getMyTheme(@AuthenticationPrincipal userSession: com.example.myapp.entity.auth.UserSession?): ResponseEntity<Map<String, Int>> {
+        if (userSession == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build()
+        }
+
+        val userId = userSession.userId
+        val user = userRepository.findById(userId).orElse(null) ?: return ResponseEntity.notFound().build()
+        val numeric = if (user.theme == "dark") 1 else 0
+        return ResponseEntity.ok(mapOf("theme" to numeric))
     }
 
     // Helper to accept either numeric (0/1) or string ("light"/"dark") theme values
