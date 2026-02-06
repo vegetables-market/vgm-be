@@ -3,7 +3,7 @@ package com.example.vgmbe
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = ["com.example"])
 class Main
 
 fun main(args: Array<String>) {

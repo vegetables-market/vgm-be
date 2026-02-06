@@ -39,3 +39,12 @@ Content-Type: application/json
 {
   "theme": "dark"
 }
+
+
+curl -i -c cookies.txt -X POST http://localhost:8080/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"themeuser","password":"secret123"}'
+
+curl -b cookies.txt -X PUT http://localhost:8080/api/users/me/theme \
+  -H "Content-Type: application/json" \
+  -d '{"theme":1}'
