@@ -132,4 +132,11 @@ class MfaService(
     fun validateLoginMfaToken(token: String): Int? {
         return mfaLoginService.validateLoginMfaToken(token)
     }
+
+    /**
+     * TOTPが有効かどうかを判定
+     */
+    fun isTotpEnabled(userId: Int): Boolean {
+        return mfaConfigService.isTotpEnabled(userId)
+    }
 }

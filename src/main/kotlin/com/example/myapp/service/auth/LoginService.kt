@@ -133,7 +133,7 @@ class LoginService(
             // MFAが無効な場合でも、新しいデバイスからのログイン通知などはここで行う（必要であれば）
             // 現状はメール認証フローへ
             val email = getPrimaryEmail(user.userId) ?: user.username
-            val flowId = emailVerificationService.sendVerificationEmail(user.userId, email)
+            val flowId = emailVerificationService.sendVerificationEmail(user.userId, email).first
             val maskedEmail = getPrimaryEmail(user.userId)?.let { AuthUtils.maskEmail(it) }
             
             return LoginResponse(

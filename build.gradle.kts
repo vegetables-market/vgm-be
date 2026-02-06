@@ -81,8 +81,7 @@ dependencies {
     // Stripe SDK for payment processing
     implementation("com.stripe:stripe-java:26.3.0")
 
-    // WebAuthn4j
-    implementation("com.webauthn4j:webauthn4j-core:0.28.5.RELEASE")
+
 
     // WebClient for PayPay API calls
     implementation("org.springframework.boot:spring-boot-starter-webflux")

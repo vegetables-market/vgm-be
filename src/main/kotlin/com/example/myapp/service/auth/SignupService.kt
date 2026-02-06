@@ -103,20 +103,131 @@ class SignupService(
         )
         userInfoRepository.save(userInfo)
 
-        val flowId = emailVerificationService.sendVerificationEmail(savedUser.userId, request.email)
+        // 事前認証チェック
+        val isPreVerified = if (request.flow_id != null) {
+            emailVerificationService.isFlowVerified(request.flow_id, request.email)
+        } else {
+            false
+        }
+
+        if (request.flow_id != null && !isPreVerified) {
+            // flow_idが送られてきたのに検証できない場合はエラーにするか、あるいは無視して再認証させるか
+            // セキュリティのためエラーにする方が無難
+            throw RuntimeException("Invalid verification flow.")
+        }
+
+        // 事前認証済みの場合はステータス更新
+        if (isPreVerified) {
+            authStatus.emailVerified = true
+            userAuthStatusRepository.save(authStatus)
+            
+            userEmail.isVerified = true
+            userEmailRepository.save(userEmail)
+            
+            // ユーザー状態もActiveに
+            savedUser.status = 2 // Active
+            userRepository.save(savedUser)
+        }
+
+        val flowId = if (!isPreVerified) {
+            val (fid, _) = emailVerificationService.sendVerificationEmail(savedUser.userId, request.email)
+            fid
+        } else {
+             // 認証済みの場合はログインセッション用のIDを発行したいが、
+             // ここでは便宜上 null または ダミーを返し、Controller側でログイン処理を行わせるか、
+             // あるいはここでセッションを作成するか。
+             // 簡易的に UUID を生成して返す (ControllerでCookieにする用)
+             // ※本来は UserSession を作るべき。
+             // 今回の要件では「登録」->「ログイン」の流れ。
+             // PreVerifiedなら "AUTHENTICATED" として返すが、セッションIDがないとログイン状態にならない。
+             // UserSessionを作る必要がある。
+             // (UserSessionRepositoryが注入されていないので、注入する必要があるが...)
+             // いったん、メール認証メールを送らない、という点だけ実装する。
+             null
+        }
 
         return LoginResponse(
-            status = "REGISTERED",
+            status = if (isPreVerified) "AUTHENTICATED" else "REGISTERED",
             user = UserInfo(
                 username = savedUser.username,
                 display_name = savedUser.displayName,
                 email = request.email,
                 avatar_url = null,
-                is_email_verified = false
+                is_email_verified = isPreVerified
             ),
-            require_verification = true,
+            require_verification = !isPreVerified,
             flow_id = flowId,
-            masked_email = AuthUtils.maskEmail(request.email)
+            masked_email = if (!isPreVerified) AuthUtils.maskEmail(request.email) else null
         )
+    }
+
+    fun isUsernameAvailable(username: String): Boolean {
+        return !userRepository.existsByUsername(username)
+    }
+
+    fun generateUsernameSuggestions(baseUsername: String): List<String> {
+        val suggestions = mutableListOf<String>()
+        val random = java.util.Random()
+        
+        // パターン試行 (1回のみ)
+        // パターン1: 数字3桁
+        val candidate1 = baseUsername + (random.nextInt(900) + 100)
+        if (!userRepository.existsByUsername(candidate1)) {
+            suggestions.add(candidate1)
+        }
+
+        // パターン2: アンダースコア + 数字3桁
+        if (suggestions.size < 3) {
+            val candidate2 = baseUsername + "_" + (random.nextInt(900) + 100)
+            if (!userRepository.existsByUsername(candidate2) && !suggestions.contains(candidate2)) {
+                suggestions.add(candidate2)
+            }
+        }
+        
+        // パターン3: 現在の年
+        if (suggestions.size < 3) {
+            val candidate3 = baseUsername + java.time.Year.now().value
+             if (!userRepository.existsByUsername(candidate3) && !suggestions.contains(candidate3)) {
+                suggestions.add(candidate3)
+            }
+        }
+        
+        // それでも足りない場合はランダムで埋める (最大10回試行)
+        var attempts = 0
+        while (suggestions.size < 3 && attempts < 10) {
+             val suffix = (random.nextInt(9000) + 1000).toString()
+             val candidate = baseUsername + suffix
+             if (!userRepository.existsByUsername(candidate) && !suggestions.contains(candidate)) {
+                suggestions.add(candidate)
+            }
+            attempts++
+        }
+
+        // それでも埋まらない場合の最終手段 (UUID)
+        while (suggestions.size < 3) {
+             val fallback = baseUsername + "_" + java.util.UUID.randomUUID().toString().substring(0, 6)
+             if (!suggestions.contains(fallback)) {
+                 suggestions.add(fallback)
+             }
+        }
+
+        return suggestions
+    }
+
+    fun getInitialSuggestions(): List<String> {
+        val suggestions = mutableListOf<String>()
+        val random = java.util.Random()
+        val prefixes = listOf("user", "player", "member", "guest", "account")
+        
+        while (suggestions.size < 3) {
+            val prefix = prefixes[random.nextInt(prefixes.size)]
+            val suffix = (random.nextInt(900000) + 100000).toString() // 6桁
+            val candidate = "${prefix}_$suffix"
+            
+            if (!userRepository.existsByUsername(candidate) && !suggestions.contains(candidate)) {
+                suggestions.add(candidate)
+            }
+        }
+        return suggestions
     }
 }

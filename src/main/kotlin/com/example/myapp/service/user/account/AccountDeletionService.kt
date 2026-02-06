@@ -105,8 +105,19 @@ class AccountDeletionService(
     }
 
     /**
+     * アカウント削除実行（外部で検証済みの場合）
+     */
+    @Transactional
+    fun executeAccountDeletion(userId: Int) {
+        // ユーザーを論理削除
+        markUserAsDeleted(userId)
+
+        // 全セッションを無効化
+        revokeAllSessions(userId)
+    }
+
+    /**
      * ユーザーを論理削除
-     * @param userId ユーザーID
      */
     private fun markUserAsDeleted(userId: Int) {
         val user = userRepository.findById(userId).orElseThrow {

@@ -20,7 +20,8 @@ data class DeleteConfirmRequest(
 @RequestMapping("/v1/user/account")
 class AccountDeleteController(
     private val userSessionRepository: UserSessionRepository,
-    private val accountDeletionService: AccountDeletionService
+    private val accountDeletionService: AccountDeletionService,
+    private val sensitiveActionService: com.example.myapp.service.auth.SensitiveActionService // Inject
 ) {
 
     /**
@@ -39,7 +40,8 @@ class AccountDeleteController(
     }
 
     /**
-     * アカウント削除リクエスト（認証コード送信）
+     * アカウント削除リクエスト（認証フロー開始）
+     * 変更点: コード送信ではなく、認証タイプ(flowIdなど)を返すのみ。
      */
     @PostMapping("/delete/request")
     fun requestDeleteAccount(
@@ -50,26 +52,30 @@ class AccountDeleteController(
                 .body(mapOf("error" to "ログインが必要です"))
 
         return try {
-            val flowId = accountDeletionService.requestAccountDeletion(userId)
+            // SensitiveActionServiceを使用して認証フローを開始
+            val initResponse = sensitiveActionService.initiateAction(userId, "delete_account")
+            
             val response: Map<String, Any> = mapOf(
                 "success" to true,
-                "flow_id" to flowId,
-                "message" to "認証コードを送信しました"
+                "flow_id" to initResponse.flowId,
+                "auth_type" to initResponse.authType.name, // "TOTP" or "EMAIL"
+                "message" to initResponse.message,
+                "masked_email" to (initResponse.maskedEmail ?: "")
             )
             ResponseEntity.ok(response)
         } catch (e: IllegalStateException) {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "User or email not found")))
+                .body(mapOf("error" to (e.message ?: "User not found")))
         }
     }
 
     /**
-     * アカウント削除確認（コード検証後に削除実行）
+     * アカウント削除実行 (Action Token必須)
      */
     @PostMapping("/delete/confirm")
     @Transactional
     fun confirmDeleteAccount(
-        @RequestBody request: DeleteConfirmRequest,
+        @RequestBody request: Map<String, String>, // flowIdではなく action_token を受け取る
         servletRequest: HttpServletRequest,
         servletResponse: HttpServletResponse
     ): ResponseEntity<Map<String, Any>> {
@@ -77,8 +83,19 @@ class AccountDeleteController(
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(mapOf("error" to "ログインが必要です"))
 
+        val actionToken = request["action_token"]
+            ?: return ResponseEntity.badRequest().body(mapOf("error" to "Action token required"))
+
         return try {
-            accountDeletionService.confirmAccountDeletion(userId, request.flowId, request.code)
+            // Action Tokenを検証・消費
+            val verifiedUserId = sensitiveActionService.verifyAndConsumeToken(actionToken, "delete_account")
+            
+            if (verifiedUserId != userId) {
+                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(mapOf("error" to "Token owner mismatch"))
+            }
+
+            
+            accountDeletionService.executeAccountDeletion(userId)
 
             // Cookieを削除
             val cookie = Cookie("vgm_session", "")
@@ -94,10 +111,10 @@ class AccountDeleteController(
             ResponseEntity.ok(response)
         } catch (e: IllegalArgumentException) {
             ResponseEntity.badRequest()
-                .body(mapOf("error" to (e.message ?: "Invalid request")))
+                .body(mapOf("error" to (e.message ?: "Invalid token")))
         } catch (e: IllegalStateException) {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(mapOf("error" to (e.message ?: "User not found")))
+                .body(mapOf("error" to (e.message ?: "Error processing request")))
         }
     }
 }

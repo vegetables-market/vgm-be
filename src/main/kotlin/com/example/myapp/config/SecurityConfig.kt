@@ -27,7 +27,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
     @Value("\${cors.allowed-origins}") private val allowedOrigins: String,
-    private val sessionAuthenticationFilter: com.example.myapp.security.SessionAuthenticationFilter
+    private val sessionAuthenticationFilter: com.example.myapp.security.SessionAuthenticationFilter,
+    private val restAuthenticationEntryPoint: com.example.myapp.security.RestAuthenticationEntryPoint,
+    private val restAccessDeniedHandler: com.example.myapp.security.RestAccessDeniedHandler
 ) {
 
     @Bean
@@ -47,10 +49,8 @@ class SecurityConfig(
                         "/v1/auth/login/github",
                         "/v1/auth/login/apple",
                         "/v1/auth/verify-email",
-                        "/v1/auth/verify-challenge",
-                        "/v1/auth/verify-challenge", // チャレンジ認証
+                        "/v1/auth/verify",           // 統一検証エンドポイント
                         "/v1/auth/resend-code",      // コード再送
-                        "/v1/auth/verify-mfa",       // MFA認証
                         "/v1/user/mfa/**",  // MFAエンドポイント(独自認証)
                         "/v1/user/account/**",  // アカウント管理(独自認証)
                         "/v1/user/profile/**",  // プロフィール管理(独自認証)
@@ -61,7 +61,9 @@ class SecurityConfig(
                         "/v1/market/items/upload-token", // 一時的なCSRF除外(デバッグ)
                         "/v1/market/items/**",     // 商品関連API(一時的除外)
                         "/v1/admin/media/upload-token",      // 管理者アップロードも除外
-                        "/v1/auth/webauthn/login/**" // Passkey login
+                        "/v1/auth/check-username",   // ユーザー名重複チェック 
+                        "/v1/auth/suggestions",      // 初期おすすめID
+                        "/v1/auth/init-flow",        // 認証フロー開始
                     )
             }
             
@@ -80,16 +82,16 @@ class SecurityConfig(
                         "/v1/auth/login/google",     // Googleログイン (Firebase)
                         "/v1/auth/login/microsoft",  // Microsoftログイン (Firebase)
                         "/v1/auth/login/github",     // GitHubログイン (Firebase)
-                        "/v1/auth/login/apple",      // Appleログイン (Firebase)
                         "/v1/auth/verify-email",     // メール認証
-                        "/v1/auth/verify-challenge", // チャレンジ認証
+                        "/v1/auth/verify",           // 統一検証エンドポイント
                         "/v1/auth/resend-code",      // コード再送
-                        "/v1/auth/verify-mfa",       // MFA認証
                         "/v1/version",               // アプリバージョン
                         "/v1/market/categories",     // カテゴリ一覧（公開）
                         "/actuator/health",
                         "/error",
-                        "/v1/auth/webauthn/login/**" // Passkey Login
+                        "/v1/auth/check-username",   // ユーザー名重複チェック
+                        "/v1/auth/suggestions",      // 初期おすすめID
+                        "/v1/auth/init-flow",        // 認証フロー開始
                     ).permitAll()
 
                     // 独自セッション認証を使用するエンドポイント（Controller内で認証チェック）
@@ -107,6 +109,13 @@ class SecurityConfig(
                     // その他のエンドポイントは認証必須
                     // ※個別のコントローラーで @PreAuthorize を使用することも可能
                     .anyRequest().authenticated()
+            }
+
+            // エラーハンドリング
+            .exceptionHandling { handling ->
+                handling
+                    .authenticationEntryPoint(restAuthenticationEntryPoint)
+                    .accessDeniedHandler(restAccessDeniedHandler)
             }
             
             // セッション管理

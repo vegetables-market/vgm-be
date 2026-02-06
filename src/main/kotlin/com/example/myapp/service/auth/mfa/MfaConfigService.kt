@@ -147,4 +147,15 @@ class MfaConfigService(
         val authStatus = userAuthStatusRepository.findByUserId(userId)
         return authStatus?.isMfaEnabled ?: false
     }
+
+    /**
+     * TOTPが有効かどうかを判定 (TwoFactorAuthテーブルを直接確認)
+     * @param userId ユーザーID
+     * @return 有効な場合true
+     */
+    fun isTotpEnabled(userId: Int): Boolean {
+        return twoFactorAuthRepository.findByUserId(userId)
+            .map { it.isEnabled }
+            .orElse(false)
+    }
 }

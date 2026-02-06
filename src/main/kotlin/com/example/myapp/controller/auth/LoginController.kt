@@ -3,6 +3,8 @@ package com.example.myapp.controller.auth
 import com.example.myapp.dto.auth.LoginRequest
 import com.example.myapp.dto.auth.LoginResponse
 
+import com.example.myapp.exception.AppException
+import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.LoginService
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -39,8 +41,11 @@ class LoginController(
         
         return if (response.status == "AUTHENTICATED" || response.status == "VERIFICATION_REQUIRED" || response.status == "PASSWORD_REQUIRED" || response.status == "MFA_REQUIRED") {
             ResponseEntity.ok(response)
+        } else if (response.status == "INVALID_CREDENTIALS") {
+            throw AppException(ErrorCode.AUTH_INVALID_CREDENTIALS)
         } else {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+            // Fallback for other errors
+            throw AppException(ErrorCode.AUTH_INVALID_CREDENTIALS)
         }
     }
 }

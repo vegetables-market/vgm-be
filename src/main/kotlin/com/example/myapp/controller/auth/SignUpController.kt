@@ -23,5 +23,27 @@ class SignUpController(
         }
     }
 
+    @GetMapping("/check-username")
+    fun checkUsername(@RequestParam username: String): ResponseEntity<Map<String, Any>> {
+        val available = signupService.isUsernameAvailable(username)
+        val suggestions = signupService.generateUsernameSuggestions(username)
+        val response = mutableMapOf<String, Any>(
+            "available" to available,
+            "suggestions" to suggestions
+        )
+        
+        if (!available) {
+            response["message"] = "このユーザー名は既に使用されています"
+        }
+        
+        return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/suggestions")
+    fun getInitialSuggestions(): ResponseEntity<Map<String, Any>> {
+        val suggestions = signupService.getInitialSuggestions()
+        return ResponseEntity.ok(mapOf("suggestions" to suggestions))
+    }
+
 
 }
