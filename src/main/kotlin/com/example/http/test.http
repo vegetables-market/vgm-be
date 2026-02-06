@@ -6,5 +6,24 @@ Content-Type: application/json
   "price": 2500
 }
 
+
+### ユーザー登録
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "pass",
+  "username": "wkm"
+}
+
+
+
+
+
+### ログイン状態にする
+GET http://localhost:8080/api/users/me/theme
+Authorization: Basic user password
+
 ### 登録されたアイテムを全件取得する
 GET http://localhost:8080/api/items
