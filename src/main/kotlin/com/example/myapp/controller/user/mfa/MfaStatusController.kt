@@ -1,6 +1,9 @@
 package com.example.myapp.controller.user.mfa
 
-import com.example.myapp.repository.auth.UserSessionRepository
+
+import com.example.myapp.controller.common.getAppUser
+import com.example.myapp.service.auth.AppCookieService
+import com.example.myapp.service.auth.SessionService
 import com.example.myapp.service.auth.MfaService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
@@ -17,28 +20,16 @@ import java.time.LocalDateTime
 @RequestMapping("/v1/user/mfa")
 class MfaStatusController(
     private val mfaService: MfaService,
-    private val userSessionRepository: UserSessionRepository
+    private val appCookieService: AppCookieService,
+    private val sessionService: SessionService
 ) {
 
-    private fun getUserIdFromSession(request: HttpServletRequest): Int? {
-        val sessionKey = request.cookies?.find { it.name == "vgm_session" }?.value
-            ?: return null
-
-        val session = userSessionRepository.findBySessionKeyAndIsRevokedFalseAndExpiresAtAfter(
-            sessionKey,
-            LocalDateTime.now()
-        ) ?: return null
-
-        return session.userId
-    }
-
-    /**
-     * MFA状態を取得
-     */
     @GetMapping("/status")
     fun getMfaStatus(request: HttpServletRequest): ResponseEntity<Any> {
-        val userId = getUserIdFromSession(request)
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to "Unauthorized"))
+        val (userId, _) = request.getAppUser(appCookieService, sessionService)
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("error" to "Unauthorized"))
+        }
 
         val status = mfaService.getMfaStatus(userId)
         return ResponseEntity.ok(status)
