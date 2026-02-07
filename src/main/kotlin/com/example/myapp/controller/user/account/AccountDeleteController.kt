@@ -1,15 +1,15 @@
-package com.example.myapp.controller.user
+package com.example.myapp.controller.user.account
 
-import com.example.myapp.repository.auth.UserSessionRepository
+import com.example.myapp.controller.common.getAppUser
+import com.example.myapp.service.auth.AppCookieService
+import com.example.myapp.service.auth.SessionService
 import com.example.myapp.service.user.account.AccountDeletionService
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 data class DeleteConfirmRequest(
     val flowId: String,
@@ -19,25 +19,11 @@ data class DeleteConfirmRequest(
 @RestController
 @RequestMapping("/v1/user/account")
 class AccountDeleteController(
-    private val userSessionRepository: UserSessionRepository,
+    private val appCookieService: AppCookieService,
+    private val sessionService: SessionService,
     private val accountDeletionService: AccountDeletionService,
-    private val sensitiveActionService: com.example.myapp.service.auth.SensitiveActionService // Inject
+    private val sensitiveActionService: com.example.myapp.service.auth.SensitiveActionService
 ) {
-
-    /**
-     * セッションCookieからユーザーIDを取得
-     */
-    private fun getUserIdFromSession(request: HttpServletRequest): Int? {
-        val sessionKey = request.cookies?.find { it.name == "vgm_session" }?.value
-            ?: return null
-
-        val session = userSessionRepository.findBySessionKeyAndIsRevokedFalseAndExpiresAtAfter(
-            sessionKey,
-            LocalDateTime.now()
-        ) ?: return null
-
-        return session.userId
-    }
 
     /**
      * アカウント削除リクエスト（認証フロー開始）
@@ -47,9 +33,12 @@ class AccountDeleteController(
     fun requestDeleteAccount(
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
-        val userId = getUserIdFromSession(servletRequest)
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
+
+        if (userId == null) {
+             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(mapOf("error" to "ログインが必要です"))
+        }
 
         return try {
             // SensitiveActionServiceを使用して認証フローを開始
@@ -79,9 +68,12 @@ class AccountDeleteController(
         servletRequest: HttpServletRequest,
         servletResponse: HttpServletResponse
     ): ResponseEntity<Map<String, Any>> {
-        val userId = getUserIdFromSession(servletRequest)
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
+
+        if (userId == null) {
+             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(mapOf("error" to "ログインが必要です"))
+        }
 
         val actionToken = request["action_token"]
             ?: return ResponseEntity.badRequest().body(mapOf("error" to "Action token required"))
@@ -98,11 +90,7 @@ class AccountDeleteController(
             accountDeletionService.executeAccountDeletion(userId)
 
             // Cookieを削除
-            val cookie = Cookie("vgm_session", "")
-            cookie.isHttpOnly = true
-            cookie.maxAge = 0
-            cookie.path = "/"
-            servletResponse.addCookie(cookie)
+            appCookieService.removeSessionCookie(servletResponse)
 
             val response: Map<String, Any> = mapOf(
                 "success" to true,
