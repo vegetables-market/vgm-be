@@ -2,6 +2,7 @@ package com.example.myapp.service.auth
 
 import com.example.myapp.dto.auth.LoginResponse
 import com.example.myapp.dto.auth.UserInfo
+import com.example.myapp.dto.auth.VerifiedToken
 import com.example.myapp.service.auth.LoginService
 import com.example.myapp.service.auth.OAuthService
 import com.google.firebase.auth.FirebaseAuth
@@ -16,6 +17,25 @@ class FirebaseAuthService(
     /**
      * Firebase OAuth 共通処理
      */
+    /**
+     * Firebase OAuth 共通処理
+     */
+    /**
+     * IDトークンを検証し、ユーザー情報を返す
+     */
+    fun verifyToken(token: String): VerifiedToken {
+        val decodedToken = FirebaseAuth.getInstance().verifyIdToken(token)
+        val email = decodedToken.email
+            ?: throw com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.INVALID_INPUT, "Email not found in token")
+        
+        return VerifiedToken(
+            uid = decodedToken.uid,
+            email = email,
+            name = decodedToken.name ?: "No Name",
+            picture = decodedToken.picture
+        )
+    }
+
     /**
      * Firebase OAuth 共通処理
      */
@@ -47,7 +67,7 @@ class FirebaseAuthService(
                     username = user?.username ?: "",
                     display_name = user?.displayName ?: name,
                     email = email,
-                    avatar_url = null,
+                    avatar_url = null, // TODO: Get from user entity or token
                     is_email_verified = true
                 ),
                 flow_id = sessionKey
