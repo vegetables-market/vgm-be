@@ -1,7 +1,7 @@
 package com.example.myapp.controller.market.item.search
 
 import com.example.myapp.controller.market.getMarketUser
-import com.example.myapp.dto.market.ItemDetailResponse
+import com.example.myapp.dto.market.item.ItemDetailResponse
 import com.example.myapp.service.auth.AppCookieService
 import com.example.myapp.service.auth.SessionService
 import com.example.myapp.service.market.ItemDetailService

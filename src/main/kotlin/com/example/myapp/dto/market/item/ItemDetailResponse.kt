@@ -1,4 +1,4 @@
-package com.example.myapp.dto.market
+package com.example.myapp.dto.market.item
 
 data class ItemDetailResponse(
     val item: ItemDetail,

@@ -1,7 +1,7 @@
 package com.example.myapp.controller.market.item.listing
 
 import com.example.myapp.controller.market.getMarketUser
-import com.example.myapp.dto.market.LinkImagesRequest
+import com.example.myapp.dto.market.item.LinkImagesRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.AppCookieService

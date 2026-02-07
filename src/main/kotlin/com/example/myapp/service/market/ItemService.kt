@@ -1,8 +1,7 @@
 package com.example.myapp.service.market
 
-import com.example.myapp.dto.market.CreateItemRequest
-import com.example.myapp.dto.market.ItemResponse
-import com.example.myapp.dto.market.SimpleItemResponse
+import com.example.myapp.dto.market.item.CreateItemRequest
+import com.example.myapp.dto.market.item.SimpleItemResponse
 import com.example.myapp.entity.market.Item
 import com.example.myapp.entity.market.ItemImage
 import com.example.myapp.repository.market.ItemImageRepository

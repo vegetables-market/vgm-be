@@ -1,8 +1,8 @@
 package com.example.myapp.controller.market.item.listing
 
 import com.example.myapp.controller.market.getMarketUser
-import com.example.myapp.dto.market.CreateItemRequest
-import com.example.myapp.dto.market.SimpleItemResponse
+import com.example.myapp.dto.market.item.CreateItemRequest
+import com.example.myapp.dto.market.item.SimpleItemResponse
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.AppCookieService

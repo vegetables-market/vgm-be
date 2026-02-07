@@ -1,7 +1,7 @@
 package com.example.myapp.service.market
 
-import com.example.myapp.dto.market.CartItemResponse
-import com.example.myapp.dto.market.CartResponse
+import com.example.myapp.dto.market.cart.CartItemResponse
+import com.example.myapp.dto.market.cart.CartResponse
 import com.example.myapp.entity.market.CartItem
 import com.example.myapp.repository.market.CartItemRepository
 import com.example.myapp.repository.market.ItemImageRepository

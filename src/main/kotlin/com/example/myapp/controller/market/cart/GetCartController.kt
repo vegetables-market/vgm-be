@@ -1,7 +1,7 @@
 package com.example.myapp.controller.market.cart
 
 import com.example.myapp.controller.market.getMarketUser
-import com.example.myapp.dto.market.CartResponse
+import com.example.myapp.dto.market.cart.CartResponse
 import com.example.myapp.service.auth.AppCookieService
 import com.example.myapp.service.auth.SessionService
 import com.example.myapp.service.market.CartService

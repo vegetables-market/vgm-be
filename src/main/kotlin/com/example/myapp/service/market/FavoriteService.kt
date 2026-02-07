@@ -1,13 +1,14 @@
 package com.example.myapp.service.market
 
 import com.example.myapp.dto.market.*
+import com.example.myapp.dto.market.item.ItemResponse
+import com.example.myapp.dto.market.item.SellerInfo
 import com.example.myapp.entity.market.ItemFavorite
 import com.example.myapp.repository.market.CategoryRepository
 import com.example.myapp.repository.market.ItemFavoriteRepository
 import com.example.myapp.repository.market.ItemImageRepository
 import com.example.myapp.repository.market.ItemRepository
 import com.example.myapp.repository.user.UserProfileRepository
-import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

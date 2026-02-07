@@ -1,6 +1,7 @@
 package com.example.myapp.controller.market.item.listing
 
 import com.example.myapp.controller.market.getMarketUser
+import com.example.myapp.dto.market.item.CreateDraftResponse
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.AppCookieService
@@ -25,12 +26,12 @@ class CreateDraftController(
 ) {
 
     @PostMapping("/draft")
-    fun createDraft(servletRequest: HttpServletRequest): ResponseEntity<Map<String, Long>> {
+    fun createDraft(servletRequest: HttpServletRequest): ResponseEntity<CreateDraftResponse> {
         val (userId, _) = servletRequest.getMarketUser(appCookieService, sessionService)
         if (userId == null) {
             throw AppException(ErrorCode.AUTH_REQUIRED, "Login required")
         }
         val item = itemService.createDraft(userId)
-        return ResponseEntity.ok(mapOf("item_id" to item.itemId!!))
+        return ResponseEntity.ok(CreateDraftResponse(itemId = item.itemId!!))
     }
 }

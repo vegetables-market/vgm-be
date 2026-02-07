@@ -1,8 +1,8 @@
 package com.example.myapp.controller.market.item.search
 
 import com.example.myapp.controller.market.getMarketUser
-import com.example.myapp.dto.market.ItemResponse
-import com.example.myapp.dto.market.ItemSearchRequest
+import com.example.myapp.dto.market.item.ItemResponse
+import com.example.myapp.dto.market.item.ItemSearchRequest
 import com.example.myapp.dto.market.PaginatedResponse
 import com.example.myapp.service.auth.AppCookieService
 import com.example.myapp.service.auth.SessionService

@@ -1,6 +1,6 @@
 package com.example.myapp.security
 
-import com.example.myapp.dto.ErrorResponse
+import com.example.myapp.dto.common.ErrorResponse
 import com.example.myapp.exception.ErrorCode
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletRequest
