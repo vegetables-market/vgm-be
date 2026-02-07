@@ -9,7 +9,6 @@ import com.example.myapp.service.auth.MfaService
 import com.example.myapp.service.auth.SensitiveActionService
 import com.example.myapp.service.email.EmailVerificationService
 import com.example.myapp.repository.auth.UserAuthStatusRepository
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.ResponseEntity
@@ -25,7 +24,8 @@ class VerificationController(
     private val mfaService: MfaService,
     private val emailVerificationService: EmailVerificationService,
     private val sensitiveActionService: SensitiveActionService,
-    private val userAuthStatusRepository: UserAuthStatusRepository
+    private val userAuthStatusRepository: UserAuthStatusRepository,
+    private val appCookieService: com.example.myapp.service.auth.AppCookieService
 ) {
 
     /**
@@ -37,13 +37,11 @@ class VerificationController(
         @RequestBody request: VerifyAuthRequest,
         servletRequest: HttpServletRequest,
         servletResponse: HttpServletResponse
-    ): ResponseEntity<Map<String, Any?>> {
+    ): ResponseEntity<com.example.myapp.dto.auth.LoginResponse> {
         return try {
             // 認証コードを検証してユーザーIDを取得
             val userId = verifyAuthCode(request.method, request.identifier, request.code)
-                ?: return ResponseEntity.badRequest().body(
-                    mapOf("success" to false, "message" to "Invalid or expired code")
-                )
+                ?: throw AppException(ErrorCode.AUTH_CODE_INVALID, "Invalid or expired code")
 
             // Email MFAを有効化（プライマリMFAタイプがnullの場合）
             if (request.method == AuthMethod.EMAIL) {
@@ -59,26 +57,11 @@ class VerificationController(
             val response = loginService.completeLogin(userId, ipAddress, userAgent)
 
             // セッションCookieを設定
-            val sessionKey = response.flow_id
-            if (sessionKey != null) {
-                val cookie = Cookie("vgm_session", sessionKey)
-                cookie.isHttpOnly = true
-                cookie.maxAge = 30 * 24 * 60 * 60 // 30 days
-                cookie.path = "/"
-                servletResponse.addCookie(cookie)
+            if (response.flow_id != null) {
+                appCookieService.addSessionCookie(servletResponse, response.flow_id)
             }
 
-            // レスポンス
-            ResponseEntity.ok(mapOf(
-                "success" to true,
-                "status" to response.status,
-                "user" to response.user,
-                "flow_id" to response.flow_id,
-                "mfa_token" to response.mfa_token,
-                "mfa_type" to response.mfa_type,
-                "masked_email" to response.masked_email,
-                "require_verification" to response.require_verification
-            ))
+            ResponseEntity.ok(response)
 
         } catch (e: AppException) {
             throw e
