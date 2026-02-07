@@ -1,4 +1,4 @@
-package com.example.myapp.controller.user.email
+package com.example.myapp.controller.user.security.email
 
 import com.example.myapp.controller.common.getAppUser
 import com.example.myapp.exception.AppException

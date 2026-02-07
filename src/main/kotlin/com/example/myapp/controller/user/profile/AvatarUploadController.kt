@@ -1,6 +1,8 @@
 package com.example.myapp.controller.user.profile
 
-import com.example.myapp.repository.auth.UserSessionRepository
+import com.example.myapp.controller.common.getAppUser
+import com.example.myapp.service.auth.AppCookieService
+import com.example.myapp.service.auth.SessionService
 import com.example.myapp.service.market.MediaService
 import com.example.myapp.service.user.profile.UserProfileService
 import jakarta.servlet.http.HttpServletRequest
@@ -16,22 +18,11 @@ import java.time.LocalDateTime
 @RestController
 @RequestMapping("/v1/user/profile")
 class AvatarUploadController(
-    private val userSessionRepository: UserSessionRepository,
+    private val appCookieService: AppCookieService,
+    private val sessionService: SessionService,
     private val mediaService: MediaService,
     private val userProfileService: UserProfileService
 ) {
-
-    private fun getUserIdFromSession(request: HttpServletRequest): Int? {
-        val sessionKey = request.cookies?.find { it.name == "vgm_session" }?.value
-            ?: return null
-
-        val session = userSessionRepository.findBySessionKeyAndIsRevokedFalseAndExpiresAtAfter(
-            sessionKey,
-            LocalDateTime.now()
-        ) ?: return null
-
-        return session.userId
-    }
 
     /**
      * アバター画像アップロード用トークン生成
@@ -40,9 +31,11 @@ class AvatarUploadController(
     fun getAvatarUploadToken(
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
-        val userId = getUserIdFromSession(servletRequest)
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(mapOf("error" to "ログインが必要です"))
+        }
 
         val tokenResponse = mediaService.generateUploadToken(userId, "USER")
 
@@ -61,9 +54,11 @@ class AvatarUploadController(
         @RequestParam("image") file: MultipartFile,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
-        val userId = getUserIdFromSession(servletRequest)
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(mapOf("error" to "ログインが必要です"))
+        }
 
         // ファイルサイズチェック (5MB)
         if (file.size > 5 * 1024 * 1024) {

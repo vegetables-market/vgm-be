@@ -1,4 +1,4 @@
-package com.example.myapp.controller.user.oauth
+package com.example.myapp.controller.user.security.oauth
 
 import com.example.myapp.controller.common.getAppUser
 import com.example.myapp.exception.AppException

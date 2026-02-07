@@ -1,4 +1,4 @@
-package com.example.myapp.controller.user.mfa
+package com.example.myapp.controller.user.security.mfa
 
 import com.example.myapp.dto.user.mfa.MfaDisableRequest
 import com.example.myapp.controller.common.getAppUser

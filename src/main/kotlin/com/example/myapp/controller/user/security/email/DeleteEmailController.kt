@@ -1,30 +1,33 @@
-package com.example.myapp.controller.user.oauth
+package com.example.myapp.controller.user.security.email
 
 import com.example.myapp.controller.common.getAppUser
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.AppCookieService
 import com.example.myapp.service.auth.SessionService
-import com.example.myapp.service.user.UserOAuthService
+import com.example.myapp.service.user.UserEmailService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * OAuth連携一覧取得コントローラー
+ * メールアドレス削除コントローラー
+ * 指定されたメールアドレスを削除します。
  */
 @RestController
-@RequestMapping("/v1/user/oauth")
-class GetOAuthConnectionsController(
-    private val userOAuthService: UserOAuthService,
+@RequestMapping("/v1/user/emails")
+class DeleteEmailController(
+    private val userEmailService: UserEmailService,
     private val sessionService: SessionService,
     private val appCookieService: AppCookieService
 ) {
 
-    @GetMapping("/connections")
-    fun getConnections(
+    @DeleteMapping("/{emailId}")
+    fun deleteEmail(
+        @PathVariable emailId: Long,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
         val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
@@ -32,7 +35,7 @@ class GetOAuthConnectionsController(
             throw AppException(ErrorCode.AUTH_REQUIRED, "Login required")
         }
 
-        val result = userOAuthService.getConnections(userId)
+        val result = userEmailService.deleteEmail(userId, emailId)
         return ResponseEntity.ok(result)
     }
 }

@@ -1,32 +1,34 @@
-package com.example.myapp.controller.user.oauth
+package com.example.myapp.controller.user.security.email
 
 import com.example.myapp.controller.common.getAppUser
+import com.example.myapp.dto.user.email.VerifyEmailRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.AppCookieService
 import com.example.myapp.service.auth.SessionService
-import com.example.myapp.service.user.UserOAuthService
+import com.example.myapp.service.user.UserEmailService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * OAuth連携解除コントローラー
+ * メールアドレス確認コントローラー
+ * 送信された確認コードを検証し、メールアドレスを有効化します。
  */
 @RestController
-@RequestMapping("/v1/user/oauth")
-class DeleteOAuthConnectionController(
-    private val userOAuthService: UserOAuthService,
+@RequestMapping("/v1/user/emails")
+class VerifyEmailController(
+    private val userEmailService: UserEmailService,
     private val sessionService: SessionService,
     private val appCookieService: AppCookieService
 ) {
 
-    @DeleteMapping("/connections/{provider}")
-    fun disconnectOAuth(
-        @PathVariable provider: String,
+    @PostMapping("/verify")
+    fun verifyAddEmail(
+        @RequestBody request: VerifyEmailRequest,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
         val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
@@ -34,7 +36,7 @@ class DeleteOAuthConnectionController(
             throw AppException(ErrorCode.AUTH_REQUIRED, "Login required")
         }
 
-        val result = userOAuthService.disconnectOAuth(userId, provider)
+        val result = userEmailService.verifyAddEmail(userId, request)
         return ResponseEntity.ok(result)
     }
 }

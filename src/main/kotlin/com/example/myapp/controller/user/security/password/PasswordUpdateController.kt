@@ -1,29 +1,33 @@
-package com.example.myapp.controller.user.profile
+package com.example.myapp.controller.user.security.password
 
 import com.example.myapp.controller.common.getAppUser
+import com.example.myapp.dto.user.profile.ChangePasswordRequest
+import com.example.myapp.exception.AppException
 import com.example.myapp.service.auth.AppCookieService
 import com.example.myapp.service.auth.SessionService
 import com.example.myapp.service.user.profile.UserProfileService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/v1/user/profile")
-class ProfileReadController(
+class PasswordUpdateController(
     private val userProfileService: UserProfileService,
     private val appCookieService: AppCookieService,
     private val sessionService: SessionService
 ) {
 
     /**
-     * ユーザー情報取得（現在のユーザー名等）
+     * パスワード変更
      */
-    @GetMapping("/me")
-    fun getMyProfile(
+    @PutMapping("/password")
+    fun changePassword(
+        @RequestBody request: ChangePasswordRequest,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
         val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
@@ -32,7 +36,16 @@ class ProfileReadController(
                 .body(mapOf("error" to "ログインが必要です"))
         }
 
-        val profileInfo = userProfileService.getUserProfileInfo(userId)
-        return ResponseEntity.ok(profileInfo)
+        try {
+            val result = userProfileService.changePassword(
+                userId, 
+                request.currentPassword, 
+                request.newPassword
+            )
+            return ResponseEntity.ok(result)
+        } catch (e: AppException) {
+            return ResponseEntity.status(e.errorCode.httpStatus)
+                .body(mapOf("error" to e.message))
+        }
     }
 }

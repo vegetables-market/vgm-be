@@ -1,6 +1,7 @@
-package com.example.myapp.controller.user.email
+package com.example.myapp.controller.user.security.email
 
 import com.example.myapp.controller.common.getAppUser
+import com.example.myapp.dto.user.email.AddEmailRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.AppCookieService
@@ -8,26 +9,26 @@ import com.example.myapp.service.auth.SessionService
 import com.example.myapp.service.user.UserEmailService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * メールアドレス削除コントローラー
- * 指定されたメールアドレスを削除します。
+ * メールアドレス追加コントローラー
+ * 新しいメールアドレスの追加リクエストを受け付け、確認コードを送信します。
  */
 @RestController
 @RequestMapping("/v1/user/emails")
-class DeleteEmailController(
+class AddEmailController(
     private val userEmailService: UserEmailService,
     private val sessionService: SessionService,
     private val appCookieService: AppCookieService
 ) {
 
-    @DeleteMapping("/{emailId}")
-    fun deleteEmail(
-        @PathVariable emailId: Long,
+    @PostMapping
+    fun addEmail(
+        @RequestBody request: AddEmailRequest,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
         val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
@@ -35,7 +36,7 @@ class DeleteEmailController(
             throw AppException(ErrorCode.AUTH_REQUIRED, "Login required")
         }
 
-        val result = userEmailService.deleteEmail(userId, emailId)
+        val result = userEmailService.addEmail(userId, request)
         return ResponseEntity.ok(result)
     }
 }
