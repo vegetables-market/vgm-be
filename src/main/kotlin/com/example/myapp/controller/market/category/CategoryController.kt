@@ -1,9 +1,11 @@
-package com.example.myapp.controller.market
+package com.example.myapp.controller.market.category
 
 import com.example.myapp.dto.market.CategoryResponse
 import com.example.myapp.service.market.CategoryService
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/v1/market/categories")

@@ -92,19 +92,50 @@ class CartService(
     }
 
     @Transactional
-    fun updateQuantity(cartItemId: Long, newQuantity: Int) {
+    fun updateQuantity(cartItemId: Long, newQuantity: Int, userId: Int?, guestId: String?) {
         if (newQuantity <= 0) {
-            cartItemRepository.deleteById(cartItemId)
+            removeFromCart(cartItemId, userId, guestId)
             return
         }
         
-        val cartItem = cartItemRepository.findById(cartItemId).orElseThrow { IllegalArgumentException("Cart item not found") }
+        val cartItem = cartItemRepository.findById(cartItemId)
+            .orElseThrow { com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.RESOURCE_NOT_FOUND, "Cart item not found") }
+
+        // Ownership check
+        if (userId != null) {
+            if (cartItem.userId != userId) {
+                 throw com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.AUTH_FORBIDDEN, "Not authorized to update this cart item")
+            }
+        } else if (guestId != null) {
+            if (cartItem.guestId != guestId) {
+                 throw com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.AUTH_FORBIDDEN, "Not authorized to update this cart item")
+            }
+        } else {
+             throw com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.AUTH_REQUIRED, "User not authenticated")
+        }
+
         cartItem.quantity = newQuantity
         cartItemRepository.save(cartItem)
     }
 
     @Transactional
-    fun removeFromCart(cartItemId: Long) {
+    fun removeFromCart(cartItemId: Long, userId: Int?, guestId: String?) {
+        val cartItem = cartItemRepository.findById(cartItemId)
+            .orElseThrow { com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.RESOURCE_NOT_FOUND, "Cart item not found") }
+
+        // Ownership check
+        if (userId != null) {
+            if (cartItem.userId != userId) {
+                 throw com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.AUTH_FORBIDDEN, "Not authorized to remove this cart item")
+            }
+        } else if (guestId != null) {
+            if (cartItem.guestId != guestId) {
+                 throw com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.AUTH_FORBIDDEN, "Not authorized to remove this cart item")
+            }
+        } else {
+            throw com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.AUTH_REQUIRED, "User not authenticated")
+        }
+
         cartItemRepository.deleteById(cartItemId)
     }
 }

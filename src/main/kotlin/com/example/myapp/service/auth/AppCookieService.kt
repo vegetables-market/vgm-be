@@ -36,4 +36,18 @@ class AppCookieService {
         
         response.addCookie(cookie)
     }
+
+    /**
+     * リクエストからセッションCookieを取得する
+     */
+    fun getSessionCookie(request: jakarta.servlet.http.HttpServletRequest): String? {
+        return request.cookies?.find { it.name == SESSION_COOKIE_NAME }?.value
+    }
+
+    /**
+     * リクエストからゲストCookieを取得する
+     */
+    fun getGuestCookie(request: jakarta.servlet.http.HttpServletRequest): String? {
+        return request.cookies?.find { it.name == "vgm_guest_id" }?.value // GuestSessionService.GUEST_COOKIE_NAME
+    }
 }

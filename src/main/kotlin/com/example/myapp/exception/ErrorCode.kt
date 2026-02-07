@@ -27,6 +27,7 @@ enum class ErrorCode(
     USER_ALREADY_EXISTS("USER_ALREADY_EXISTS", "そのユーザー名は既に使用されています", HttpStatus.CONFLICT),
     
     // Payment / Market
+    RESOURCE_NOT_FOUND("RESOURCE_NOT_FOUND", "対象のリソースが見つかりません", HttpStatus.NOT_FOUND),
     ITEM_OUT_OF_STOCK("ITEM_OUT_OF_STOCK", "在庫切れです", HttpStatus.BAD_REQUEST),
     PAYMENT_FAILED("PAYMENT_FAILED", "決済に失敗しました", HttpStatus.PAYMENT_REQUIRED)
 }
