@@ -44,10 +44,10 @@ class UserInfoBuilderService(
 
         return UserInfo(
             username = user.username,
-            display_name = user.displayName,
+            displayName = user.displayName,
             email = getPrimaryEmail(userId),
-            avatar_url = userProfile?.profileImageUrl,
-            is_email_verified = authStatus?.emailVerified ?: false
+            avatarUrl = userProfile?.profileImageUrl,
+            isEmailVerified = authStatus?.emailVerified ?: false
         )
     }
 
@@ -66,10 +66,10 @@ class UserInfoBuilderService(
 
         return UserInfo(
             username = user.username,
-            display_name = user.displayName,
+            displayName = user.displayName,
             email = getPrimaryEmail(userId),
-            avatar_url = null,
-            is_email_verified = authStatus?.emailVerified ?: false
+            avatarUrl = null,
+            isEmailVerified = authStatus?.emailVerified ?: false
         )
     }
 

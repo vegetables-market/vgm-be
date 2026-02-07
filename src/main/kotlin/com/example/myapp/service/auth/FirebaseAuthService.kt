@@ -63,12 +63,12 @@ class FirebaseAuthService(
                 status = "AUTHENTICATED",
                 user = UserInfo(
                     username = user?.username ?: "",
-                    display_name = user?.displayName ?: name,
+                    displayName = user?.displayName ?: name,
                     email = email,
-                    avatar_url = null, // TODO: Get from user entity or token
-                    is_email_verified = true
+                    avatarUrl = null, // TODO: Get from user entity or token
+                    isEmailVerified = true
                 ),
-                flow_id = sessionKey
+                flowId = sessionKey
             )
 
         } catch (e: com.example.myapp.exception.AppException) {

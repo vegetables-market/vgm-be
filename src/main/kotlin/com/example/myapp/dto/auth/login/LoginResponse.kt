@@ -1,23 +1,20 @@
 package com.example.myapp.dto.auth.login
 
-import com.fasterxml.jackson.annotation.JsonProperty
-
 data class LoginResponse(
     val status: String,
     val user: UserInfo?,
     val message: String? = null,
-    val require_verification: Boolean = false,
-    val flow_id: String? = null,
-    val masked_email: String? = null,
-    val mfa_token: String? = null, // MFA検証用の一時トークン
-    val mfa_type: String? = null // "TOTP", "EMAIL" etc.
+    val requireVerification: Boolean = false,
+    val flowId: String? = null,
+    val maskedEmail: String? = null,
+    val mfaToken: String? = null, // MFA検証用の一時トークン
+    val mfaType: String? = null // "TOTP", "EMAIL" etc.
 )
 
 data class UserInfo(
     val username: String,
-    val display_name: String,
+    val displayName: String,
     val email: String?,
-    val avatar_url: String? = null,
-    @JsonProperty("is_email_verified")
-    val is_email_verified: Boolean // Boolean
+    val avatarUrl: String? = null,
+    val isEmailVerified: Boolean
 )

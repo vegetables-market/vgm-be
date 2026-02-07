@@ -22,7 +22,7 @@ class ResendCodeController(
     @PostMapping("/resend-code")
     fun resendCode(@RequestBody request: ResendCodeRequest): ResponseEntity<Map<String, Any>> {
         try {
-            val result = emailVerificationService.resendVerificationEmail(request.flow_id)
+            val result = emailVerificationService.resendVerificationEmail(request.flowId)
             
             if (result != null) {
                 val (newFlowId, expiresAt, createdAt) = result

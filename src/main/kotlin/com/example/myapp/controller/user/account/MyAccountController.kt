@@ -1,6 +1,7 @@
 package com.example.myapp.controller.user.account
 
 import com.example.myapp.controller.common.getAppUser
+import com.example.myapp.dto.user.account.UserProfileInfo
 import com.example.myapp.service.auth.AppCookieService
 import com.example.myapp.service.auth.SessionService
 import com.example.myapp.service.user.profile.UserProfileService
@@ -25,11 +26,10 @@ class MyAccountController(
     @GetMapping("/me")
     fun getMyProfile(
         servletRequest: HttpServletRequest
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<UserProfileInfo> {
         val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
         if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(mapOf("error" to "ログインが必要です"))
+            throw com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.AUTH_REQUIRED, "ログインが必要です")
         }
 
         val profileInfo = userProfileService.getUserProfileInfo(userId)

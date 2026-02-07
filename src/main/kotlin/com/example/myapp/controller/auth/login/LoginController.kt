@@ -30,14 +30,14 @@ class LoginController(
         val ipAddress = servletRequest.remoteAddr
         val userAgent = servletRequest.getHeader("User-Agent")
         val deviceId = servletRequest.cookies?.find { it.name == "vgm_session" }?.value
-        val finalRequest = if (deviceId != null) request.copy(device_id = deviceId) else request
+        val finalRequest = if (deviceId != null) request.copy(deviceId = deviceId) else request
 
         val guestId = servletRequest.cookies?.find { it.name == GuestSessionService.GUEST_COOKIE_NAME }?.value
 
         val response = loginService.login(finalRequest, ipAddress, userAgent, guestId)
 
-        if (response.status == "AUTHENTICATED" && response.flow_id != null) {
-            appCookieService.addSessionCookie(servletResponse, response.flow_id)
+        if (response.status == "AUTHENTICATED" && response.flowId != null) {
+            appCookieService.addSessionCookie(servletResponse, response.flowId)
         }
 
         return if (response.status == "AUTHENTICATED" || response.status == "VERIFICATION_REQUIRED" || response.status == "PASSWORD_REQUIRED" || response.status == "MFA_REQUIRED") {

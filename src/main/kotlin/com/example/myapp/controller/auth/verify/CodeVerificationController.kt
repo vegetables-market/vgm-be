@@ -22,7 +22,7 @@ class CodeVerificationController(
 
     @PostMapping("/verify-code")
     fun verifyCode(@RequestBody request: VerifyCodeRequest): ResponseEntity<Map<String, Any>> {
-        val verification = emailVerificationService.verifyByFlowId(request.flow_id, request.code)
+        val verification = emailVerificationService.verifyByFlowId(request.flowId, request.code)
         
         if (verification != null) {
             return ResponseEntity.ok(mapOf(

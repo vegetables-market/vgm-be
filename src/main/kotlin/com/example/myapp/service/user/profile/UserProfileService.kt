@@ -7,6 +7,7 @@ import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.auth.UserAuthStatusRepository
 import com.example.myapp.repository.user.UserRepository
+import com.example.myapp.dto.user.account.UserProfileInfo
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.transaction.annotation.Transactional
 
@@ -32,18 +33,22 @@ class UserProfileService(
      * ユーザー情報全般取得 (User Entity + AuthStatus)
      * MyAccountController用のデータを返す
      */
-    fun getUserProfileInfo(userId: Int): Map<String, Any> {
+
+    fun getUserProfileInfo(userId: Int): UserProfileInfo {
         val user = userRepository.findById(userId).orElseThrow {
             AppException(ErrorCode.RESOURCE_NOT_FOUND, "ユーザーが見つかりません")
         }
         val authStatus = userAuthStatusRepository.findByUserId(userId)
         
-        return mapOf(
-            "userId" to user.userId,
-            "username" to user.username,
-            "hasPassword" to (authStatus?.hasPassword ?: false),
-            "displayName" to (user.displayName ?: user.username),
-            "role" to user.role
+        return UserProfileInfo(
+            userId = user.userId,
+            username = user.username,
+            displayName = user.displayName ?: user.username,
+            email = null, // TODO: 必要であればEmailRepositoryから取得して設定
+            avatarUrl = null, // TODO: 必要であればUserProfileから取得
+            hasPassword = authStatus?.hasPassword ?: false,
+            role = user.role,
+            isEmailVerified = authStatus?.emailVerified ?: false
         )
     }
 

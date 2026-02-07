@@ -57,8 +57,8 @@ class LoginVerificationController(
             val response = loginService.completeLogin(userId, ipAddress, userAgent)
 
             // セッションCookieを設定
-            if (response.flow_id != null) {
-                appCookieService.addSessionCookie(servletResponse, response.flow_id)
+            if (response.flowId != null) {
+                appCookieService.addSessionCookie(servletResponse, response.flowId)
             }
 
             ResponseEntity.ok(response)

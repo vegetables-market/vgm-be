@@ -45,7 +45,7 @@ class SignupService(
 
         val newUser = User(
             username = request.username,
-            displayName = request.display_name,
+            displayName = request.displayName,
             passwordHash = encodedPassword,
             status = 1
         )
@@ -86,9 +86,9 @@ class SignupService(
             else -> 0
         }
 
-        val birthDate = if (request.birth_year != null && request.birth_month != null && request.birth_day != null) {
+        val birthDate = if (request.birthYear != null && request.birthMonth != null && request.birthDay != null) {
             try {
-                LocalDate.of(request.birth_year, request.birth_month, request.birth_day)
+                LocalDate.of(request.birthYear, request.birthMonth, request.birthDay)
             } catch (e: Exception) {
                 null
             }
@@ -104,13 +104,13 @@ class SignupService(
         userInfoRepository.save(userInfo)
 
         // 事前認証チェック
-        val isPreVerified = if (request.flow_id != null) {
-            emailVerificationService.isFlowVerified(request.flow_id, request.email)
+        val isPreVerified = if (request.flowId != null) {
+            emailVerificationService.isFlowVerified(request.flowId, request.email)
         } else {
             false
         }
 
-        if (request.flow_id != null && !isPreVerified) {
+        if (request.flowId != null && !isPreVerified) {
             // flow_idが送られてきたのに検証できない場合はエラーにするか、あるいは無視して再認証させるか
             // セキュリティのためエラーにする方が無難
             throw RuntimeException("Invalid verification flow.")
@@ -150,14 +150,14 @@ class SignupService(
             status = if (isPreVerified) "AUTHENTICATED" else "REGISTERED",
             user = UserInfo(
                 username = savedUser.username,
-                display_name = savedUser.displayName,
+                displayName = savedUser.displayName,
                 email = request.email,
-                avatar_url = null,
-                is_email_verified = isPreVerified
+                avatarUrl = null,
+                isEmailVerified = isPreVerified
             ),
-            require_verification = !isPreVerified,
-            flow_id = flowId,
-            masked_email = if (!isPreVerified) AuthUtils.maskEmail(request.email) else null
+            requireVerification = !isPreVerified,
+            flowId = flowId,
+            maskedEmail = if (!isPreVerified) AuthUtils.maskEmail(request.email) else null
         )
     }
 

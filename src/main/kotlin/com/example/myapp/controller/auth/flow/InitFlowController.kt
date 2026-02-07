@@ -1,6 +1,6 @@
 package com.example.myapp.controller.auth.flow
 
-import com.example.myapp.dto.auth.flow.InitauthRequest
+import com.example.myapp.dto.auth.flow.InitAuthRequest
 import com.example.myapp.repository.user.UserEmailRepository
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.service.email.EmailVerificationService
@@ -23,7 +23,7 @@ class InitFlowController(
 ) {
 
     @PostMapping("/init-flow")
-    fun initFlow(@RequestBody request: InitauthRequest): ResponseEntity<Map<String, Any>> {
+    fun initFlow(@RequestBody request: InitAuthRequest): ResponseEntity<Map<String, Any>> {
         // メールアドレスからユーザー検索
         val userEmail = userEmailRepository.findByEmail(request.email)
         

@@ -96,7 +96,7 @@ class LoginService(
         
         // ここから先はパスワードが正しいユーザーのみ到達
         
-        val session = request.device_id?.let {
+        val session = request.deviceId?.let {
             sessionService.getValidSession(it)
         }
         // セッションが有効で、かつ現在のユーザーとIDが一致するか
@@ -113,9 +113,9 @@ class LoginService(
                     return LoginResponse(
                         status = "MFA_REQUIRED",
                         user = null,
-                        mfa_token = mfaService.generateLoginMfaToken(user.userId),
-                        mfa_type = "TOTP",
-                        masked_email = email?.let { AuthUtils.maskEmail(it) }
+                        mfaToken = mfaService.generateLoginMfaToken(user.userId),
+                        mfaType = "TOTP",
+                        maskedEmail = email?.let { AuthUtils.maskEmail(it) }
                     )
                 } else if (authStatus.primaryMfaType == "EMAIL") {
                     // Email MFAの場合、ここでメール送信
@@ -125,9 +125,9 @@ class LoginService(
                     return LoginResponse(
                         status = "MFA_REQUIRED",
                         user = null,
-                        mfa_token = mfaService.generateLoginMfaToken(user.userId),
-                        mfa_type = "EMAIL",
-                        masked_email = AuthUtils.maskEmail(email)
+                        mfaToken = mfaService.generateLoginMfaToken(user.userId),
+                        mfaType = "EMAIL",
+                        maskedEmail = AuthUtils.maskEmail(email)
                     )
                 }
             }
@@ -141,10 +141,10 @@ class LoginService(
             return LoginResponse(
                 status = "VERIFICATION_REQUIRED",
                 user = null,
-                require_verification = true,
-                flow_id = flowId,
-                masked_email = maskedEmail,
-                mfa_token = null
+                requireVerification = true,
+                flowId = flowId,
+                maskedEmail = maskedEmail,
+                mfaToken = null
             )
         }
 
@@ -157,9 +157,9 @@ class LoginService(
                     return LoginResponse(
                         status = "MFA_REQUIRED",
                         user = null,
-                        mfa_token = mfaService.generateLoginMfaToken(user.userId),
-                        mfa_type = "TOTP",
-                        masked_email = email?.let { AuthUtils.maskEmail(it) }
+                        mfaToken = mfaService.generateLoginMfaToken(user.userId),
+                        mfaType = "TOTP",
+                        maskedEmail = email?.let { AuthUtils.maskEmail(it) }
                     )
                 } else if (authStatusForKnownDevice.primaryMfaType == "EMAIL") {
                  val email = getPrimaryEmail(user.userId) ?: throw RuntimeException("メールアドレスが登録されていません")
@@ -167,9 +167,9 @@ class LoginService(
                  return LoginResponse(
                     status = "MFA_REQUIRED",
                     user = null,
-                    mfa_token = mfaService.generateLoginMfaToken(user.userId),
-                    mfa_type = "EMAIL",
-                    masked_email = AuthUtils.maskEmail(email)
+                    mfaToken = mfaService.generateLoginMfaToken(user.userId),
+                    mfaType = "EMAIL",
+                    maskedEmail = AuthUtils.maskEmail(email)
                 )
             }
         }
@@ -195,7 +195,7 @@ class LoginService(
         return LoginResponse(
             status = "AUTHENTICATED",
             user = userInfo,
-            flow_id = sessionKey
+            flowId = sessionKey
         )
     }
 
@@ -221,7 +221,7 @@ class LoginService(
         return LoginResponse(
             status = "AUTHENTICATED",
             user = userInfo,
-            flow_id = sessionKey
+            flowId = sessionKey
         )
     }
 }
