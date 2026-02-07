@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 
 @Service
 class MediaService(
-    @Value("\${vgm.media.jwt-secret}") private val jwtSecret: String,
+    @Value("\${vgm.media.jwt-secret:default-secret-key}") private val jwtSecret: String,
     private val objectMapper: ObjectMapper
 ) {
 

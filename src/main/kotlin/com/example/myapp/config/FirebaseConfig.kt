@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.io.ByteArrayInputStream
 import java.util.Base64
+import java.util.Date
+import com.google.auth.oauth2.AccessToken
 
 @Configuration
 class FirebaseConfig(
@@ -44,7 +46,14 @@ class FirebaseConfig(
         } else {
             // 何も指定がない場合
             println("No Firebase credentials provided. Trying ADC...")
-            optionsBuilder.setCredentials(GoogleCredentials.getApplicationDefault())
+            try {
+                optionsBuilder.setCredentials(GoogleCredentials.getApplicationDefault())
+            } catch (e: Exception) {
+                println("Failed to load ADC: ${e.message}. Using dummy credentials for testing/local.")
+                // テストやローカル環境でADCがない場合のフォールバック
+                // 注意: これを使用すると実際のFirebase操作は失敗します
+                optionsBuilder.setCredentials(GoogleCredentials.create(AccessToken("dummy-token", Date())))
+            }
         }
         
         // 既に初期化されていたらそれを返す

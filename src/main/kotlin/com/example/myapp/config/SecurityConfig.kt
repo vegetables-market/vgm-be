@@ -26,7 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
-    @Value("\${cors.allowed-origins}") private val allowedOrigins: String,
+    @Value("\${cors.allowed-origins:http://localhost:3000}") private val allowedOrigins: String,
     private val sessionAuthenticationFilter: com.example.myapp.security.SessionAuthenticationFilter,
     private val restAuthenticationEntryPoint: com.example.myapp.security.RestAuthenticationEntryPoint,
     private val restAccessDeniedHandler: com.example.myapp.security.RestAccessDeniedHandler
@@ -47,7 +47,6 @@ class SecurityConfig(
                         "/v1/auth/google",
                         "/v1/auth/microsoft",
                         "/v1/auth/github",
-                        "/v1/auth/apple",
                         "/v1/auth/verify-login",     // ログイン完了
                         "/v1/auth/verify-code",      // コード検証エンドポイント
                         "/v1/auth/resend-code",      // コード再送
