@@ -1,4 +1,4 @@
-package com.example.myapp.dto.auth
+package com.example.myapp.dto.auth.signup
 
 /**
  * 新規登録（サインアップ）のリクエストデータ

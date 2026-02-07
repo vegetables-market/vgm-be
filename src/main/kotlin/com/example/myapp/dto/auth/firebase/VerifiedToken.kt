@@ -1,4 +1,4 @@
-package com.example.myapp.dto.auth
+package com.example.myapp.dto.auth.firebase
 
 /**
  * 検証済みトークン情報

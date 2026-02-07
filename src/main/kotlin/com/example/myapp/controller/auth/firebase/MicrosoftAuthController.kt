@@ -1,6 +1,6 @@
 package com.example.myapp.controller.auth.firebase
 
-import com.example.myapp.dto.auth.LoginResponse
+import com.example.myapp.dto.auth.login.LoginResponse
 import com.example.myapp.service.auth.FirebaseAuthService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

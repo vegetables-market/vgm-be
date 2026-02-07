@@ -1,6 +1,6 @@
 package com.example.myapp.controller.auth.flow
 
-import com.example.myapp.dto.auth.InitauthRequest
+import com.example.myapp.dto.auth.flow.InitauthRequest
 import com.example.myapp.repository.user.UserEmailRepository
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.service.email.EmailVerificationService

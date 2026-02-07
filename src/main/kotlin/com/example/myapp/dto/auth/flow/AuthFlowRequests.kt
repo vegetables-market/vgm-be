@@ -1,4 +1,4 @@
-package com.example.myapp.dto.auth
+package com.example.myapp.dto.auth.flow
 
 data class InitauthRequest(
     val email: String

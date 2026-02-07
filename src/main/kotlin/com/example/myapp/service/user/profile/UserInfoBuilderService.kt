@@ -1,6 +1,6 @@
 package com.example.myapp.service.user.profile
 
-import com.example.myapp.dto.auth.UserInfo
+import com.example.myapp.dto.auth.login.UserInfo
 import com.example.myapp.repository.auth.UserAuthStatusRepository
 import com.example.myapp.repository.user.UserEmailRepository
 import com.example.myapp.repository.user.UserProfileRepository

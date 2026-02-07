@@ -1,7 +1,7 @@
 package com.example.myapp.controller.auth.login
 
-import com.example.myapp.dto.auth.LoginRequest
-import com.example.myapp.dto.auth.LoginResponse
+import com.example.myapp.dto.auth.login.LoginRequest
+import com.example.myapp.dto.auth.login.LoginResponse
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.AppCookieService

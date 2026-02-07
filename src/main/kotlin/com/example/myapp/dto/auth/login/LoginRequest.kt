@@ -1,4 +1,4 @@
-package com.example.myapp.dto.auth
+package com.example.myapp.dto.auth.login
 
 data class LoginRequest(
     val username: String,

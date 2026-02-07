@@ -1,6 +1,6 @@
 package com.example.myapp.controller.auth.signup
 
-import com.example.myapp.dto.auth.SignupRequest
+import com.example.myapp.dto.auth.signup.SignupRequest
 import com.example.myapp.service.auth.SignupService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

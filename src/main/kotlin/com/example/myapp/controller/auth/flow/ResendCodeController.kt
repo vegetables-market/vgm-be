@@ -1,6 +1,6 @@
 package com.example.myapp.controller.auth.flow
 
-import com.example.myapp.dto.auth.ResendCodeRequest
+import com.example.myapp.dto.auth.flow.ResendCodeRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.email.EmailVerificationService

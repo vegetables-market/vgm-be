@@ -1,8 +1,8 @@
 package com.example.myapp.controller.auth.verify
 
-import com.example.myapp.dto.auth.AuthMethod
-import com.example.myapp.dto.auth.LoginResponse
-import com.example.myapp.dto.auth.VerifyAuthRequest
+import com.example.myapp.dto.auth.verify.AuthMethod
+import com.example.myapp.dto.auth.login.LoginResponse
+import com.example.myapp.dto.auth.verify.VerifyAuthRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.auth.UserAuthStatusRepository

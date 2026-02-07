@@ -1,6 +1,6 @@
 package com.example.myapp.service.auth
 
-import com.example.myapp.dto.auth.AuthMethod
+import com.example.myapp.dto.auth.verify.AuthMethod
 import com.example.myapp.service.email.EmailVerificationService
 import org.springframework.stereotype.Service
 

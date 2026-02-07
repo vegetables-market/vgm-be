@@ -1,8 +1,7 @@
 package com.example.myapp.service.auth
 
-import com.example.myapp.dto.auth.LoginRequest
-import com.example.myapp.dto.auth.LoginResponse
-import com.example.myapp.dto.auth.UserInfo
+import com.example.myapp.dto.auth.login.LoginRequest
+import com.example.myapp.dto.auth.login.LoginResponse
 import com.example.myapp.entity.user.User
 import com.example.myapp.repository.auth.UserAuthStatusRepository
 import com.example.myapp.repository.auth.UserSessionRepository

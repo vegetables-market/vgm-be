@@ -1,10 +1,8 @@
 package com.example.myapp.service.auth
 
-import com.example.myapp.dto.auth.LoginResponse
-import com.example.myapp.dto.auth.UserInfo
-import com.example.myapp.dto.auth.VerifiedToken
-import com.example.myapp.service.auth.LoginService
-import com.example.myapp.service.auth.OAuthService
+import com.example.myapp.dto.auth.login.LoginResponse
+import com.example.myapp.dto.auth.login.UserInfo
+import com.example.myapp.dto.auth.firebase.VerifiedToken
 import com.google.firebase.auth.FirebaseAuth
 import org.springframework.stereotype.Service
 
