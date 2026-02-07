@@ -1,56 +1,35 @@
-package com.example.myapp.controller.auth
+package com.example.myapp.service.auth
 
 import com.example.myapp.dto.auth.LoginResponse
+import com.example.myapp.dto.auth.UserInfo
+import com.example.myapp.service.auth.GuestSessionService
 import com.example.myapp.service.auth.LoginService
 import com.example.myapp.service.auth.OAuthService
 import com.google.firebase.auth.FirebaseAuth
 import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.stereotype.Service
 
-data class FirebaseLoginRequest(
-    val token: String
-)
-
-@RestController
-@RequestMapping("/v1/auth")
-class FirebaseAuthController(
+@Service
+class FirebaseAuthService(
     private val oauthService: OAuthService,
     private val loginService: LoginService
 ) {
 
-    @PostMapping("/login/google")
-    fun googleLogin(@RequestBody request: FirebaseLoginRequest, servletRequest: jakarta.servlet.http.HttpServletRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
-        return processFirebaseLogin(request, servletRequest, response, "google")
-    }
-
-    @PostMapping("/login/microsoft")
-    fun microsoftLogin(@RequestBody request: FirebaseLoginRequest, servletRequest: jakarta.servlet.http.HttpServletRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
-        return processFirebaseLogin(request, servletRequest, response, "microsoft")
-    }
-
-    @PostMapping("/login/github")
-    fun githubLogin(@RequestBody request: FirebaseLoginRequest, servletRequest: jakarta.servlet.http.HttpServletRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
-        return processFirebaseLogin(request, servletRequest, response, "github")
-    }
-
-
     /**
      * Firebase OAuth 共通処理
      */
-    private fun processFirebaseLogin(
-        request: FirebaseLoginRequest,
-        servletRequest: jakarta.servlet.http.HttpServletRequest,
-        response: HttpServletResponse,
-        provider: String
+    fun processLogin(
+        token: String,
+        provider: String,
+        servletRequest: HttpServletRequest,
+        response: HttpServletResponse
     ): ResponseEntity<LoginResponse> {
         return try {
             // 1. Verify ID Token
-            val decodedToken = FirebaseAuth.getInstance().verifyIdToken(request.token)
+            val decodedToken = FirebaseAuth.getInstance().verifyIdToken(token)
             val email = decodedToken.email
             val name = decodedToken.name ?: "No Name"
 
@@ -62,7 +41,7 @@ class FirebaseAuthController(
 
             // 2. Process Login/Signup logic
             val providerUserId = decodedToken.uid  // Firebase UID
-            val guestId = servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.GuestSessionService.GUEST_COOKIE_NAME }?.value
+            val guestId = servletRequest.cookies?.find { it.name == GuestSessionService.GUEST_COOKIE_NAME }?.value
             val sessionKey = oauthService.processOAuth2User(email, name, provider, providerUserId, guestId)
 
             // 3. Set Cookie
@@ -79,7 +58,7 @@ class FirebaseAuthController(
             ResponseEntity.ok(
                 LoginResponse(
                     status = "AUTHENTICATED",
-                    user = com.example.myapp.dto.auth.UserInfo(
+                    user = UserInfo(
                         username = user?.username ?: "",
                         display_name = user?.displayName ?: name,
                         email = email,

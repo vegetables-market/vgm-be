@@ -44,10 +44,10 @@ class SecurityConfig(
                     .ignoringRequestMatchers(
                         "/v1/auth/signup",
                         "/v1/auth/login",
-                        "/v1/auth/login/google",
-                        "/v1/auth/login/microsoft",
-                        "/v1/auth/login/github",
-                        "/v1/auth/login/apple",
+                        "/v1/auth/google",
+                        "/v1/auth/microsoft",
+                        "/v1/auth/github",
+                        "/v1/auth/apple",
                         "/v1/auth/verify-login",     // ログイン完了
                         "/v1/auth/verify-code",      // コード検証エンドポイント
                         "/v1/auth/resend-code",      // コード再送
@@ -81,9 +81,9 @@ class SecurityConfig(
                     .requestMatchers(
                         "/v1/auth/signup",           // 新規登録
                         "/v1/auth/login",            // ログイン
-                        "/v1/auth/login/google",     // Googleログイン (Firebase)
-                        "/v1/auth/login/microsoft",  // Microsoftログイン (Firebase)
-                        "/v1/auth/login/github",     // GitHubログイン (Firebase)
+                        "/v1/auth/google",     // Google認証 (Firebase)
+                        "/v1/auth/microsoft",  // Microsoft認証 (Firebase)
+                        "/v1/auth/github",     // GitHub認証 (Firebase)
                         "/v1/auth/verify-login",     // ログイン完了
                         "/v1/auth/verify-code",      // コード検証エンドポイント
                         "/v1/auth/resend-code",      // コード再送
