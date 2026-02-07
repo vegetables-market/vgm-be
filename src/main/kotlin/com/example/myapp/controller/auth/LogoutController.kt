@@ -29,7 +29,5 @@ class LogoutController(
         appCookieService.removeSessionCookie(servletResponse)
         
         return ResponseEntity.ok(mapOf("success" to true, "message" to "Logged out successfully"))
-        
-        return ResponseEntity.ok(mapOf("success" to true, "message" to "Logged out successfully"))
     }
 }

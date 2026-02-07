@@ -1,22 +1,25 @@
-package com.example.myapp.controller.auth
+package com.example.myapp.controller.auth.login
 
 import com.example.myapp.dto.auth.LoginRequest
 import com.example.myapp.dto.auth.LoginResponse
-
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
+import com.example.myapp.service.auth.AppCookieService
+import com.example.myapp.service.auth.GuestSessionService
 import com.example.myapp.service.auth.LoginService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/v1/auth")
 class LoginController(
     private val loginService: LoginService,
-    private val appCookieService: com.example.myapp.service.auth.AppCookieService
+    private val appCookieService: AppCookieService
 ) {
     @PostMapping("/login")
     fun login(
@@ -28,15 +31,15 @@ class LoginController(
         val userAgent = servletRequest.getHeader("User-Agent")
         val deviceId = servletRequest.cookies?.find { it.name == "vgm_session" }?.value
         val finalRequest = if (deviceId != null) request.copy(device_id = deviceId) else request
-        
-        val guestId = servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.GuestSessionService.GUEST_COOKIE_NAME }?.value
+
+        val guestId = servletRequest.cookies?.find { it.name == GuestSessionService.GUEST_COOKIE_NAME }?.value
 
         val response = loginService.login(finalRequest, ipAddress, userAgent, guestId)
-        
+
         if (response.status == "AUTHENTICATED" && response.flow_id != null) {
             appCookieService.addSessionCookie(servletResponse, response.flow_id)
         }
-        
+
         return if (response.status == "AUTHENTICATED" || response.status == "VERIFICATION_REQUIRED" || response.status == "PASSWORD_REQUIRED" || response.status == "MFA_REQUIRED") {
             ResponseEntity.ok(response)
         } else if (response.status == "INVALID_CREDENTIALS") {
