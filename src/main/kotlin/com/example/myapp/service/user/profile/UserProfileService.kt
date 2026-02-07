@@ -30,7 +30,7 @@ class UserProfileService(
 
     /**
      * ユーザー情報全般取得 (User Entity + AuthStatus)
-     * ProfileReadController用のデータを返す
+     * MyAccountController用のデータを返す
      */
     fun getUserProfileInfo(userId: Int): Map<String, Any> {
         val user = userRepository.findById(userId).orElseThrow {

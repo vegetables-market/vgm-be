@@ -1,4 +1,4 @@
-package com.example.myapp.controller.user.profile
+package com.example.myapp.controller.user.account
 
 import com.example.myapp.controller.common.getAppUser
 import com.example.myapp.dto.user.profile.UpdateUserInfoRequest
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 
 @RestController
-@RequestMapping("/v1/user/profile")
+@RequestMapping("/v1/user/account")
 class UpdateUserInfoController(
     private val userInfoService: UserInfoService,
     private val appCookieService: AppCookieService,
