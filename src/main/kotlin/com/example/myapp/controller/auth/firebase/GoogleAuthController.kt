@@ -17,11 +17,19 @@ data class GoogleLoginRequest(
 @RestController
 @RequestMapping("/v1/auth")
 class GoogleAuthController(
-    private val firebaseAuthService: FirebaseAuthService
+    private val firebaseAuthService: FirebaseAuthService,
+    private val appCookieService: com.example.myapp.service.auth.AppCookieService
 ) {
 
     @PostMapping("/google")
     fun login(@RequestBody request: GoogleLoginRequest, servletRequest: HttpServletRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
-        return firebaseAuthService.processLogin(request.token, "google", servletRequest, response)
+        val guestId = servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.GuestSessionService.GUEST_COOKIE_NAME }?.value
+        val loginResponse = firebaseAuthService.processLogin(request.token, "google", guestId)
+        
+        if (loginResponse.status == "AUTHENTICATED" && loginResponse.flow_id != null) {
+            appCookieService.addSessionCookie(response, loginResponse.flow_id)
+        }
+        
+        return ResponseEntity.ok(loginResponse)
     }
 }

@@ -6,7 +6,6 @@ import com.example.myapp.dto.auth.LoginResponse
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.LoginService
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
@@ -16,7 +15,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/v1/auth")
 class LoginController(
-    private val loginService: LoginService
+    private val loginService: LoginService,
+    private val appCookieService: com.example.myapp.service.auth.AppCookieService
 ) {
     @PostMapping("/login")
     fun login(
@@ -34,11 +34,7 @@ class LoginController(
         val response = loginService.login(finalRequest, ipAddress, userAgent, guestId)
         
         if (response.status == "AUTHENTICATED" && response.flow_id != null) {
-            val cookie = Cookie("vgm_session", response.flow_id)
-            cookie.isHttpOnly = true
-            cookie.maxAge = 30 * 24 * 60 * 60 // 30 days
-            cookie.path = "/"
-            servletResponse.addCookie(cookie)
+            appCookieService.addSessionCookie(servletResponse, response.flow_id)
         }
         
         return if (response.status == "AUTHENTICATED" || response.status == "VERIFICATION_REQUIRED" || response.status == "PASSWORD_REQUIRED" || response.status == "MFA_REQUIRED") {

@@ -17,11 +17,19 @@ data class GithubLoginRequest(
 @RestController
 @RequestMapping("/v1/auth")
 class GithubAuthController(
-    private val firebaseAuthService: FirebaseAuthService
+    private val firebaseAuthService: FirebaseAuthService,
+    private val appCookieService: com.example.myapp.service.auth.AppCookieService
 ) {
 
     @PostMapping("/github")
     fun login(@RequestBody request: GithubLoginRequest, servletRequest: HttpServletRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
-        return firebaseAuthService.processLogin(request.token, "github", servletRequest, response)
+        val guestId = servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.GuestSessionService.GUEST_COOKIE_NAME }?.value
+        val loginResponse = firebaseAuthService.processLogin(request.token, "github", guestId)
+
+        if (loginResponse.status == "AUTHENTICATED" && loginResponse.flow_id != null) {
+            appCookieService.addSessionCookie(response, loginResponse.flow_id)
+        }
+        
+        return ResponseEntity.ok(loginResponse)
     }
 }

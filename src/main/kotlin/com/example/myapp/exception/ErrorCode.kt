@@ -20,6 +20,7 @@ enum class ErrorCode(
     AUTH_CODE_INVALID("AUTH_CODE_INVALID", "認証コードが無効または期限切れです", HttpStatus.BAD_REQUEST),
     AUTH_RESEND_LIMIT_EXCEEDED("AUTH_RESEND_LIMIT_EXCEEDED", "再送信回数の上限に達しました", HttpStatus.BAD_REQUEST),
     AUTH_TOO_MANY_REQUESTS("AUTH_TOO_MANY_REQUESTS", "リクエスト回数が多すぎます", HttpStatus.TOO_MANY_REQUESTS),
+    AUTH_FIREBASE_ERROR("AUTH_FIREBASE_ERROR", "外部認証サービスでエラーが発生しました", HttpStatus.UNAUTHORIZED),
     
     // User
     USER_NOT_FOUND("USER_NOT_FOUND", "指定されたユーザーが見つかりません", HttpStatus.NOT_FOUND),
