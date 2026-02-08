@@ -1,9 +1,9 @@
 package com.example.myapp.security
 
+import com.example.myapp.repository.auth.GuestSessionRepository
 import com.example.myapp.repository.auth.UserSessionRepository
 import com.example.myapp.repository.user.UserRepository
 import jakarta.servlet.FilterChain
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -15,15 +15,18 @@ import java.time.LocalDateTime
 
 /**
  * セッション認証フィルター
- * 
- * リクエストのCookieから "vgm_session" を取得し、
- * DB上の有効なセッションと照合して、Spring Securityのコンテキストに認証情報をセットする。
+ *
+ * リクエストのCookie（`vgm_session` または `vgm_guest_id`）を確認し、
+ * DB上の有効なセッションと照合して、Spring Securityのコンテキストに認証情報をセットします。
+ *
+ * - `vgm_session`: ログイン済みユーザーのセッション
+ * - `vgm_guest_id`: 未ログインゲストのセッション
  */
 @Component
 class SessionAuthenticationFilter(
     private val userSessionRepository: UserSessionRepository,
     private val userRepository: UserRepository,
-    private val guestSessionRepository: com.example.myapp.repository.auth.GuestSessionRepository
+    private val guestSessionRepository: GuestSessionRepository
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(

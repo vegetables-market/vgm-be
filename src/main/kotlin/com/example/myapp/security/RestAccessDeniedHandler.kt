@@ -11,6 +11,12 @@ import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
+/**
+ * アクセス拒否ハンドラ
+ *
+ * 認証済みユーザーが権限不足のリソースにアクセスした際（403 Forbidden）、
+ * 共通のエラーレスポンス形式（JSON）で応答を返します。
+ */
 @Component
 class RestAccessDeniedHandler(
     private val objectMapper: ObjectMapper
