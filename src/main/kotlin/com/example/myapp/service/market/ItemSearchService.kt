@@ -2,7 +2,7 @@ package com.example.myapp.service.market
 
 import com.example.myapp.dto.market.*
 import com.example.myapp.dto.market.item.ItemResponse
-import com.example.myapp.dto.market.item.ItemSearchRequest
+import com.example.myapp.dto.market.item.search.ItemSearchRequest
 import com.example.myapp.dto.market.item.SellerInfo
 import com.example.myapp.entity.market.Item
 import com.example.myapp.repository.market.CategoryRepository

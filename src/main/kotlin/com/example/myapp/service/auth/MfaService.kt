@@ -1,6 +1,8 @@
 package com.example.myapp.service.auth
 
-import com.example.myapp.dto.user.mfa.*
+import com.example.myapp.dto.user.security.mfa.MfaEnableResponse
+import com.example.myapp.dto.user.security.mfa.MfaSetupResponse
+import com.example.myapp.dto.user.security.mfa.MfaStatusResponse
 import com.example.myapp.service.auth.mfa.MfaConfigService
 import com.example.myapp.service.auth.mfa.MfaLoginService
 import com.example.myapp.service.auth.mfa.TotpService

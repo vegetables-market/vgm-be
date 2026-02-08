@@ -1,8 +1,8 @@
 package com.example.myapp.service.user
 
-import com.example.myapp.dto.user.email.AddEmailRequest
-import com.example.myapp.dto.user.email.EmailResponse
-import com.example.myapp.dto.user.email.VerifyEmailRequest
+import com.example.myapp.dto.user.security.email.AddEmailRequest
+import com.example.myapp.dto.user.security.email.EmailResponse
+import com.example.myapp.dto.user.security.email.VerifyEmailRequest
 import com.example.myapp.entity.auth.VerificationCode
 import com.example.myapp.entity.user.UserEmail
 import com.example.myapp.exception.AppException

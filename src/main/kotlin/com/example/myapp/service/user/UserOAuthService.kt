@@ -1,7 +1,6 @@
 package com.example.myapp.service.user
 
-import com.example.myapp.dto.user.oauth.OAuthConnectionResponse
-import com.example.myapp.entity.auth.UserOAuthConnection
+import com.example.myapp.dto.user.security.oauth.OAuthConnectionResponse
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.auth.UserAuthStatusRepository
@@ -9,7 +8,6 @@ import com.example.myapp.repository.auth.UserOAuthConnectionRepository
 import com.example.myapp.service.auth.FirebaseAuthService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Service
 class UserOAuthService(

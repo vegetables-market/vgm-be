@@ -1,10 +1,10 @@
 package com.example.myapp.service.market
 
-import com.example.myapp.dto.market.item.ItemDetail
-import com.example.myapp.dto.market.item.ItemDetailResponse
-import com.example.myapp.dto.market.item.ItemImageInfo
+import com.example.myapp.dto.market.item.detail.ItemDetail
+import com.example.myapp.dto.market.item.detail.ItemDetailResponse
+import com.example.myapp.dto.market.item.detail.ItemImageInfo
 import com.example.myapp.dto.market.item.ItemResponse
-import com.example.myapp.dto.market.item.SellerDetailInfo
+import com.example.myapp.dto.market.item.detail.SellerDetailInfo
 import com.example.myapp.dto.market.item.SellerInfo
 import com.example.myapp.repository.market.CategoryRepository
 import com.example.myapp.repository.market.ItemFavoriteRepository

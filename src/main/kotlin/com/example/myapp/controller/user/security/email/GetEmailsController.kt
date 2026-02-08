@@ -1,7 +1,7 @@
 package com.example.myapp.controller.user.security.email
 
 import com.example.myapp.controller.common.getAppUser
-import com.example.myapp.dto.user.email.EmailResponse
+import com.example.myapp.dto.user.security.email.EmailResponse
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.AppCookieService

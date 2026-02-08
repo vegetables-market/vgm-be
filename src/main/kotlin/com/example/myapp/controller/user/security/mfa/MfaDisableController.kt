@@ -1,6 +1,6 @@
 package com.example.myapp.controller.user.security.mfa
 
-import com.example.myapp.dto.user.mfa.MfaDisableRequest
+import com.example.myapp.dto.user.security.mfa.MfaDisableRequest
 import com.example.myapp.controller.common.getAppUser
 import com.example.myapp.service.auth.AppCookieService
 import com.example.myapp.service.auth.SessionService
@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDateTime
 
 /**
  * MFA無効化用コントローラー
