@@ -2,8 +2,8 @@ package com.example.myapp.service.user.profile
 
 import com.example.myapp.dto.auth.login.UserInfo
 import com.example.myapp.repository.auth.UserAuthStatusRepository
-import com.example.myapp.repository.user.UserEmailRepository
-import com.example.myapp.repository.user.UserProfileRepository
+import com.example.myapp.repository.user.email.UserEmailRepository
+import com.example.myapp.repository.user.profile.UserProfileRepository
 import com.example.myapp.repository.user.UserRepository
 import org.springframework.stereotype.Service
 

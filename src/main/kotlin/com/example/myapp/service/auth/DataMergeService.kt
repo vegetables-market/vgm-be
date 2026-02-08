@@ -3,8 +3,8 @@ package com.example.myapp.service.auth
 import com.example.myapp.entity.market.cart.CartItem
 import com.example.myapp.entity.market.item.ItemFavorite
 import com.example.myapp.repository.auth.GuestSessionRepository
-import com.example.myapp.repository.market.CartItemRepository
-import com.example.myapp.repository.market.ItemFavoriteRepository
+import com.example.myapp.repository.market.cart.CartItemRepository
+import com.example.myapp.repository.market.item.ItemFavoriteRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

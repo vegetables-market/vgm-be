@@ -2,7 +2,7 @@ package com.example.myapp.service.market
 
 import com.example.myapp.dto.market.CategoryResponse
 import com.example.myapp.entity.market.category.Category
-import com.example.myapp.repository.market.CategoryRepository
+import com.example.myapp.repository.market.category.CategoryRepository
 import org.springframework.stereotype.Service
 
 /**

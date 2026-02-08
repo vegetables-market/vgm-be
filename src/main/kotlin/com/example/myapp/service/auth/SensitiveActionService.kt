@@ -2,7 +2,7 @@ package com.example.myapp.service.auth
 
 import com.example.myapp.entity.auth.VerificationCode
 import com.example.myapp.repository.auth.VerificationCodeRepository
-import com.example.myapp.repository.user.UserEmailRepository
+import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.service.email.EmailNotificationService
 import com.example.myapp.service.auth.MfaService // Add import
 import org.springframework.stereotype.Service

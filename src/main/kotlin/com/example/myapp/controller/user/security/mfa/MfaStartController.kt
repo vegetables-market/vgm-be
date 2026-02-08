@@ -6,7 +6,7 @@ import com.example.myapp.service.auth.AppCookieService
 import com.example.myapp.service.auth.SessionService
 import com.example.myapp.service.auth.MfaService
 import com.example.myapp.service.auth.LoginService
-import com.example.myapp.repository.user.UserEmailRepository
+import com.example.myapp.repository.user.email.UserEmailRepository
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

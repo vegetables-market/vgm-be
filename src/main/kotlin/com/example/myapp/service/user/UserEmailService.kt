@@ -8,7 +8,7 @@ import com.example.myapp.entity.user.email.UserEmail
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.auth.VerificationCodeRepository
-import com.example.myapp.repository.user.UserEmailRepository
+import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.service.email.EmailNotificationService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

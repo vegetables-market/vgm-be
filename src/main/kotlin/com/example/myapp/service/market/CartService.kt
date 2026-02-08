@@ -3,9 +3,9 @@ package com.example.myapp.service.market
 import com.example.myapp.dto.market.cart.CartItemResponse
 import com.example.myapp.dto.market.cart.CartResponse
 import com.example.myapp.entity.market.cart.CartItem
-import com.example.myapp.repository.market.CartItemRepository
-import com.example.myapp.repository.market.ItemImageRepository
-import com.example.myapp.repository.market.ItemRepository
+import com.example.myapp.repository.market.cart.CartItemRepository
+import com.example.myapp.repository.market.item.ItemImageRepository
+import com.example.myapp.repository.market.item.ItemRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

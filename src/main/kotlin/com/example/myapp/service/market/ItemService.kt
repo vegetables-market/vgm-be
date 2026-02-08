@@ -4,8 +4,8 @@ import com.example.myapp.dto.market.item.liisting.CreateItemRequest
 import com.example.myapp.dto.market.item.SimpleItemResponse
 import com.example.myapp.entity.market.item.Item
 import com.example.myapp.entity.market.item.ItemImage
-import com.example.myapp.repository.market.ItemImageRepository
-import com.example.myapp.repository.market.ItemRepository
+import com.example.myapp.repository.market.item.ItemImageRepository
+import com.example.myapp.repository.market.item.ItemRepository
 import com.example.myapp.repository.user.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

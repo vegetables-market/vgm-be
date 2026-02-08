@@ -5,11 +5,11 @@ import com.example.myapp.dto.market.item.ItemResponse
 import com.example.myapp.dto.market.item.search.ItemSearchRequest
 import com.example.myapp.dto.market.item.SellerInfo
 import com.example.myapp.entity.market.item.Item
-import com.example.myapp.repository.market.CategoryRepository
-import com.example.myapp.repository.market.ItemFavoriteRepository
-import com.example.myapp.repository.market.ItemImageRepository
-import com.example.myapp.repository.market.ItemRepository
-import com.example.myapp.repository.user.UserProfileRepository
+import com.example.myapp.repository.market.category.CategoryRepository
+import com.example.myapp.repository.market.item.ItemFavoriteRepository
+import com.example.myapp.repository.market.item.ItemImageRepository
+import com.example.myapp.repository.market.item.ItemRepository
+import com.example.myapp.repository.user.profile.UserProfileRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable

@@ -1,7 +1,7 @@
 package com.example.myapp.controller.auth.flow
 
 import com.example.myapp.dto.auth.flow.InitAuthRequest
-import com.example.myapp.repository.user.UserEmailRepository
+import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.service.email.EmailVerificationService
 import org.springframework.http.ResponseEntity

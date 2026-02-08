@@ -5,7 +5,7 @@ import com.example.myapp.dto.auth.login.LoginResponse
 import com.example.myapp.entity.user.User
 import com.example.myapp.repository.auth.UserAuthStatusRepository
 import com.example.myapp.repository.auth.UserSessionRepository
-import com.example.myapp.repository.user.UserEmailRepository
+import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.util.AuthUtils
 import com.example.myapp.service.email.EmailVerificationService

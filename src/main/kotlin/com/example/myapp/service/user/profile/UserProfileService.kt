@@ -1,7 +1,7 @@
 package com.example.myapp.service.user.profile
 
 import com.example.myapp.entity.user.profile.UserProfile
-import com.example.myapp.repository.user.UserProfileRepository
+import com.example.myapp.repository.user.profile.UserProfileRepository
 import org.springframework.stereotype.Service
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode

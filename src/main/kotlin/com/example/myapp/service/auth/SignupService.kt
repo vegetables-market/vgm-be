@@ -9,9 +9,9 @@ import com.example.myapp.entity.user.email.UserEmail
 import com.example.myapp.entity.user.profile.UserInfoEntity
 import com.example.myapp.entity.user.profile.UserProfile
 import com.example.myapp.repository.auth.UserAuthStatusRepository
-import com.example.myapp.repository.user.UserEmailRepository
-import com.example.myapp.repository.user.UserInfoRepository
-import com.example.myapp.repository.user.UserProfileRepository
+import com.example.myapp.repository.user.email.UserEmailRepository
+import com.example.myapp.repository.user.profile.UserInfoRepository
+import com.example.myapp.repository.user.profile.UserProfileRepository
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.service.email.EmailVerificationService
 import com.example.myapp.util.AuthUtils

@@ -1,7 +1,7 @@
 package com.example.myapp.service.user
 
 import com.example.myapp.entity.user.device.UserDevice
-import com.example.myapp.repository.user.UserDeviceRepository
+import com.example.myapp.repository.user.device.UserDeviceRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
