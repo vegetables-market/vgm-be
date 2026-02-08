@@ -2,6 +2,13 @@ package com.example.myapp.exception
 
 import org.springframework.http.HttpStatus
 
+/**
+ * アプリケーションエラーコード定義
+ *
+ * @property code エラーコード文字列（クライアントに返却される）
+ * @property message 多言語対応のメッセージキーまたはデフォルトメッセージ
+ * @property httpStatus 対応するHTTPステータスコード
+ */
 enum class ErrorCode(
     val code: String,
     val message: String,

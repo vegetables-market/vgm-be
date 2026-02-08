@@ -1,4 +1,4 @@
-package com.example.myapp.entity.market
+package com.example.myapp.entity.market.item
 
 import com.example.myapp.entity.user.User
 import jakarta.persistence.*

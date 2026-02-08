@@ -1,4 +1,4 @@
-package com.example.myapp.entity.market
+package com.example.myapp.entity.market.cart
 
 import jakarta.persistence.*
 import java.time.LocalDateTime

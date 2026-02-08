@@ -1,6 +1,6 @@
 package com.example.myapp.repository.market
 
-import com.example.myapp.entity.market.CartItem
+import com.example.myapp.entity.market.cart.CartItem
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

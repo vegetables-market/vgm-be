@@ -1,6 +1,6 @@
 package com.example.myapp.service.user.profile
 
-import com.example.myapp.entity.user.UserInfoEntity
+import com.example.myapp.entity.user.profile.UserInfoEntity
 import com.example.myapp.repository.user.UserInfoRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

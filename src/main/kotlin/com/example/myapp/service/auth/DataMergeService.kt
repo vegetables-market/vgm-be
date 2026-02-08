@@ -1,7 +1,7 @@
 package com.example.myapp.service.auth
 
-import com.example.myapp.entity.market.CartItem
-import com.example.myapp.entity.market.ItemFavorite
+import com.example.myapp.entity.market.cart.CartItem
+import com.example.myapp.entity.market.item.ItemFavorite
 import com.example.myapp.repository.auth.GuestSessionRepository
 import com.example.myapp.repository.market.CartItemRepository
 import com.example.myapp.repository.market.ItemFavoriteRepository

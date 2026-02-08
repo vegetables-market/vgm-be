@@ -4,7 +4,7 @@ import com.example.myapp.dto.user.security.email.AddEmailRequest
 import com.example.myapp.dto.user.security.email.EmailResponse
 import com.example.myapp.dto.user.security.email.VerifyEmailRequest
 import com.example.myapp.entity.auth.VerificationCode
-import com.example.myapp.entity.user.UserEmail
+import com.example.myapp.entity.user.email.UserEmail
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.auth.VerificationCodeRepository

@@ -1,4 +1,4 @@
-package com.example.myapp.entity.user
+package com.example.myapp.entity.user.email
 
 import jakarta.persistence.*
 import java.time.LocalDateTime

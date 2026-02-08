@@ -1,6 +1,7 @@
 package com.example.myapp.service.market
 
 import com.example.myapp.dto.market.CategoryResponse
+import com.example.myapp.entity.market.category.Category
 import com.example.myapp.repository.market.CategoryRepository
 import org.springframework.stereotype.Service
 
@@ -29,8 +30,8 @@ class CategoryService(
      * カテゴリーツリーを構築
      */
     private fun buildCategoryTree(
-        category: com.example.myapp.entity.market.Category,
-        allCategories: List<com.example.myapp.entity.market.Category>
+        category: Category,
+        allCategories: List<Category>
     ): CategoryResponse {
         val children = allCategories.filter { it.parentId == category.categoryId }
             .sortedBy { it.sortOrder }

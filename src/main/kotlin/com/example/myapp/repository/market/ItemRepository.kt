@@ -1,6 +1,6 @@
 package com.example.myapp.repository.market
 
-import com.example.myapp.entity.market.Item
+import com.example.myapp.entity.market.item.Item
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository

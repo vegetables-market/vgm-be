@@ -2,8 +2,8 @@ package com.example.myapp.service.market
 
 import com.example.myapp.dto.market.item.liisting.CreateItemRequest
 import com.example.myapp.dto.market.item.SimpleItemResponse
-import com.example.myapp.entity.market.Item
-import com.example.myapp.entity.market.ItemImage
+import com.example.myapp.entity.market.item.Item
+import com.example.myapp.entity.market.item.ItemImage
 import com.example.myapp.repository.market.ItemImageRepository
 import com.example.myapp.repository.market.ItemRepository
 import com.example.myapp.repository.user.UserRepository

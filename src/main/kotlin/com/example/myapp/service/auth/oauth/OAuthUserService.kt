@@ -2,9 +2,9 @@ package com.example.myapp.service.auth.oauth
 
 import com.example.myapp.entity.auth.UserAuthStatus
 import com.example.myapp.entity.user.User
-import com.example.myapp.entity.user.UserEmail
-import com.example.myapp.entity.user.UserInfoEntity
-import com.example.myapp.entity.user.UserProfile
+import com.example.myapp.entity.user.email.UserEmail
+import com.example.myapp.entity.user.profile.UserInfoEntity
+import com.example.myapp.entity.user.profile.UserProfile
 import com.example.myapp.repository.auth.UserAuthStatusRepository
 import com.example.myapp.repository.user.UserEmailRepository
 import com.example.myapp.repository.user.UserInfoRepository
