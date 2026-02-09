@@ -57,6 +57,7 @@ class SecurityConfig(
                         "/v1/user/emails/**",  // メール管理(独自認証)
                         "/v1/user/sessions/**",  // セッション管理(独自認証)
                         "/v1/user/oauth/**",  // OAuth管理(独自認証)
+                        "/v1/user/favorites/**",  // お気に入り(独自認証)
                         "/v1/auth/logout",   // ログアウト(独自認証)
                         "/v1/market/items/upload-token", // 一時的なCSRF除外(デバッグ)
                         "/v1/market/items/**",     // 商品関連API(一時的除外)
