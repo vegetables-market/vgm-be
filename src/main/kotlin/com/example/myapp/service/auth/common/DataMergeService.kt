@@ -17,7 +17,7 @@ class DataMergeService(
 
     @Transactional
     fun mergeGuestData(userId: Int, guestId: String) {
-        // 1. Merge Cart Items
+        // 1. カートアイテムの統合
         val guestCartItems = cartItemRepository.findByGuestId(guestId)
         val userCartItems = cartItemRepository.findByUserId(userId)
 
@@ -25,15 +25,13 @@ class DataMergeService(
             val existingUserItem = userCartItems.find { it.itemId == guestItem.itemId }
 
             if (existingUserItem != null) {
-                // Determine new quantity (Sum)
+                // 数量を合算
                 existingUserItem.quantity += guestItem.quantity
                 cartItemRepository.save(existingUserItem)
-                // Delete guest item
+                // ゲストアイテムを削除
                 cartItemRepository.delete(guestItem)
             } else {
-                // Move assignment to User
-                // Since fields are 'val', we verify if we can update or need to recreate.
-                // Assuming 'val', we recreate.
+                // ユーザーに割り当て（再作成）
                 val newItem = CartItem(
                     userId = userId,
                     guestId = null,
@@ -45,19 +43,18 @@ class DataMergeService(
             }
         }
 
-        // 2. Merge Likes (Favorites)
+        // 2. お気に入り（いいね）の統合
         val guestLikes = itemFavoriteRepository.findByGuestId(guestId)
-        val userLikes = itemFavoriteRepository.findByUserId(userId) // Optimization: Get IDs
+        val userLikes = itemFavoriteRepository.findByUserId(userId) // 最適化: IDを取得
 
         val userLikedItemIds = userLikes.map { it.itemId }.toSet()
 
         guestLikes.forEach { guestLike ->
             if (userLikedItemIds.contains(guestLike.itemId)) {
-                // Duplicate: User already likes it.
-                // Just delete guest like.
+                // 重複: ユーザーは既にお気に入り済み。ゲストのお気に入りを削除
                 itemFavoriteRepository.delete(guestLike)
             } else {
-                // Move to User
+                // ユーザーへ移動
                 val newLike = ItemFavorite(
                     userId = userId,
                     guestId = null,
@@ -68,9 +65,7 @@ class DataMergeService(
             }
         }
 
-        // 3. Cleanup Guest Session
-        // This will cascade delete triggers if checking constraints, 
-        // but we already deleted or moved items so it should be clean.
+        // 3. ゲストセッションのクリーンアップ
         guestSessionRepository.deleteById(guestId)
     }
 }

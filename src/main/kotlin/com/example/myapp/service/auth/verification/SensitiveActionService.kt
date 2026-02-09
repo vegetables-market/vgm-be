@@ -1,12 +1,14 @@
 package com.example.myapp.service.auth.verification
 
 import com.example.myapp.entity.auth.VerificationCode
+
 import com.example.myapp.repository.auth.VerificationCodeRepository
 import com.example.myapp.repository.user.email.UserEmailRepository
-import com.example.myapp.service.email.EmailNotificationService
-import com.example.myapp.service.auth.MfaService // Add import
+import com.example.myapp.service.auth.MfaService
 import com.example.myapp.service.auth.common.AuthType
 import com.example.myapp.service.auth.common.AuthenticationStrategyService
+import com.example.myapp.service.email.EmailSenderService
+import com.example.myapp.service.email.template.VerificationCodeEmailTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -19,13 +21,16 @@ data class ActionInitResponse(
     val maskedEmail: String? = null
 )
 
+
+
 @Service
 class SensitiveActionService(
     private val authenticationStrategyService: AuthenticationStrategyService,
     private val verificationCodeRepository: VerificationCodeRepository,
     private val userEmailRepository: UserEmailRepository,
-    private val emailNotificationService: EmailNotificationService,
-    private val mfaService: MfaService // Inject
+    private val emailSenderService: EmailSenderService,
+    private val verificationCodeEmailTemplate: VerificationCodeEmailTemplate,
+    private val mfaService: MfaService
 ) {
 
     /**
@@ -66,7 +71,9 @@ class SensitiveActionService(
             verificationCodeRepository.save(verificationCode)
             
             // メール送信 (汎用的な認証コードメール)
-            emailNotificationService.sendVerificationCodeEmail(emailRecord.email, code)
+            val subject = "【VGM】認証コードのお知らせ"
+            val htmlContent = verificationCodeEmailTemplate.generate(code)
+            emailSenderService.sendHtmlEmail(emailRecord.email, subject, htmlContent)
             
             // マスクされたメールアドレス生成 (例: t***@example.com)
             val maskedEmail = emailRecord.email.replace(Regex("(^[^@]{1})[^@]*(@.*)$"), "$1***$2")

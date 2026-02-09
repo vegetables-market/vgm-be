@@ -9,7 +9,8 @@ import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.auth.VerificationCodeRepository
 import com.example.myapp.repository.user.email.UserEmailRepository
-import com.example.myapp.service.email.EmailNotificationService
+import com.example.myapp.service.email.EmailSenderService
+import com.example.myapp.service.email.template.VerificationCodeEmailTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -19,7 +20,8 @@ import java.util.UUID
 class UserEmailService(
     private val userEmailRepository: UserEmailRepository,
     private val verificationCodeRepository: VerificationCodeRepository,
-    private val emailNotificationService: EmailNotificationService
+    private val emailSenderService: EmailSenderService,
+    private val verificationCodeEmailTemplate: VerificationCodeEmailTemplate
 ) {
 
     /**
@@ -61,7 +63,9 @@ class UserEmailService(
         verificationCodeRepository.save(verificationCode)
 
         // メール送信
-        emailNotificationService.sendVerificationCodeEmail(email, code)
+        val subject = "【VGM】認証コードのお知らせ"
+        val htmlContent = verificationCodeEmailTemplate.generate(code)
+        emailSenderService.sendHtmlEmail(email, subject, htmlContent)
 
         return mapOf(
             "success" to true,

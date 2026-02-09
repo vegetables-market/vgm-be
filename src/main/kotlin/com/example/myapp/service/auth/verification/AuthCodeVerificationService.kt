@@ -1,16 +1,16 @@
 package com.example.myapp.service.auth.verification
 
 import com.example.myapp.dto.auth.verify.AuthMethod
-import com.example.myapp.service.email.EmailVerificationService
+import com.example.myapp.service.email.verification.VerifyEmailCode
 import com.example.myapp.service.auth.MfaService
-import com.example.myapp.service.auth.login.LoginService
+import com.example.myapp.repository.user.email.UserEmailRepository
 import org.springframework.stereotype.Service
 
 @Service
 class AuthCodeVerificationService(
-    private val emailVerificationService: EmailVerificationService,
+    private val verifyEmailCode: VerifyEmailCode,
     private val mfaService: MfaService,
-    private val loginService: LoginService
+    private val userEmailRepository: UserEmailRepository
 ) {
 
     /**
@@ -28,8 +28,8 @@ class AuthCodeVerificationService(
      * Email認証コードの検証
      */
     private fun verifyEmailCode(flowId: String, code: String): Int? {
-        val verification = emailVerificationService.verifyByFlowId(flowId, code) ?: return null
-        return verification.userId ?: loginService.getUserByIdentifier(verification.email!!)?.userId
+        val verification = verifyEmailCode.verifyByFlowId(flowId, code) ?: return null
+        return verification.userId ?: userEmailRepository.findByEmail(verification.email!!)?.userId
     }
 
     /**

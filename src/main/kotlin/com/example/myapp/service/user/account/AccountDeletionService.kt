@@ -5,7 +5,7 @@ import com.example.myapp.repository.auth.UserSessionRepository
 import com.example.myapp.repository.auth.VerificationCodeRepository
 import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.repository.user.UserRepository
-import com.example.myapp.service.email.EmailNotificationService
+
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -19,8 +19,7 @@ class AccountDeletionService(
     private val userRepository: UserRepository,
     private val userEmailRepository: UserEmailRepository,
     private val userSessionRepository: UserSessionRepository,
-    private val verificationCodeRepository: VerificationCodeRepository,
-    private val emailNotificationService: EmailNotificationService
+    private val verificationCodeRepository: VerificationCodeRepository
 ) {
 
     // Removed unused methods: requestAccountDeletion, confirmAccountDeletion

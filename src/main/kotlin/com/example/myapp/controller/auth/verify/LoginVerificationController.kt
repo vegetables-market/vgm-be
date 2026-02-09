@@ -8,7 +8,7 @@ import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.auth.UserAuthStatusRepository
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.verification.AuthCodeVerificationService
-import com.example.myapp.service.auth.login.LoginService
+import com.example.myapp.service.auth.login.CompleteLogin
 import com.example.myapp.service.auth.MfaService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/auth")
 class LoginVerificationController(
-    private val loginService: LoginService,
+    private val completeLogin: CompleteLogin,
     private val mfaService: MfaService,
     private val authCodeVerificationService: AuthCodeVerificationService,
     private val userAuthStatusRepository: UserAuthStatusRepository,
@@ -54,7 +54,11 @@ class LoginVerificationController(
             // ログイン完了処理（セッション作成）
             val ipAddress = servletRequest.remoteAddr
             val userAgent = servletRequest.getHeader("User-Agent")
-            val response = loginService.completeLogin(userId, ipAddress, userAgent)
+            val response = completeLogin(
+                userId = userId,
+                ipAddress = ipAddress,
+                userAgent = userAgent
+            )
 
             // セッションCookieを設定
             if (response.flowId != null) {

@@ -1,9 +1,11 @@
 package com.example.myapp.controller.auth.flow
 
 import com.example.myapp.dto.auth.flow.InitAuthRequest
+import com.example.myapp.exception.AppException
+import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.repository.user.UserRepository
-import com.example.myapp.service.email.EmailVerificationService
+import com.example.myapp.service.email.verification.SendVerificationEmail
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -19,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 class InitFlowController(
     private val userRepository: UserRepository,
     private val userEmailRepository: UserEmailRepository,
-    private val emailVerificationService: EmailVerificationService
+    private val sendVerificationEmail: SendVerificationEmail
 ) {
 
     @PostMapping("/init-flow")
@@ -29,10 +31,10 @@ class InitFlowController(
         
         val (flowId, expiresAt, createdAt) = if (userEmail != null) {
             // 既存ユーザー -> 認証コード送信
-             emailVerificationService.sendVerificationEmail(userEmail.userId, request.email)
+             sendVerificationEmail(userEmail.userId, request.email)
         } else {
             // 新規ユーザー -> 登録用認証コード送信
-             emailVerificationService.sendPreRegistrationVerificationEmail(request.email)
+             sendVerificationEmail.sendPreRegistration(request.email)
         }
 
         // 統一レスポンス

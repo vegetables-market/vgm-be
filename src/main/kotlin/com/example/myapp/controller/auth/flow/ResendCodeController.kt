@@ -3,7 +3,7 @@ package com.example.myapp.controller.auth.flow
 import com.example.myapp.dto.auth.flow.ResendCodeRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
-import com.example.myapp.service.email.EmailVerificationService
+import com.example.myapp.service.email.verification.ResendVerificationEmail
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/auth")
 class ResendCodeController(
-    private val emailVerificationService: EmailVerificationService
+    private val resendVerificationEmail: ResendVerificationEmail
 ) {
 
     @PostMapping("/resend-code")
     fun resendCode(@RequestBody request: ResendCodeRequest): ResponseEntity<Map<String, Any>> {
         try {
-            val result = emailVerificationService.resendVerificationEmail(request.flowId)
+            val result = resendVerificationEmail(request.flowId)
             
             if (result != null) {
                 val (newFlowId, expiresAt, createdAt) = result

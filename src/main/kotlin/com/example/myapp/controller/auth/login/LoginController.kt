@@ -6,7 +6,7 @@ import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.session.GuestSessionService
-import com.example.myapp.service.auth.login.LoginService
+import com.example.myapp.service.auth.login.LoginUser
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.ResponseEntity
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/auth")
 class LoginController(
-    private val loginService: LoginService,
+    private val loginUser: LoginUser,
     private val appCookieService: AppCookieService
 ) {
     @PostMapping("/login")
@@ -34,7 +34,7 @@ class LoginController(
 
         val guestId = servletRequest.cookies?.find { it.name == GuestSessionService.GUEST_COOKIE_NAME }?.value
 
-        val response = loginService.login(finalRequest, ipAddress, userAgent, guestId)
+        val response = loginUser(finalRequest, ipAddress, userAgent, guestId)
 
         if (response.status == "AUTHENTICATED" && response.flowId != null) {
             appCookieService.addSessionCookie(servletResponse, response.flowId)

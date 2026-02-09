@@ -5,30 +5,31 @@ import com.example.myapp.entity.user.User
 import com.example.myapp.repository.auth.UserAuthStatusRepository
 import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.service.auth.MfaService
-import com.example.myapp.service.email.EmailVerificationService
+import com.example.myapp.service.email.verification.SendVerificationEmail
 import com.example.myapp.util.AuthUtils
 import org.springframework.stereotype.Service
 
 /**
- * ログインMFAサービス
+ * ログインMFAチェックユースケース
  * ログイン時のMFA要求判定や、未確認デバイスへの対応を行う
  */
 @Service
-class LoginMfaService(
+class CheckLoginMfa(
     private val mfaService: MfaService,
     private val userAuthStatusRepository: UserAuthStatusRepository,
-    private val emailVerificationService: EmailVerificationService,
+    private val sendVerificationEmail: SendVerificationEmail,
     private val userEmailRepository: UserEmailRepository
 ) {
 
+    sealed class Result {
+        data class MfaRunning(val response: LoginResponse) : Result()
+        object None : Result()
+    }
+
     /**
      * MFAチェックおよび未確認デバイスへの対応を行う
-     *
-     * @param user ユーザーエンティティ
-     * @param isKnownDevice 既知のデバイスかどうか
-     * @return MFAが必要な場合は MfaRunning (LoginResponseを含み、即座に返す用), 不要な場合は None
      */
-    fun checkMfaStep(user: User, isKnownDevice: Boolean): MfaCheckResult {
+    operator fun invoke(user: User, isKnownDevice: Boolean): Result {
         val authStatus = userAuthStatusRepository.findByUserId(user.userId)
         
         // 1. MFAが有効な場合
@@ -37,7 +38,7 @@ class LoginMfaService(
             val mfaToken = mfaService.generateLoginMfaToken(user.userId)
             
             if (authStatus.primaryMfaType == "TOTP") {
-                return MfaCheckResult.MfaRunning(
+                return Result.MfaRunning(
                     LoginResponse(
                         status = "MFA_REQUIRED",
                         user = null,
@@ -48,9 +49,9 @@ class LoginMfaService(
                 )
             } else if (authStatus.primaryMfaType == "EMAIL") {
                 if (email == null) throw RuntimeException("メールアドレスが登録されていません")
-                emailVerificationService.sendVerificationEmail(user.userId, email)
+                sendVerificationEmail(user.userId, email)
                 
-                return MfaCheckResult.MfaRunning(
+                return Result.MfaRunning(
                     LoginResponse(
                         status = "MFA_REQUIRED",
                         user = null,
@@ -64,13 +65,12 @@ class LoginMfaService(
 
         // 2. MFA無効だが、未知のデバイスの場合 -> メール認証を要求
         if (!isKnownDevice) {
-            val email = getPrimaryEmail(user.userId) ?: user.username // usernameがemailの場合もあるが、基本はPrimaryEmail
-            // そもそもEmailがない場合はどうする？ -> エラーになる可能性が高いが、ここでは既存ロジック踏襲
+            val email = getPrimaryEmail(user.userId) ?: user.username
             
-            val (flowId, _) = emailVerificationService.sendVerificationEmail(user.userId, email)
+            val (flowId, _, _) = sendVerificationEmail(user.userId, email)
             val maskedEmail = getPrimaryEmail(user.userId)?.let { AuthUtils.maskEmail(it) }
 
-            return MfaCheckResult.MfaRunning(
+            return Result.MfaRunning(
                 LoginResponse(
                     status = "VERIFICATION_REQUIRED",
                     user = null,
@@ -82,15 +82,10 @@ class LoginMfaService(
             )
         }
 
-        return MfaCheckResult.None
+        return Result.None
     }
 
     private fun getPrimaryEmail(userId: Int): String? {
         return userEmailRepository.findByUserIdAndIsPrimaryTrue(userId)?.email
-    }
-
-    sealed class MfaCheckResult {
-        data class MfaRunning(val response: LoginResponse) : MfaCheckResult()
-        object None : MfaCheckResult()
     }
 }

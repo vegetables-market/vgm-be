@@ -31,18 +31,18 @@ class OAuthService(
      */
     @Transactional
     fun processOAuth2User(email: String, name: String, provider: String, providerUserId: String, guestId: String? = null): String {
-        // 1. Check if OAuth connection exists
+        // 1. OAuth接続が存在するか確認
         val existingConnection = oauthConnectionService.findConnection(provider, providerUserId)
         
         var user: User? = null
         var isNewUser = false
 
         if (existingConnection != null) {
-            // Existing OAuth connection - get user
+            // 既存のOAuth接続 - ユーザーを取得
             user = oauthUserService.findUserByEmail(email)
             
             if (user != null && user.userId == existingConnection.userId) {
-                // Update last used
+                // 最終使用日時を更新
                 oauthConnectionService.updateLastUsed(existingConnection)
             } else {
                 // ユーザーが削除されている、または不整合がある場合
@@ -53,19 +53,19 @@ class OAuthService(
         }
 
         if (user == null) {
-            // Check if user exists by email
+            // メールアドレスでユーザーが存在するか確認
             user = oauthUserService.findUserByEmail(email)
 
             if (user == null) {
-                // Create new user (OAuth only - no password)
+                // 新規ユーザー作成 (OAuthのみ - パスワードなし)
                 isNewUser = true
                 user = oauthUserService.createOAuthUser(email, name, provider)
             }
 
-            // Create email record if not exists
+            // メールレコードが存在しない場合は作成
             val emailRecord = oauthUserService.ensureEmailRecord(user.userId, email, provider, isNewUser)
 
-            // Create OAuth connection
+            // OAuth接続を作成
             oauthConnectionService.createConnection(
                 userId = user.userId,
                 provider = provider,
@@ -75,10 +75,10 @@ class OAuthService(
             )
         }
 
-        // Update login info
+        // ログイン情報を更新
         oauthUserService.updateLoginInfo(user.userId, provider)
 
-        // Create Session via SessionService
+        // SessionService経由でセッションを作成
         val sessionKey = sessionService.createSession(user.userId, null, "OAuth2: $provider")
         
         // ゲストデータ統合

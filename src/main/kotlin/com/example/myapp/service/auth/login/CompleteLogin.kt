@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 /**
- * ログイン完了サービス
+ * ログイン完了ユースケース
  * ログイン成功時の最終処理（最終ログイン日時更新、セッション発行、ゲスト連携など）を行う
  */
 @Service
-class LoginCompletionService(
+class CompleteLogin(
     private val userRepository: UserRepository,
     private val sessionService: SessionService,
     private val dataMergeService: DataMergeService,
@@ -24,16 +24,9 @@ class LoginCompletionService(
 
     /**
      * ログイン完了処理を実行する
-     *
-     * @param userId ユーザーID
-     * @param existingSession 既存の有効なセッション（あれば更新、なければ新規作成）
-     * @param ipAddress IPアドレス
-     * @param userAgent User-Agent
-     * @param guestId ゲストID（あれば統合）
-     * @return ログインレスポンス（認証済み）
      */
     @Transactional
-    fun completeLogin(
+    operator fun invoke(
         userId: Int,
         existingSession: UserSession? = null,
         ipAddress: String? = null,

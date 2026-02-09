@@ -3,7 +3,7 @@ package com.example.myapp.controller.auth.verify
 import com.example.myapp.dto.auth.flow.VerifyCodeRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
-import com.example.myapp.service.email.EmailVerificationService
+import com.example.myapp.service.email.verification.VerifyEmailCode
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/auth")
 class CodeVerificationController(
-    private val emailVerificationService: EmailVerificationService
+    private val verifyEmailCode: VerifyEmailCode
 ) {
 
     @PostMapping("/verify-code")
     fun verifyCode(@RequestBody request: VerifyCodeRequest): ResponseEntity<Map<String, Any>> {
-        val verification = emailVerificationService.verifyByFlowId(request.flowId, request.code)
+        val verification = verifyEmailCode.verifyByFlowId(request.flowId, request.code)
         
         if (verification != null) {
             return ResponseEntity.ok(mapOf(

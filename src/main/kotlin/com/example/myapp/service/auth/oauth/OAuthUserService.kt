@@ -53,8 +53,8 @@ class OAuthUserService(
         var user = User(
             username = username,
             displayName = name,
-            passwordHash = null,  // No password for OAuth users
-            status = 2  // Active (OAuth verified)
+            passwordHash = null,  // OAuthユーザーのためパスワードなし
+            status = 2  // アクティブ (OAuth認証済み)
         )
         user = userRepository.save(user)
 
@@ -76,7 +76,7 @@ class OAuthUserService(
         // Create AuthStatus
         val authStatus = UserAuthStatus(
             userId = user.userId,
-            emailVerified = true,  // OAuth email is verified
+            emailVerified = true,  // OAuth経由のメールは認証済み
             hasPassword = false,
             lastAuthMethod = provider.uppercase(),
             lastAuthAt = LocalDateTime.now()
@@ -126,14 +126,14 @@ class OAuthUserService(
      */
     @Transactional
     fun updateLoginInfo(userId: Int, provider: String) {
-        // Update User last login
+        // ユーザーの最終ログイン日時を更新
         val user = userRepository.findById(userId).orElse(null)
         if (user != null) {
             user.lastLoginAt = LocalDateTime.now()
             userRepository.save(user)
         }
 
-        // Update AuthStatus
+        // 認証ステータスを更新
         val authStatus = userAuthStatusRepository.findByUserId(userId)
         if (authStatus != null) {
             authStatus.lastAuthMethod = provider.uppercase()

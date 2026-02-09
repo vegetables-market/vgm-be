@@ -4,13 +4,15 @@ import com.example.myapp.dto.auth.login.LoginResponse
 import com.example.myapp.dto.auth.login.UserInfo
 import com.example.myapp.dto.auth.firebase.VerifiedToken
 import com.google.firebase.auth.FirebaseAuth
-import com.example.myapp.service.auth.login.LoginService
+import com.example.myapp.repository.user.UserRepository
+import com.example.myapp.repository.user.email.UserEmailRepository
 import org.springframework.stereotype.Service
 
 @Service
 class FirebaseAuthService(
     private val oauthService: OAuthService,
-    private val loginService: LoginService
+    private val userRepository: UserRepository,
+    private val userEmailRepository: UserEmailRepository
 ) {
 
     /**
@@ -44,7 +46,7 @@ class FirebaseAuthService(
         guestId: String?
     ): LoginResponse {
         try {
-            // 1. Verify ID Token
+            // 1. IDトークンを検証
             val decodedToken = FirebaseAuth.getInstance().verifyIdToken(token)
             val email = decodedToken.email
             val name = decodedToken.name ?: "No Name"
@@ -53,12 +55,17 @@ class FirebaseAuthService(
                 throw com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.INVALID_INPUT, "Email not found in token")
             }
 
-            // 2. Process Login/Signup logic
+            // 2. ログイン/登録ロジックを実行
             val providerUserId = decodedToken.uid  // Firebase UID
             val sessionKey = oauthService.processOAuth2User(email, name, provider, providerUserId, guestId)
 
-            // 3. Return success response
-            val user = loginService.getUserByIdentifier(email)
+            // 3. 成功レスポンスを返す
+            var user = userRepository.findByUsername(email)
+            if (user == null) {
+                user = userEmailRepository.findByEmail(email)?.let { 
+                     userRepository.findById(it.userId).orElse(null) 
+                }
+            }
             
             return LoginResponse(
                 status = "AUTHENTICATED",
@@ -66,7 +73,7 @@ class FirebaseAuthService(
                     username = user?.username ?: "",
                     displayName = user?.displayName ?: name,
                     email = email,
-                    avatarUrl = null, // TODO: Get from user entity or token
+                    avatarUrl = null, // TODO: ユーザーエンティティまたはトークンから取得
                     isEmailVerified = true
                 ),
                 flowId = sessionKey

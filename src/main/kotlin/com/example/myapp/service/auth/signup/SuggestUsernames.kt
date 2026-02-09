@@ -7,21 +7,18 @@ import java.util.Random
 import java.util.UUID
 
 /**
- * ユーザー名提案サービス
+ * ユーザー名提案ユースケース
  * 新規登録時などに、利用可能なユーザー名の候補を生成する
  */
 @Service
-class UsernameSuggestionService(
+class SuggestUsernames(
     private val userRepository: UserRepository
 ) {
 
     /**
      * ユーザー名の候補を生成する（入力されたユーザー名をベースに）
-     *
-     * @param baseUsername ベースとなるユーザー名
-     * @return 提案するユーザー名のリスト
      */
-    fun generateUsernameSuggestions(baseUsername: String): List<String> {
+    operator fun invoke(baseUsername: String): List<String> {
         val suggestions = mutableListOf<String>()
         val random = Random()
         
@@ -43,7 +40,8 @@ class UsernameSuggestionService(
         // パターン3: 現在の年
         if (suggestions.size < 3) {
             val candidate3 = baseUsername + Year.now().value
-             if (!userRepository.existsByUsername(candidate3) && !suggestions.contains(candidate3)) {
+             val exists = userRepository.existsByUsername(candidate3)
+             if (!exists && !suggestions.contains(candidate3)) {
                 suggestions.add(candidate3)
             }
         }
@@ -72,8 +70,6 @@ class UsernameSuggestionService(
 
     /**
      * 初期表示用のユーザー名候補を生成する（ランダム）
-     *
-     * @return 提案するユーザー名のリスト
      */
     fun getInitialSuggestions(): List<String> {
         val suggestions = mutableListOf<String>()

@@ -7,10 +7,10 @@ import com.example.myapp.entity.user.email.UserEmail
 import com.example.myapp.entity.user.profile.UserInfoEntity
 import com.example.myapp.entity.user.profile.UserProfile
 import com.example.myapp.repository.auth.UserAuthStatusRepository
+import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.repository.user.profile.UserInfoRepository
 import com.example.myapp.repository.user.profile.UserProfileRepository
-import com.example.myapp.repository.user.UserRepository
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,11 +18,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * 登録用ユーザー作成サービス
+ * ユーザー作成ユースケース
  * ユーザー登録に必要な各種エンティティの生成と保存を担当する
  */
 @Service
-class SignupCreationService(
+class CreateVerifiedUser(
     private val userRepository: UserRepository,
     private val userProfileRepository: UserProfileRepository,
     private val userInfoRepository: UserInfoRepository,
@@ -31,7 +31,7 @@ class SignupCreationService(
 ) {
     private val passwordEncoder = BCryptPasswordEncoder()
 
-    data class SignupResult(
+    data class Result(
         val user: User,
         val authStatus: UserAuthStatus,
         val userEmail: UserEmail,
@@ -41,16 +41,12 @@ class SignupCreationService(
 
     /**
      * ユーザーおよび関連エンティティを作成・保存する
-     *
-     * @param request 登録リクエスト
-     * @param isVerified 事前認証済みかどうか
-     * @return 作成されたエンティティ情報を含む SignupResult
      */
     @Transactional
-    fun createUser(request: SignupRequest, isVerified: Boolean): SignupResult {
+    operator fun invoke(request: SignupRequest, isVerified: Boolean): Result {
         val encodedPassword = passwordEncoder.encode(request.password)
 
-        // User
+        // ユーザー
         val newUser = User(
             username = request.username,
             displayName = request.displayName,
@@ -59,7 +55,7 @@ class SignupCreationService(
         )
         val savedUser = userRepository.save(newUser)
 
-        // AuthStatus
+        // 認証ステータス
         val authStatus = UserAuthStatus(
             userId = savedUser.userId,
             emailVerified = isVerified,
@@ -69,7 +65,7 @@ class SignupCreationService(
         )
         userAuthStatusRepository.save(authStatus)
 
-        // Email
+        // メールアドレス
         val userEmail = UserEmail(
             userId = savedUser.userId,
             email = request.email,
@@ -80,14 +76,14 @@ class SignupCreationService(
         )
         userEmailRepository.save(userEmail)
 
-        // Profile
+        // プロフィール
         val newProfile = UserProfile(
             userId = savedUser.userId,
             profileText = "はじめまして！"
         )
         userProfileRepository.save(newProfile)
 
-        // UserInfo (Gender/BirthDate)
+        // ユーザー情報 (性別/生年月日)
         val genderCode: Short = when (request.gender) {
             "male" -> 1
             "female" -> 2
@@ -112,6 +108,6 @@ class SignupCreationService(
         )
         userInfoRepository.save(userInfo)
 
-        return SignupResult(savedUser, authStatus, userEmail, newProfile, userInfo)
+        return Result(savedUser, authStatus, userEmail, newProfile, userInfo)
     }
 }
