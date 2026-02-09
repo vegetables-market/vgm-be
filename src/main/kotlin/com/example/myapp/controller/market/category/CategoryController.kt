@@ -1,24 +1,24 @@
 package com.example.myapp.controller.market.category
 
 import com.example.myapp.dto.market.CategoryResponse
-import com.example.myapp.service.market.CategoryService
+import com.example.myapp.service.market.category.GetAllCategories
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ * カテゴリーコントローラー
+ */
 @RestController
-@RequestMapping("/v1/market/categories")
+@RequestMapping("/v1/categories")
 class CategoryController(
-    private val categoryService: CategoryService
+    private val getAllCategories: GetAllCategories
 ) {
 
-    /**
-     * カテゴリー一覧取得（階層構造）
-     */
     @GetMapping
-    fun getAllCategories(): ResponseEntity<Map<String, List<CategoryResponse>>> {
-        val categories = categoryService.getAllCategories()
-        return ResponseEntity.ok(mapOf("categories" to categories))
+    fun getCategories(): ResponseEntity<List<CategoryResponse>> {
+        val categories = getAllCategories()
+        return ResponseEntity.ok(categories)
     }
 }

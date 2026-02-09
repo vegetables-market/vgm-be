@@ -4,7 +4,7 @@ import com.example.myapp.controller.market.getMarketUser
 import com.example.myapp.dto.market.item.detail.ItemDetailResponse
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.session.SessionService
-import com.example.myapp.service.market.ItemDetailService
+import com.example.myapp.service.market.item.ItemDetailService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

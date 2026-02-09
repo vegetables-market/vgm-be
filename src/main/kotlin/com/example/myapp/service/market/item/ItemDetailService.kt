@@ -1,4 +1,4 @@
-package com.example.myapp.service.market
+package com.example.myapp.service.market.item
 
 import com.example.myapp.dto.market.item.detail.ItemDetail
 import com.example.myapp.dto.market.item.detail.ItemDetailResponse

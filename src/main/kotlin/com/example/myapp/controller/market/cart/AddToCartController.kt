@@ -5,7 +5,7 @@ import com.example.myapp.dto.market.cart.AddCartRequest
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.session.GuestSessionService
 import com.example.myapp.service.auth.session.SessionService
-import com.example.myapp.service.market.CartService
+import com.example.myapp.service.market.cart.AddToCart
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.ResponseEntity
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/market/cart")
 class AddToCartController(
-    private val cartService: CartService,
+    private val addToCart: AddToCart,
     private val sessionService: SessionService,
     private val guestSessionService: GuestSessionService,
     private val appCookieService: AppCookieService
@@ -36,7 +36,7 @@ class AddToCartController(
              guestSessionService.ensureGuestSession(currentGuestId, servletResponse)
         } else null
 
-        cartService.addToCart(userId, effectiveGuestId, request.itemId, request.quantity)
+        addToCart(userId, effectiveGuestId, request.itemId, request.quantity)
         return ResponseEntity.ok(mapOf("success" to true, "message" to "カートに追加しました"))
     }
 }

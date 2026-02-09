@@ -6,7 +6,7 @@ import com.example.myapp.dto.market.item.search.ItemSearchRequest
 import com.example.myapp.dto.market.PaginatedResponse
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.session.SessionService
-import com.example.myapp.service.market.ItemSearchService
+import com.example.myapp.service.market.item.ItemSearchService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

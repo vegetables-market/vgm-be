@@ -1,4 +1,4 @@
-package com.example.myapp.service.market
+package com.example.myapp.service.market.item
 
 import com.example.myapp.dto.market.item.liisting.CreateItemRequest
 import com.example.myapp.dto.market.item.SimpleItemResponse
@@ -9,6 +9,7 @@ import com.example.myapp.repository.market.item.ItemRepository
 import com.example.myapp.repository.user.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 class ItemService(
@@ -81,7 +82,7 @@ class ItemService(
         item.shippingDaysId = request.shippingDaysId
         item.shippingMethodId = request.shippingMethodId
         item.itemCondition = request.itemCondition
-        item.updatedAt = java.time.LocalDateTime.now()
+        item.updatedAt = LocalDateTime.now()
         
         val savedItem = itemRepository.save(item)
 
@@ -166,7 +167,7 @@ class ItemService(
         
         // ソフトデリート: ステータスを削除済みに変更
         item.status = 6 // DELETED
-        item.updatedAt = java.time.LocalDateTime.now()
+        item.updatedAt = LocalDateTime.now()
         itemRepository.save(item)
     }
 
@@ -183,7 +184,7 @@ class ItemService(
             else -> throw RuntimeException("Invalid status transition")
         }
         
-        item.updatedAt = java.time.LocalDateTime.now()
+        item.updatedAt = LocalDateTime.now()
         itemRepository.save(item)
     }
 }

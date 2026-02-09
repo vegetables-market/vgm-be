@@ -3,7 +3,7 @@ package com.example.myapp.controller.market.favorite
 import com.example.myapp.controller.market.getMarketUser
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.session.SessionService
-import com.example.myapp.service.market.FavoriteService
+import com.example.myapp.service.market.favorite.RemoveFavorite
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/user/favorites")
 class RemoveFavoriteController(
-    private val favoriteService: FavoriteService,
+    private val removeFavorite: RemoveFavorite,
     private val sessionService: SessionService,
     private val appCookieService: AppCookieService
 ) {
@@ -32,7 +32,7 @@ class RemoveFavoriteController(
                 .body(mapOf("error" to "ログインが必要です"))
         }
 
-        favoriteService.removeFavorite(userId, guestId, itemId)
+        removeFavorite(userId, guestId, itemId)
         return ResponseEntity.ok(mapOf(
             "success" to true,
             "message" to "お気に入りから削除しました"

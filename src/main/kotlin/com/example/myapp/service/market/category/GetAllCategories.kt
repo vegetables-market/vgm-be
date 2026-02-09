@@ -1,4 +1,4 @@
-package com.example.myapp.service.market
+package com.example.myapp.service.market.category
 
 import com.example.myapp.dto.market.CategoryResponse
 import com.example.myapp.entity.market.category.Category
@@ -6,17 +6,17 @@ import com.example.myapp.repository.market.category.CategoryRepository
 import org.springframework.stereotype.Service
 
 /**
- * カテゴリー管理サービス
+ * カテゴリー一覧取得ユースケース
  */
 @Service
-class CategoryService(
+class GetAllCategories(
     private val categoryRepository: CategoryRepository
 ) {
 
     /**
      * カテゴリー一覧取得（階層構造）
      */
-    fun getAllCategories(): List<CategoryResponse> {
+    operator fun invoke(): List<CategoryResponse> {
         val allCategories = categoryRepository.findAll()
         
         // ルートカテゴリー（親がnull）を取得

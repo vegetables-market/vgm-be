@@ -1,4 +1,4 @@
-package com.example.myapp.service.market
+package com.example.myapp.service.market.media
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -8,13 +8,16 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import com.fasterxml.jackson.databind.ObjectMapper
 
+/**
+ * アップロードトークン生成ユースケース
+ */
 @Service
-class MediaService(
+class GenerateUploadToken(
     @Value("\${vgm.media.jwt-secret:default-secret-key}") private val jwtSecret: String,
     private val objectMapper: ObjectMapper
 ) {
 
-    fun generateUploadToken(userId: Int, role: String, preferredFilename: String? = null): UploadTokenResponse {
+    operator fun invoke(userId: Int, role: String, preferredFilename: String? = null): UploadTokenResponse {
         // ファイル名の決定: ADMINかつ希望があればそれを使用、それ以外はUUID
         val filename = if (role == "ADMIN" && !preferredFilename.isNullOrBlank()) {
             preferredFilename

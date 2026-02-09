@@ -4,7 +4,7 @@ import com.example.myapp.controller.market.getMarketUser
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.session.GuestSessionService
 import com.example.myapp.service.auth.session.SessionService
-import com.example.myapp.service.market.FavoriteService
+import com.example.myapp.service.market.favorite.AddFavorite
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.ResponseEntity
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/user/favorites")
 class AddFavoriteController(
-    private val favoriteService: FavoriteService,
+    private val addFavorite: AddFavorite,
     private val sessionService: SessionService,
     private val guestSessionService: GuestSessionService,
     private val appCookieService: AppCookieService
@@ -34,7 +34,7 @@ class AddFavoriteController(
              guestSessionService.ensureGuestSession(currentGuestId, servletResponse)
         } else null
 
-        favoriteService.addFavorite(userId, effectiveGuestId, itemId)
+        addFavorite(userId, effectiveGuestId, itemId)
         return ResponseEntity.ok(mapOf(
             "success" to true,
             "message" to "お気に入りに追加しました"

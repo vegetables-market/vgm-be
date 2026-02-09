@@ -5,7 +5,7 @@ import com.example.myapp.dto.market.item.ItemResponse
 import com.example.myapp.dto.market.PaginatedResponse
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.session.SessionService
-import com.example.myapp.service.market.FavoriteService
+import com.example.myapp.service.market.favorite.GetFavorites
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v1/user/favorites")
 class GetFavoritesController(
-    private val favoriteService: FavoriteService,
+    private val getFavorites: GetFavorites,
     private val sessionService: SessionService,
     private val appCookieService: AppCookieService
 ) {
@@ -34,7 +34,7 @@ class GetFavoritesController(
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
 
-        val result = favoriteService.getFavorites(userId, guestId, page, limit)
+        val result = getFavorites(userId, guestId, page, limit)
         return ResponseEntity.ok(result)
     }
 }

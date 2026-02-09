@@ -3,7 +3,7 @@ package com.example.myapp.controller.user.profile
 import com.example.myapp.controller.common.getAppUser
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.session.SessionService
-import com.example.myapp.service.market.MediaService
+import com.example.myapp.service.market.media.GenerateUploadToken
 import com.example.myapp.service.user.profile.UserProfileService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 class AvatarUploadController(
     private val appCookieService: AppCookieService,
     private val sessionService: SessionService,
-    private val mediaService: MediaService,
+    private val generateUploadToken: GenerateUploadToken,
     private val userProfileService: UserProfileService
 ) {
 
@@ -37,7 +37,7 @@ class AvatarUploadController(
                 .body(mapOf("error" to "ログインが必要です"))
         }
 
-        val tokenResponse = mediaService.generateUploadToken(userId, "USER")
+        val tokenResponse = generateUploadToken(userId, "USER")
 
         return ResponseEntity.ok(mapOf(
             "token" to tokenResponse.token,

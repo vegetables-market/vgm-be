@@ -6,7 +6,7 @@ import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.session.SessionService
-import com.example.myapp.service.market.ItemService
+import com.example.myapp.service.market.item.ItemService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable

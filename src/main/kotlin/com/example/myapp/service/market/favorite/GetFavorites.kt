@@ -1,22 +1,20 @@
-package com.example.myapp.service.market
+package com.example.myapp.service.market.favorite
 
 import com.example.myapp.dto.market.*
 import com.example.myapp.dto.market.item.ItemResponse
 import com.example.myapp.dto.market.item.SellerInfo
-import com.example.myapp.entity.market.item.ItemFavorite
 import com.example.myapp.repository.market.category.CategoryRepository
 import com.example.myapp.repository.market.item.ItemFavoriteRepository
 import com.example.myapp.repository.market.item.ItemImageRepository
 import com.example.myapp.repository.market.item.ItemRepository
 import com.example.myapp.repository.user.profile.UserProfileRepository
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
 /**
- * お気に入り管理サービス
+ * お気に入り一覧取得ユースケース
  */
 @Service
-class FavoriteService(
+class GetFavorites(
     private val itemFavoriteRepository: ItemFavoriteRepository,
     private val itemRepository: ItemRepository,
     private val categoryRepository: CategoryRepository,
@@ -24,53 +22,7 @@ class FavoriteService(
     private val userProfileRepository: UserProfileRepository
 ) {
 
-    /**
-     * お気に入りに追加
-     */
-    @Transactional
-    fun addFavorite(userId: Int?, guestId: String?, itemId: Long) {
-        if (userId == null && guestId == null) {
-            throw IllegalArgumentException("User ID or Guest ID required")
-        }
-
-        // 既に存在する場合は何もしない
-        val exists = if (userId != null) {
-            itemFavoriteRepository.existsByUserIdAndItemId(userId, itemId)
-        } else {
-            itemFavoriteRepository.existsByGuestIdAndItemId(guestId!!, itemId)
-        }
-        
-        if (exists) return
-
-        // 商品が存在するか確認
-        if (!itemRepository.existsById(itemId)) {
-            throw IllegalArgumentException("商品が見つかりません")
-        }
-
-        val favorite = ItemFavorite(
-            userId = userId,
-            guestId = guestId,
-            itemId = itemId
-        )
-        itemFavoriteRepository.save(favorite)
-    }
-
-    /**
-     * お気に入りから削除
-     */
-    @Transactional
-    fun removeFavorite(userId: Int?, guestId: String?, itemId: Long) {
-        if (userId != null) {
-            itemFavoriteRepository.deleteByUserIdAndItemId(userId, itemId)
-        } else if (guestId != null) {
-            itemFavoriteRepository.deleteByGuestIdAndItemId(guestId, itemId)
-        }
-    }
-
-    /**
-     * お気に入り一覧取得
-     */
-    fun getFavorites(userId: Int?, guestId: String?, page: Int, limit: Int): PaginatedResponse<ItemResponse> {
+    operator fun invoke(userId: Int?, guestId: String?, page: Int, limit: Int): PaginatedResponse<ItemResponse> {
         val favorites = if (userId != null) {
             itemFavoriteRepository.findByUserId(userId)
         } else if (guestId != null) {
