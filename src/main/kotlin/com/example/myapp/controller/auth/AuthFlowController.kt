@@ -76,7 +76,7 @@ class AuthFlowController(
                 throw AppException(ErrorCode.AUTH_RESEND_LIMIT_EXCEEDED)
             }
             // レート制限などのエラー
-            throw AppException(ErrorCode.AUTH_TOO_MANY_REQUESTS, e.message)
+            throw AppException(ErrorCode.AUTH_TOO_MANY_REQUESTS, e.message ?: "Too many requests")
         }
     }
 
