@@ -1,110 +1,150 @@
 # VGM Backend API
 
-Spring Boot で構築されたバックエンド API です。
+VGM (Video Game Market) のバックエンド API サーバーです。
+Spring Boot と Kotlin で構築され、マイクロサービスライクな構成（将来的な拡張を見据えたドメイン分割）を採用しています。
 
-## 技術スタック
+## 🛠 技術スタック
 
-- **Framework:** Spring Boot 3.5.4
-- **Language:** Kotlin 2.2.10
-- **Java:** JDK 21
-- **Database:** PostgreSQL 15
-- **Build Tool:** Gradle 8
-- **Container:** Docker
+| Category       | Technology                            | Version     |
+| -------------- | ------------------------------------- | ----------- |
+| **Language**   | Kotlin                                | 2.2.10      |
+| **Framework**  | Spring Boot                           | 3.5.4       |
+| **JDK**        | Java                                  | 21          |
+| **Build Tool** | Gradle (Kotlin DSL)                   | 8.x         |
+| **Database**   | PostgreSQL                            | 15 (Docker) |
+| **Migration**  | Flyway                                | 11.7.2      |
+| **Auth**       | Spring Security, JJWT, Firebase Admin | -           |
+| **Payment**    | Stripe API                            | 26.3.0      |
+| **MFA**        | TOTP (dev.samstevens.totp)            | 1.7.1       |
+| **API Docs**   | SpringDoc OpenAPI (Swagger)           | 2.8.5       |
 
-## 前提条件
+## ✨ 主な機能
 
-- Docker Desktop がインストール済み
+- **認証 (Authentication)**
+  - メールアドレス/パスワード認証
+  - OAuth2 連携 (Google, GitHub, Microsoft) via Firebase Authentication
+  - 多要素認証 (MFA): TOTP (Authenticator App), Email Code
+  - セッション管理 (Cookieベース + Redis/DB)
 
-## セットアップと起動
+- **ユーザー管理 (User Management)**
+  - プロフィール管理 (アバター, 自己紹介)
+  - アカウント設定 (メールアドレス変更, パスワード変更)
+  - ゲストユーザー機能 (データ統合)
 
-### 1. Docker コンテナを起動
+- **マーケットプレイス (Marketplace)**
+  - 商品管理 (出品, 編集, 削除, 下書き)
+  - 商品検索・詳細表示
+  - ショッピングカート機能
+  - お気に入り (Wishlist) 機能
+  - 決済処理 (Stripe Integration)
+
+## 📂 プロジェクト構成
+
+レイヤードアーキテクチャを採用し、機能（ドメイン）ごとにパッケージを分割しています。
+
+```
+com.example.myapp
+├── config/             # Spring設定 (Security, Web, AppConfig etc.)
+├── controller/         # API エンドポイント
+│   ├── auth/           # 認証関連 (Login, Signup, Verify etc.)
+│   ├── market/         # マーケット機能 (Item, Cart, Favorite etc.)
+│   ├── user/           # ユーザー機能 (Profile, Account, Security etc.)
+│   └── common/         # 共通コントローラー
+├── service/            # ビジネスロジック
+│   ├── auth/           # 認証サービス (LoginService, SignupService etc.)
+│   ├── market/         # マーケットサービス
+│   ├── user/           # ユーザーサービス
+│   ├── email/          # メール送信サービス
+│   └── payment/        # 決済サービス
+├── repository/         # データアクセス (JPA)
+├── entity/             # JPA エンティティ
+├── dto/                # データ転送オブジェクト (Request/Response)
+├── security/           # セキュリティ設定・フィルター
+├── exception/          # 例外ハンドリング・共通エラーレスポンス
+└── util/               # ユーティリティ
+```
+
+## 🚀 開発ワークフロー
+
+### 1. データベースの起動 (Docker)
+
+開発時は、データベース (PostgreSQL) のみを Docker で起動し、アプリケーションはローカルで動かす構成を推奨します。
 
 ```bash
-docker-compose up -d
+# DBのみをバックグラウンド起動
+docker-compose up -d postgres
 ```
 
-以下が自動でセットアップされます：
-- Spring Boot アプリケーション（ポート 8080）
-- PostgreSQL データベース（ポート 5432）
+※ `docker-compose.yml` の設定により、ホスト側のポート **5433** でアクセス可能です。
 
-### 2. 起動確認
+### 2. アプリケーションの起動 (Gradle)
 
 ```bash
-# ログを確認
-docker-compose logs -f app
-
-# または IntelliJ で確認
-# View → Tool Windows → Services → Docker → vgm-be
+# アプリケーション起動
+./gradlew bootRun
 ```
 
-アプリが起動すると以下のメッセージが表示されます：
-```
-Tomcat started on port 8080 (http) with context path '/'
-```
+サーバーは `http://localhost:8080` で起動します。
+また、ホットリロード (DevTools) が有効になります。
 
-## API エンドポイント
-
-### テストデータ取得
+### 3. ビルド
 
 ```bash
-GET http://localhost:8080/api/test
+# テストを含めてビルド
+./gradlew build
+
+# テストをスキップしてビルド
+./gradlew build -x test
 ```
 
-**レスポンス例：**
-```json
-[
-  {
-    "id": 1,
-    "name": "Hello from Supabase!"
-  },
-  {
-    "id": 2,
-    "name": "Spring Boot connection success"
-  }
-]
-```
+### 4. データベースのリセット
 
-## 開発コマンド
+データ整合性の問題などで、データベースを初期状態に戻したい場合は以下の方法があります。
 
-### コンテナの起動・停止
+#### 方法 A: Flyway タスクを使用する (推奨)
+
+**前提**: データベース（Dockerコンテナ）が起動している必要があります。
 
 ```bash
-# 起動
-docker-compose up -d
+# 1. DBコンテナが起動していない場合は起動
+docker-compose up -d postgres
 
-# ログ表示（リアルタイム）
-docker-compose logs -f app
+# 2. DBをクリーン（全テーブル削除）して、マイグレーションを再実行
+./gradlew flywayClean flywayMigrate
+```
 
-# 停止
-docker-compose down
+#### 方法 B: Docker ボリュームを削除する (完全リセット)
 
-# 完全削除（データも消去）
+Docker のボリュームを削除して、完全にクリーンな状態から作り直す方法です。
+
+```bash
+# 1. コンテナとボリュームを削除 (データを完全に消去)
 docker-compose down -v
+
+# 2. DBコンテナを再起動
+docker-compose up -d postgres
+
+# 3. マイグレーション実行
+# (アプリ起動時にも自動実行されますが、手動で行う場合)
+./gradlew flywayMigrate
 ```
 
-### Gradle タスク
+## 📖 API ドキュメント
+
+アプリケーション起動後、以下の URL で Swagger UI にアクセスできます。
+
+- **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- **OpenAPI JSON**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+## 🧪 テスト
 
 ```bash
-# Docker から実行
-./gradlew dockerUp      # 起動
-./gradlew dockerDown    # 停止
-./gradlew dockerLogs    # ログ表示
+# 全テスト実行
+./gradlew test
 
-# または従来の方法
-./gradlew build         # ビルド
-./gradlew test          # テスト実行
+# 特定のテストのみ実行 (例)
+./gradlew test --tests "com.example.myapp.service.auth.*"
 ```
-
-### IntelliJ から実行
-
-**方法 1: docker-compose.yml から**
-1. `docker-compose.yml` を右クリック
-2. `Compose Up` を選択
-
-**方法 2: Gradle パネルから**
-1. View → Tool Windows → Gradle
-2. `vgm-be` → Tasks → `dockerUp`
-3. ダブルクリック
 
 ## データベース接続
 
@@ -112,104 +152,8 @@ docker-compose down -v
 
 ```
 Host: localhost
-Port: 5432
+Port: 5433
 User: postgres
 Password: postgres
 Database: myapp
 ```
-
-### IntelliJ データベース接続
-
-1. View → Tool Windows → Database
-2. + → Data Source → PostgreSQL
-3. 上記の接続情報を入力
-4. Test Connection
-
-## 構成
-
-```
-vgm-be/
-├── src/
-│   ├── main/
-│   │   ├── kotlin/com/example/myapp/
-│   │   │   ├── MyappApplication.kt       # メインアプリケーション
-│   │   │   ├── TestItem.kt               # JPA エンティティ
-│   │   │   ├── TestController.kt         # REST コントローラ
-│   │   │   ├── HomeController.kt         # ホームページ
-│   │   │   ├── CategoriesController.kt   # カテゴリ API
-│   │   │   └── HealthController.kt       # ヘルスチェック
-│   │   └── resources/
-│   │       ├── application.properties    # Spring Boot 設定
-│   │       └── static/                   # 静的ファイル
-│   └── test/
-├── build.gradle.kts                      # Gradle 設定
-├── settings.gradle.kts                   # プロジェクト設定
-├── docker-compose.yml                    # Docker コンテナ定義
-├── Dockerfile                            # Docker ビルド定義
-└── README.md                             # このファイル
-```
-
-## トラブルシューティング
-
-### ポート 8080 が既に使用されている
-
-```bash
-# 既存プロセスを確認
-lsof -i :8080
-
-# または docker-compose.yml のポート番号を変更
-ports:
-  - "8081:8080"  # 外部ポートを 8081 に変更
-```
-
-### データベース接続エラー
-
-```bash
-# PostgreSQL が起動しているか確認
-docker ps
-
-# または再起動
-docker-compose restart postgres
-```
-
-### コンテナのリセット
-
-```bash
-# すべてを削除
-docker-compose down -v
-
-# 再起動
-docker-compose up -d
-```
-
-## 環境変数
-
-現在、データベース接続情報は `docker-compose.yml` にハードコードされています。
-
-本番環境では以下の環境変数を設定してください：
-- `SPRING_DATASOURCE_URL`
-- `SPRING_DATASOURCE_USERNAME`
-- `SPRING_DATASOURCE_PASSWORD`
-
-## デプロイ
-
-### Cloud Run へのデプロイ
-
-```bash
-# Docker イメージをビルド
-docker build -t vgm-be:latest .
-
-# イメージをプッシュ
-docker push gcr.io/[PROJECT_ID]/vgm-be:latest
-
-# Cloud Run にデプロイ
-gcloud run deploy vgm-be \
-  --image gcr.io/[PROJECT_ID]/vgm-be:latest \
-  --platform managed \
-  --region asia-northeast1
-```
-
-## その他
-
-- フロントエンド：[vgm-fe](../vgm-fe)
-- プロキシサーバー：[vgm-proxy](../vgm-proxy)
