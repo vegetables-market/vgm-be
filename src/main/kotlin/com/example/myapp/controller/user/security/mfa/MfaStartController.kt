@@ -2,10 +2,10 @@ package com.example.myapp.controller.user.security.mfa
 
 
 import com.example.myapp.controller.common.getAppUser
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import com.example.myapp.service.auth.MfaService
-import com.example.myapp.service.auth.LoginService
+import com.example.myapp.service.auth.login.LoginService
 import com.example.myapp.repository.user.email.UserEmailRepository
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus

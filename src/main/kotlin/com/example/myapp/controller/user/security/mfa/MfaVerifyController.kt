@@ -2,8 +2,8 @@ package com.example.myapp.controller.user.security.mfa
 
 import com.example.myapp.dto.user.security.mfa.MfaVerifyRequest
 import com.example.myapp.controller.common.getAppUser
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import com.example.myapp.service.auth.MfaService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus

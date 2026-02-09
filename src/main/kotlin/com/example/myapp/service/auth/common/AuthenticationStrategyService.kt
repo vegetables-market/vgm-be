@@ -1,6 +1,7 @@
-package com.example.myapp.service.auth
+package com.example.myapp.service.auth.common
 
 import com.example.myapp.repository.auth.UserAuthStatusRepository
+import com.example.myapp.service.auth.MfaService
 import org.springframework.stereotype.Service
 
 enum class AuthType {

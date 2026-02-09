@@ -1,6 +1,7 @@
-package com.example.myapp.service.auth
+package com.example.myapp.service.auth.session
 
 import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Service
 
@@ -21,7 +22,7 @@ class AppCookieService {
         cookie.path = "/"
         cookie.maxAge = SESSION_MAX_AGE
         // cookie.secure = true // Production only (should be configured via properties)
-        
+
         response.addCookie(cookie)
     }
 
@@ -33,21 +34,21 @@ class AppCookieService {
         cookie.isHttpOnly = true
         cookie.path = "/"
         cookie.maxAge = 0 // Delete immediately
-        
+
         response.addCookie(cookie)
     }
 
     /**
      * リクエストからセッションCookieを取得する
      */
-    fun getSessionCookie(request: jakarta.servlet.http.HttpServletRequest): String? {
+    fun getSessionCookie(request: HttpServletRequest): String? {
         return request.cookies?.find { it.name == SESSION_COOKIE_NAME }?.value
     }
 
     /**
      * リクエストからゲストCookieを取得する
      */
-    fun getGuestCookie(request: jakarta.servlet.http.HttpServletRequest): String? {
+    fun getGuestCookie(request: HttpServletRequest): String? {
         return request.cookies?.find { it.name == "vgm_guest_id" }?.value // GuestSessionService.GUEST_COOKIE_NAME
     }
 }

@@ -1,4 +1,4 @@
-package com.example.myapp.service.auth
+package com.example.myapp.service.auth.common
 
 import com.example.myapp.entity.market.cart.CartItem
 import com.example.myapp.entity.market.item.ItemFavorite

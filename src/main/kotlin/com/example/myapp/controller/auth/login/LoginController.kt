@@ -4,9 +4,9 @@ import com.example.myapp.dto.auth.login.LoginRequest
 import com.example.myapp.dto.auth.login.LoginResponse
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.GuestSessionService
-import com.example.myapp.service.auth.LoginService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.GuestSessionService
+import com.example.myapp.service.auth.login.LoginService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.ResponseEntity

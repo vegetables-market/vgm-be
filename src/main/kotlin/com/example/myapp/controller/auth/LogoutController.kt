@@ -1,6 +1,7 @@
 package com.example.myapp.controller.auth
 
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.ResponseEntity
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/v1/auth")
 class LogoutController(
     private val sessionService: SessionService,
-    private val appCookieService: com.example.myapp.service.auth.AppCookieService
+    private val appCookieService: AppCookieService
 ) {
 
     @PostMapping("/logout")

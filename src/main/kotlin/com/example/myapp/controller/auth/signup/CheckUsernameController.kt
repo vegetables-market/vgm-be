@@ -1,6 +1,6 @@
 package com.example.myapp.controller.auth.signup
 
-import com.example.myapp.service.auth.SignupService
+import com.example.myapp.service.auth.signup.SignupService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

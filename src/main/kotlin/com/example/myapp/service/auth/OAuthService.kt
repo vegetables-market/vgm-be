@@ -3,6 +3,8 @@ package com.example.myapp.service.auth
 import com.example.myapp.entity.user.User
 import com.example.myapp.service.auth.oauth.OAuthConnectionService
 import com.example.myapp.service.auth.oauth.OAuthUserService
+import com.example.myapp.service.auth.session.SessionService
+import com.example.myapp.service.auth.common.DataMergeService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

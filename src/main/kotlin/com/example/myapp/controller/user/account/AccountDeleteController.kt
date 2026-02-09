@@ -1,8 +1,8 @@
 package com.example.myapp.controller.user.account
 
 import com.example.myapp.controller.common.getAppUser
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import com.example.myapp.service.user.account.AccountDeletionService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -22,7 +22,7 @@ class AccountDeleteController(
     private val appCookieService: AppCookieService,
     private val sessionService: SessionService,
     private val accountDeletionService: AccountDeletionService,
-    private val sensitiveActionService: com.example.myapp.service.auth.SensitiveActionService
+    private val sensitiveActionService: com.example.myapp.service.auth.verification.SensitiveActionService
 ) {
 
     /**

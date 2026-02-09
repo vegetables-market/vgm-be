@@ -4,6 +4,7 @@ import com.example.myapp.dto.auth.login.LoginResponse
 import com.example.myapp.dto.auth.login.UserInfo
 import com.example.myapp.dto.auth.firebase.VerifiedToken
 import com.google.firebase.auth.FirebaseAuth
+import com.example.myapp.service.auth.login.LoginService
 import org.springframework.stereotype.Service
 
 @Service

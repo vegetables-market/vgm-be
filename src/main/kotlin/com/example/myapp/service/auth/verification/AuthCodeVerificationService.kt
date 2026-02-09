@@ -1,7 +1,9 @@
-package com.example.myapp.service.auth
+package com.example.myapp.service.auth.verification
 
 import com.example.myapp.dto.auth.verify.AuthMethod
 import com.example.myapp.service.email.EmailVerificationService
+import com.example.myapp.service.auth.MfaService
+import com.example.myapp.service.auth.login.LoginService
 import org.springframework.stereotype.Service
 
 @Service

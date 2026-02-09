@@ -6,9 +6,9 @@ import com.example.myapp.dto.auth.verify.VerifyAuthRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.auth.UserAuthStatusRepository
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.AuthCodeVerificationService
-import com.example.myapp.service.auth.LoginService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.verification.AuthCodeVerificationService
+import com.example.myapp.service.auth.login.LoginService
 import com.example.myapp.service.auth.MfaService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

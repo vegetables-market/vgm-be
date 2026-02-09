@@ -4,8 +4,8 @@ import com.example.myapp.controller.market.getMarketUser
 import com.example.myapp.dto.market.item.liisting.LinkImagesRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import com.example.myapp.service.market.ItemService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity

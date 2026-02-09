@@ -3,8 +3,8 @@ package com.example.myapp.controller.market.item.listing
 import com.example.myapp.controller.market.getMarketUser
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import com.example.myapp.service.market.MediaService
 import com.example.myapp.service.market.UploadTokenResponse
 import jakarta.servlet.http.HttpServletRequest

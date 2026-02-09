@@ -1,10 +1,12 @@
-package com.example.myapp.service.auth
+package com.example.myapp.service.auth.verification
 
 import com.example.myapp.entity.auth.VerificationCode
 import com.example.myapp.repository.auth.VerificationCodeRepository
 import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.service.email.EmailNotificationService
 import com.example.myapp.service.auth.MfaService // Add import
+import com.example.myapp.service.auth.common.AuthType
+import com.example.myapp.service.auth.common.AuthenticationStrategyService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime

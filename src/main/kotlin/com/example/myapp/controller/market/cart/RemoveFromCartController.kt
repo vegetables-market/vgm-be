@@ -1,8 +1,8 @@
 package com.example.myapp.controller.market.cart
 
 import com.example.myapp.controller.market.getMarketUser
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import com.example.myapp.service.market.CartService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity

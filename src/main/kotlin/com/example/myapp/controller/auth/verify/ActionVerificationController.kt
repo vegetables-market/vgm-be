@@ -3,8 +3,8 @@ package com.example.myapp.controller.auth.verify
 import com.example.myapp.dto.auth.verify.VerifyAuthRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
-import com.example.myapp.service.auth.AuthCodeVerificationService
-import com.example.myapp.service.auth.SensitiveActionService
+import com.example.myapp.service.auth.verification.AuthCodeVerificationService
+import com.example.myapp.service.auth.verification.SensitiveActionService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping

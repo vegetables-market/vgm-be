@@ -4,8 +4,8 @@ import com.example.myapp.controller.common.getAppUser
 import com.example.myapp.dto.user.security.email.VerifyEmailRequest
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import com.example.myapp.service.user.UserEmailService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity

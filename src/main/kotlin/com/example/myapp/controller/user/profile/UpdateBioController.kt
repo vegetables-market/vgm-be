@@ -3,8 +3,8 @@ package com.example.myapp.controller.user.profile
 import com.example.myapp.controller.common.getAppUser
 import com.example.myapp.dto.user.profile.UpdateBioRequest
 import com.example.myapp.exception.AppException
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import com.example.myapp.service.user.profile.UserProfileService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus

@@ -5,8 +5,8 @@ import com.example.myapp.dto.market.item.liisting.CreateItemRequest
 import com.example.myapp.dto.market.item.SimpleItemResponse
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import com.example.myapp.service.market.ItemService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity

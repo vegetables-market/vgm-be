@@ -1,7 +1,7 @@
 package com.example.myapp.controller.common
 
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import jakarta.servlet.http.HttpServletRequest
 import java.time.LocalDateTime
 

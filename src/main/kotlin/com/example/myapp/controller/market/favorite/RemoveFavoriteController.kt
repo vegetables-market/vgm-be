@@ -1,8 +1,8 @@
 package com.example.myapp.controller.market.favorite
 
 import com.example.myapp.controller.market.getMarketUser
-import com.example.myapp.service.auth.AppCookieService
-import com.example.myapp.service.auth.SessionService
+import com.example.myapp.service.auth.session.AppCookieService
+import com.example.myapp.service.auth.session.SessionService
 import com.example.myapp.service.market.FavoriteService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus

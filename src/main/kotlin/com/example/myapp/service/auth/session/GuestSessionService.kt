@@ -1,4 +1,4 @@
-package com.example.myapp.service.auth
+package com.example.myapp.service.auth.session
 
 import com.example.myapp.entity.auth.GuestSession
 import com.example.myapp.repository.auth.GuestSessionRepository
