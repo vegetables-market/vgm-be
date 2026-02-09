@@ -10,12 +10,14 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 class EndpointLogger {
     private val logger = LoggerFactory.getLogger(EndpointLogger::class.java)
 
+    // 複数の RequestMappingHandlerMapping (actuator の controllerEndpointHandlerMapping など) を受け取る
     @Bean
-    fun logEndpoints(mapping: RequestMappingHandlerMapping) = ApplicationRunner {
-        val mappings = mapping.handlerMethods
+    fun logEndpoints(mappings: Map<String, RequestMappingHandlerMapping>) = ApplicationRunner {
         logger.info("Registered request mappings:")
-        mappings.forEach { (k, v) ->
-            logger.info("{} => {}", k.patternsCondition?.patterns, v.method.toGenericString())
+        mappings.forEach { (name, mapping) ->
+            mapping.handlerMethods.forEach { (k, v) ->
+                logger.info("{} [{}] => {}", name, k.patternsCondition?.patterns, v.method.toGenericString())
+            }
         }
     }
 }
