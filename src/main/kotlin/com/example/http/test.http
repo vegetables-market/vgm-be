@@ -13,7 +13,7 @@ Content-Type: application/json
 
 {
   "email": "test@example.com",
-  "password": "pass",
+  "password": "password",
   "username": "wkm"
 }
 
@@ -38,6 +38,14 @@ Content-Type: application/json
 
 {
   "theme": "dark"
+}
+
+### Update theme of user 1 to light
+PUT http://localhost:8080/api/users/1/theme
+Content-Type: application/json
+
+{
+  "theme": "light"
 }
 
 
