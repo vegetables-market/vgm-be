@@ -15,12 +15,12 @@ class SecurityConfig {
             .csrf { it.disable() }
             .authorizeHttpRequests {
                 it.requestMatchers(
-                    "/api/auth/register",
-                    "/api/auth/login",
-                    "/api/auth/totp/**",
+                    "/api/auth/**",
+                    "/v1/auth/**",
+                    "/api/items/**",
                     "/api/users/*/theme",
                     "/api/users/me/theme"
-                ).permitAll() // 開発用: テーマ変更APIを一時的に許可（本番では削除またはプロファイル制御してください）
+                ).permitAll() // 開発用: test.http に記載のエンドポイントを一時的に全解放（本番では必ず見直すこと）
                 it.anyRequest().authenticated()
             }
             .httpBasic { it.disable() }
