@@ -1,6 +1,6 @@
 package com.example.myapp.service.auth.mfa
 
-import com.example.myapp.dto.user.mfa.MfaSetupResponse
+import com.example.myapp.dto.user.security.mfa.MfaSetupResponse
 import com.example.myapp.entity.auth.TwoFactorAuth
 import com.example.myapp.repository.auth.TwoFactorAuthRepository
 import dev.samstevens.totp.code.*

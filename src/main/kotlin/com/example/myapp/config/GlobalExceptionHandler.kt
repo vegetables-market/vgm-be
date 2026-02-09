@@ -1,6 +1,6 @@
 package com.example.myapp.config
 
-import com.example.myapp.dto.ErrorResponse
+import com.example.myapp.dto.common.ErrorResponse
 import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import org.slf4j.LoggerFactory

@@ -3,6 +3,8 @@ package com.example.myapp.service.auth
 import com.example.myapp.entity.user.User
 import com.example.myapp.service.auth.oauth.OAuthConnectionService
 import com.example.myapp.service.auth.oauth.OAuthUserService
+import com.example.myapp.service.auth.session.SessionService
+import com.example.myapp.service.auth.common.DataMergeService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional
 class OAuthService(
     private val oauthConnectionService: OAuthConnectionService,
     private val oauthUserService: OAuthUserService,
-    private val sessionService: SessionService
+    private val sessionService: SessionService,
+    private val dataMergeService: DataMergeService
 ) {
 
     /**
@@ -23,22 +26,23 @@ class OAuthService(
      * @param name 表示名
      * @param provider プロバイダ名 (google, github など)
      * @param providerUserId プロバイダ側のユーザーID
+     * @param guestId ゲストID (データ統合用)
      * @return セッションキー
      */
     @Transactional
-    fun processOAuth2User(email: String, name: String, provider: String, providerUserId: String): String {
-        // 1. Check if OAuth connection exists
+    fun processOAuth2User(email: String, name: String, provider: String, providerUserId: String, guestId: String? = null): String {
+        // 1. OAuth接続が存在するか確認
         val existingConnection = oauthConnectionService.findConnection(provider, providerUserId)
         
         var user: User? = null
         var isNewUser = false
 
         if (existingConnection != null) {
-            // Existing OAuth connection - get user
+            // 既存のOAuth接続 - ユーザーを取得
             user = oauthUserService.findUserByEmail(email)
             
             if (user != null && user.userId == existingConnection.userId) {
-                // Update last used
+                // 最終使用日時を更新
                 oauthConnectionService.updateLastUsed(existingConnection)
             } else {
                 // ユーザーが削除されている、または不整合がある場合
@@ -49,19 +53,19 @@ class OAuthService(
         }
 
         if (user == null) {
-            // Check if user exists by email
+            // メールアドレスでユーザーが存在するか確認
             user = oauthUserService.findUserByEmail(email)
 
             if (user == null) {
-                // Create new user (OAuth only - no password)
+                // 新規ユーザー作成 (OAuthのみ - パスワードなし)
                 isNewUser = true
                 user = oauthUserService.createOAuthUser(email, name, provider)
             }
 
-            // Create email record if not exists
+            // メールレコードが存在しない場合は作成
             val emailRecord = oauthUserService.ensureEmailRecord(user.userId, email, provider, isNewUser)
 
-            // Create OAuth connection
+            // OAuth接続を作成
             oauthConnectionService.createConnection(
                 userId = user.userId,
                 provider = provider,
@@ -71,10 +75,17 @@ class OAuthService(
             )
         }
 
-        // Update login info
+        // ログイン情報を更新
         oauthUserService.updateLoginInfo(user.userId, provider)
 
-        // Create Session via SessionService
-        return sessionService.createSession(user.userId, null, "OAuth2: $provider")
+        // SessionService経由でセッションを作成
+        val sessionKey = sessionService.createSession(user.userId, null, "OAuth2: $provider")
+        
+        // ゲストデータ統合
+        if (guestId != null) {
+            dataMergeService.mergeGuestData(user.userId, guestId)
+        }
+        
+        return sessionKey
     }
 }

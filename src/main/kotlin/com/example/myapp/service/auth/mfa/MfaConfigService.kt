@@ -1,6 +1,6 @@
 package com.example.myapp.service.auth.mfa
 
-import com.example.myapp.dto.user.mfa.MfaStatusResponse
+import com.example.myapp.dto.user.security.mfa.MfaStatusResponse
 import com.example.myapp.repository.auth.TwoFactorAuthRepository
 import com.example.myapp.repository.auth.UserAuthStatusRepository
 import org.springframework.security.crypto.password.PasswordEncoder

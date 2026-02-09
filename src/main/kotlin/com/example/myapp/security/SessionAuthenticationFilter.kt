@@ -1,9 +1,9 @@
 package com.example.myapp.security
 
+import com.example.myapp.repository.auth.GuestSessionRepository
 import com.example.myapp.repository.auth.UserSessionRepository
 import com.example.myapp.repository.user.UserRepository
 import jakarta.servlet.FilterChain
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -15,14 +15,18 @@ import java.time.LocalDateTime
 
 /**
  * セッション認証フィルター
- * 
- * リクエストのCookieから "vgm_session" を取得し、
- * DB上の有効なセッションと照合して、Spring Securityのコンテキストに認証情報をセットする。
+ *
+ * リクエストのCookie（`vgm_session` または `vgm_guest_id`）を確認し、
+ * DB上の有効なセッションと照合して、Spring Securityのコンテキストに認証情報をセットします。
+ *
+ * - `vgm_session`: ログイン済みユーザーのセッション
+ * - `vgm_guest_id`: 未ログインゲストのセッション
  */
 @Component
 class SessionAuthenticationFilter(
     private val userSessionRepository: UserSessionRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val guestSessionRepository: GuestSessionRepository
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -36,7 +40,7 @@ class SessionAuthenticationFilter(
             return
         }
 
-        // Cookieからセッションキーを取得
+        // 1. 会員ログインチェック (vgm_session)
         val sessionCookie = request.cookies?.find { it.name == "vgm_session" }
         val sessionKey = sessionCookie?.value
 
@@ -64,10 +68,38 @@ class SessionAuthenticationFilter(
                         )
 
                         SecurityContextHolder.getContext().authentication = auth
+                        filterChain.doFilter(request, response)
+                        return
                     }
                 }
             } catch (e: Exception) {
-                // セッション検証中のエラーは無視して続行
+                // セッション検証中のエラーは無視
+            }
+        }
+
+        // 2. ゲストセッションチェック (vgm_guest_id)
+        val guestCookie = request.cookies?.find { it.name == "vgm_guest_id" }
+        val guestId = guestCookie?.value
+
+        if (!guestId.isNullOrBlank()) {
+            try {
+                val guestSession = guestSessionRepository.findByGuestIdAndExpiresAtAfter(
+                    guestId,
+                    LocalDateTime.now()
+                )
+
+                if (guestSession != null) {
+                     // ゲストとして認証
+                    val authorities = listOf(SimpleGrantedAuthority("ROLE_GUEST"))
+                    val auth = UsernamePasswordAuthenticationToken(
+                        guestSession,
+                        null,
+                        authorities
+                    )
+                    SecurityContextHolder.getContext().authentication = auth
+                }
+            } catch (e: Exception) {
+                // 無視
             }
         }
 

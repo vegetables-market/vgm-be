@@ -1,9 +1,9 @@
 package com.example.myapp.service.user.profile
 
-import com.example.myapp.dto.auth.UserInfo
+import com.example.myapp.dto.auth.login.UserInfo
 import com.example.myapp.repository.auth.UserAuthStatusRepository
-import com.example.myapp.repository.user.UserEmailRepository
-import com.example.myapp.repository.user.UserProfileRepository
+import com.example.myapp.repository.user.email.UserEmailRepository
+import com.example.myapp.repository.user.profile.UserProfileRepository
 import com.example.myapp.repository.user.UserRepository
 import org.springframework.stereotype.Service
 
@@ -44,10 +44,10 @@ class UserInfoBuilderService(
 
         return UserInfo(
             username = user.username,
-            display_name = user.displayName,
+            displayName = user.displayName,
             email = getPrimaryEmail(userId),
-            avatar_url = userProfile?.profileImageUrl,
-            is_email_verified = authStatus?.emailVerified ?: false
+            avatarUrl = userProfile?.profileImageUrl,
+            isEmailVerified = authStatus?.emailVerified ?: false
         )
     }
 
@@ -66,10 +66,10 @@ class UserInfoBuilderService(
 
         return UserInfo(
             username = user.username,
-            display_name = user.displayName,
+            displayName = user.displayName,
             email = getPrimaryEmail(userId),
-            avatar_url = null,
-            is_email_verified = authStatus?.emailVerified ?: false
+            avatarUrl = null,
+            isEmailVerified = authStatus?.emailVerified ?: false
         )
     }
 

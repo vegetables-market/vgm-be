@@ -3,8 +3,15 @@ package com.example.myapp.util
 object AuthUtils {
     /**
      * メールアドレスをマスキングする
+     *
+     * @param email マスキング対象のメールアドレス
+     * @return マスキングされたメールアドレス (例: t******t@e*e.com)
      */
     fun maskEmail(email: String): String {
+        if (email.isBlank() || !email.contains("@")) {
+            return email
+        }
+
         val atIndex = email.indexOf('@')
         if (atIndex <= 1) return email
 

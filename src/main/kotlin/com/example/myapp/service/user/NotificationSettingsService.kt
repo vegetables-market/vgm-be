@@ -2,8 +2,8 @@ package com.example.myapp.service.user
 
 import com.example.myapp.dto.user.NotificationSettingsDto
 import com.example.myapp.dto.user.UpdateNotificationSettingsRequest
-import com.example.myapp.entity.user.NotificationSettings
-import com.example.myapp.repository.user.NotificationSettingsRepository
+import com.example.myapp.entity.user.settings.NotificationSettings
+import com.example.myapp.repository.user.settings.NotificationSettingsRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

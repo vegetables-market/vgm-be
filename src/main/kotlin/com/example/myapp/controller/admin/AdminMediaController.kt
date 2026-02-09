@@ -2,8 +2,8 @@ package com.example.myapp.controller.admin
 
 import com.example.myapp.entity.auth.UserSession
 import com.example.myapp.repository.user.UserRepository
-import com.example.myapp.service.market.MediaService
-import com.example.myapp.service.market.UploadTokenResponse
+import com.example.myapp.service.market.media.GenerateUploadToken
+import com.example.myapp.service.market.media.UploadTokenResponse
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PostMapping
@@ -19,7 +19,7 @@ data class AdminUploadRequest(
 @RestController
 @RequestMapping("/v1/admin/media")
 class AdminMediaController(
-    private val mediaService: MediaService,
+    private val generateUploadToken: GenerateUploadToken,
     private val userRepository: UserRepository
 ) {
 
@@ -36,6 +36,6 @@ class AdminMediaController(
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied")
         }
 
-        return mediaService.generateUploadToken(user.userId, "ADMIN", request.filename)
+        return generateUploadToken(user.userId, "ADMIN", request.filename)
     }
 }
