@@ -25,7 +25,9 @@ class GoogleAuthController(
     @PostMapping("/google")
     fun login(@RequestBody request: GoogleLoginRequest, servletRequest: HttpServletRequest, response: HttpServletResponse): ResponseEntity<LoginResponse> {
         val guestId = servletRequest.cookies?.find { it.name == com.example.myapp.service.auth.session.GuestSessionService.GUEST_COOKIE_NAME }?.value
-        val loginResponse = firebaseAuthService.processLogin(request.token, "google", guestId)
+        val ipAddress = servletRequest.remoteAddr
+        val userAgent = servletRequest.getHeader("User-Agent")
+        val loginResponse = firebaseAuthService.processLogin(request.token, "google", guestId, ipAddress, userAgent)
         
         if (loginResponse.status == "AUTHENTICATED" && loginResponse.flowId != null) {
             appCookieService.addSessionCookie(response, loginResponse.flowId)

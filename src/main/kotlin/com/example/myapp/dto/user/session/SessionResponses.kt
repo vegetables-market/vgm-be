@@ -22,5 +22,6 @@ data class SessionResponse(
     val createdAt: LocalDateTime,
     val lastActiveAt: LocalDateTime?,
     val expiresAt: LocalDateTime,
-    val isCurrent: Boolean
+    val isCurrent: Boolean,
+    val provider: String?
 )

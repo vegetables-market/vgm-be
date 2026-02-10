@@ -16,7 +16,7 @@ class SessionService(
     private val passwordEncoder: PasswordEncoder = BCryptPasswordEncoder()
 
     @Transactional
-    fun createSession(userId: Int, ipAddress: String? = null, deviceName: String? = null): String {
+    fun createSession(userId: Int, ipAddress: String? = null, deviceName: String? = null, provider: String? = null): String {
         val sessionKey = UUID.randomUUID().toString()
         val refreshToken = UUID.randomUUID().toString()
         
@@ -26,6 +26,7 @@ class SessionService(
             refreshTokenHash = passwordEncoder.encode(refreshToken),
             deviceName = deviceName,
             ipAddress = ipAddress,
+            provider = provider,
             expiresAt = LocalDateTime.now().plusDays(30)
         )
         
