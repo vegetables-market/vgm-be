@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository
 interface ItemRepository : JpaRepository<Item, Long> {
     fun findByUser_UserIdOrderByCreatedAtDesc(userId: Int): List<Item>
 
+    fun findByDisplayId(displayId: String): Item?
+
     // 指定したステータスのアイテムのみ取得（出品中、取引中、売切、停止）
     fun findByUser_UserIdAndStatusInOrderByCreatedAtDesc(userId: Int, statuses: List<Short>): List<Item>
     

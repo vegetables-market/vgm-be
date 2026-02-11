@@ -16,13 +16,14 @@ class AddToCart(
 ) {
 
     @Transactional
-    operator fun invoke(userId: Int?, guestId: String?, itemId: Long, quantity: Int): Long {
+    operator fun invoke(userId: Int?, guestId: String?, displayId: String, quantity: Int): Long {
         if (userId == null && guestId == null) {
             throw IllegalArgumentException("User ID or Guest ID must be provided")
         }
 
         // Check if item exists
-        val item = itemRepository.findById(itemId).orElseThrow { IllegalArgumentException("Item not found") }
+        val item = itemRepository.findByDisplayId(displayId) ?: throw IllegalArgumentException("Item not found")
+        val itemId = item.itemId!!
 
         // Check availability (e.g. status == 2) - skipping for brevity, should be added
         

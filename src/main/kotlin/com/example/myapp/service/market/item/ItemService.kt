@@ -40,8 +40,9 @@ class ItemService(
     }
 
     @Transactional
-    fun linkImages(userId: Int, itemId: Long, filenames: List<String>) {
-        val item = itemRepository.findById(itemId).orElseThrow { RuntimeException("Item not found") }
+    fun linkImages(userId: Int, displayId: String, filenames: List<String>) {
+        val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
+        val itemId = item.itemId!!
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
 
         // 既存画像をクリアするか、追加するか。ここでは「追加」とするか、
@@ -63,8 +64,9 @@ class ItemService(
     }
 
     @Transactional
-    fun publishItem(userId: Int, itemId: Long, request: CreateItemRequest): SimpleItemResponse {
-        val item = itemRepository.findById(itemId).orElseThrow { RuntimeException("Item not found") }
+    fun publishItem(userId: Int, displayId: String, request: CreateItemRequest): SimpleItemResponse {
+        val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
+        val itemId = item.itemId!!
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
 
         // 必須チェック (name, price, etc)
@@ -151,7 +153,7 @@ class ItemService(
             .firstOrNull()?.imageUrl
         
         return SimpleItemResponse(
-            id = item.itemId!!,
+            id = item.displayId,
             name = item.name ?: "",
             price = item.price ?: 0,
             status = item.status.toInt(),
@@ -161,8 +163,8 @@ class ItemService(
     }
 
     @Transactional
-    fun deleteItem(userId: Int, itemId: Long) {
-        val item = itemRepository.findById(itemId).orElseThrow { RuntimeException("Item not found") }
+    fun deleteItem(userId: Int, displayId: String) {
+        val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
         
         // ソフトデリート: ステータスを削除済みに変更
@@ -172,8 +174,8 @@ class ItemService(
     }
 
     @Transactional
-    fun updateItemStatus(userId: Int, itemId: Long, newStatus: Int) {
-        val item = itemRepository.findById(itemId).orElseThrow { RuntimeException("Item not found") }
+    fun updateItemStatus(userId: Int, displayId: String, newStatus: Int) {
+        val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
         
         // ステータス変更（出品中⇔停止中など）

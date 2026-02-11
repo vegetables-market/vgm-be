@@ -27,7 +27,7 @@ class DeleteItemController(
 
     @DeleteMapping("/{itemId}")
     fun deleteItem(
-        @PathVariable itemId: Long,
+        @PathVariable itemId: String,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Void> {
         val (userId, _) = servletRequest.getMarketUser(appCookieService, sessionService)

@@ -39,7 +39,7 @@ class GetCart(
                 
                 CartItemResponse(
                     cartItemId = cartItem.cartItemId,
-                    itemId = item.itemId!!,
+                    itemId = item.displayId,
                     name = item.name ?: "Unknown Item",
                     price = item.price?.toLong() ?: 0L,
                     quantity = cartItem.quantity,

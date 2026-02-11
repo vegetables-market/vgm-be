@@ -9,6 +9,6 @@ package com.example.myapp.dto.market.cart
  */
 
 data class AddCartRequest(
-    val itemId: Long,
+    val itemId: String,
     val quantity: Int = 1
 )

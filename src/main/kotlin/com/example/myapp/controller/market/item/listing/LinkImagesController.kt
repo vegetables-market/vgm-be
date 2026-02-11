@@ -29,7 +29,7 @@ class LinkImagesController(
 
     @PostMapping("/{itemId}/images")
     fun linkImages(
-        @PathVariable itemId: Long,
+        @PathVariable itemId: String,
         @RequestBody request: LinkImagesRequest,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Void> {

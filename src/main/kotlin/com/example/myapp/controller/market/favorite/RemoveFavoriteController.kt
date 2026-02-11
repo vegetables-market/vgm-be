@@ -22,7 +22,7 @@ class RemoveFavoriteController(
 
     @DeleteMapping("/{itemId}")
     fun removeFavorite(
-        @PathVariable itemId: Long,
+        @PathVariable itemId: String,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
         val (userId, guestId) = servletRequest.getMarketUser(appCookieService, sessionService)

@@ -19,6 +19,9 @@ class Item(
     @Column(name = "f_spot_id")
     val spotId: Long? = null,
 
+    @Column(name = "f_display_id", nullable = false, unique = true)
+    var displayId: String = "G" + (10000000..99999999).random(),
+
     @Column(name = "f_name")
     var name: String? = null,
 

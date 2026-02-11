@@ -16,10 +16,14 @@ class AddFavorite(
 ) {
 
     @Transactional
-    operator fun invoke(userId: Int?, guestId: String?, itemId: Long) {
+    operator fun invoke(userId: Int?, guestId: String?, displayId: String) {
         if (userId == null && guestId == null) {
             throw IllegalArgumentException("User ID or Guest ID required")
         }
+
+        val item = itemRepository.findByDisplayId(displayId)
+            ?: throw IllegalArgumentException("商品が見つかりません")
+        val itemId = item.itemId!!
 
         // 既に存在する場合は何もしない
         val exists = if (userId != null) {
@@ -29,11 +33,6 @@ class AddFavorite(
         }
         
         if (exists) return
-
-        // 商品が存在するか確認
-        if (!itemRepository.existsById(itemId)) {
-            throw IllegalArgumentException("商品が見つかりません")
-        }
 
         val favorite = ItemFavorite(
             userId = userId,

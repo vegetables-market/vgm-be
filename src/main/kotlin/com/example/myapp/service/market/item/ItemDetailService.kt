@@ -29,8 +29,9 @@ class ItemDetailService(
     /**
      * 商品詳細取得
      */
-    fun getItemDetail(itemId: Long, userId: Int?, guestId: String?): ItemDetailResponse? {
-        val item = itemRepository.findById(itemId).orElse(null) ?: return null
+    fun getItemDetail(displayId: String, userId: Int?, guestId: String?): ItemDetailResponse? {
+        val item = itemRepository.findByDisplayId(displayId) ?: return null
+        val itemId = item.itemId!!
         
         // 画像取得
         val images = itemImageRepository.findByItemIdOrderByDisplayOrder(itemId).map {
@@ -62,7 +63,7 @@ class ItemDetailService(
         } else null
 
         val itemDetail = ItemDetail(
-            itemId = item.itemId!!,
+            itemId = item.displayId,
             title = item.name ?: "",
             description = item.description,
             price = item.price ?: 0,
@@ -120,7 +121,7 @@ class ItemDetailService(
             val profile = userProfileRepository.findById(item.user.userId).orElse(null)
 
             ItemResponse(
-                itemId = item.itemId,
+                itemId = item.displayId,
                 title = item.name ?: "",
                 description = item.description,
                 price = item.price ?: 0,

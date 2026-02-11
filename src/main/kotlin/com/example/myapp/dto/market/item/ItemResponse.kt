@@ -22,7 +22,7 @@ package com.example.myapp.dto.market.item
  */
 
 data class ItemResponse(
-    val itemId: Long,
+    val itemId: String,
     val title: String,
     val description: String?,
     val price: Int,

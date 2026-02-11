@@ -54,7 +54,7 @@ class GetFavorites(
             val profile = userProfileRepository.findById(item.user.userId).orElse(null)
 
             ItemResponse(
-                itemId = item.itemId,
+                itemId = item.displayId,
                 title = item.name ?: "",
                 description = item.description,
                 price = item.price ?: 0,

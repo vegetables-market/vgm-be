@@ -8,5 +8,5 @@ package com.example.myapp.dto.market.item.liisting
  */
 
 data class CreateDraftResponse(
-    val itemId: Long
+    val itemId: String
 )

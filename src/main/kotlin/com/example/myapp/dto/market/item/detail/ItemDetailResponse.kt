@@ -39,7 +39,7 @@ data class ItemDetailResponse(
  */
 
 data class ItemDetail(
-    val itemId: Long,
+    val itemId: String,
     val title: String,
     val description: String?,
     val price: Int,
