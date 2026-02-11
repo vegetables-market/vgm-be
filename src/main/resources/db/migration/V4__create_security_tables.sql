@@ -40,6 +40,7 @@ CREATE TABLE t_verification_codes (
 
     f_expires_at TIMESTAMP NOT NULL, -- 有効期限 (発行から10分後など)
     f_is_used BOOLEAN DEFAULT FALSE, -- 使用済みか
+    f_resend_count INTEGER DEFAULT 0 NOT NULL, -- 再送回数
 
     f_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -31,5 +31,7 @@
 - 30 | ユーザー認証ステータス | t_user_auth_status
 - 31 | ユーザーメールアドレス | t_user_emails
 - 32 | OAuth連携情報 | t_user_oauth_connections
-
-
+- 33 | 通知設定 | t_notification_settings
+- 34 | ユーザーデバイス | t_user_devices
+- 35 | ゲストセッション | t_guest_sessions
+- 36 | カート商品 | t_cart_items
