@@ -47,10 +47,7 @@ CREATE TABLE t_items (
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_items_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE,
-    CONSTRAINT fk_items_spot FOREIGN KEY (f_spot_id) REFERENCES m_spots (f_spot_id),
-    CONSTRAINT fk_items_category FOREIGN KEY (f_categories_id) REFERENCES m_categories (f_category_id),
-    CONSTRAINT fk_items_shipping_days FOREIGN KEY (f_shipping_days_id) REFERENCES m_shipping_days (f_shipping_days_id),
-    CONSTRAINT fk_items_shipping_method FOREIGN KEY (f_shipping_method_id) REFERENCES m_shipping_method (f_shipping_method_id)
+    CONSTRAINT fk_items_category FOREIGN KEY (f_categories_id) REFERENCES m_categories (f_category_id)
 );
 CREATE TRIGGER set_timestamp_t_items BEFORE UPDATE ON t_items FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
@@ -166,7 +163,7 @@ CREATE TABLE t_item_reviews (
     CONSTRAINT fk_reviews_user FOREIGN KEY (f_user_id) REFERENCES m_users (f_user_id) ON DELETE CASCADE,
     CONSTRAINT fk_reviews_item FOREIGN KEY (f_item_id) REFERENCES t_items (f_item_id)
 );
-CREATE TRIGGER set_timestamp_t_reviews BEFORE UPDATE ON t_reviews FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+CREATE TRIGGER set_timestamp_t_item_reviews BEFORE UPDATE ON t_item_reviews FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
 -- -----------------------------------------------------
 -- 23. 商品コメント (t_item_comment)

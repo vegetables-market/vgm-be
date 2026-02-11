@@ -43,8 +43,7 @@ CREATE TABLE t_shipments (
     f_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_shipments_order FOREIGN KEY (f_order_id) REFERENCES t_orders (f_order_id) ON DELETE CASCADE,
-    CONSTRAINT fk_shipments_seller FOREIGN KEY (f_seller_id) REFERENCES m_users (f_user_id),
-    CONSTRAINT fk_shipments_method FOREIGN KEY (f_shipping_method_id) REFERENCES m_shipping_method (f_shipping_method_id)
+    CONSTRAINT fk_shipments_seller FOREIGN KEY (f_seller_id) REFERENCES m_users (f_user_id)
 );
 CREATE TRIGGER set_timestamp_t_shipments BEFORE UPDATE ON t_shipments FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
