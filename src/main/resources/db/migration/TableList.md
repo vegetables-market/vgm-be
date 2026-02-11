@@ -1,0 +1,35 @@
+# データベーステーブル一覧
+
+- 01 | ユーザーマスター | m_users
+- 02 | ユーザー情報 | t_user_info
+- 03 | ユーザープロフィール | t_user_profile
+- 04 | ユーザーアドレス | t_user_address
+- 05 | ユーザー決済情報 | t_user_pay_info
+- 06 | ユーザー名変更履歴 | t_username_history
+- 07 | ユーザーフォロー情報 | t_user_follows
+- 08 | 商品カテゴリー | m_categories
+- 10 | 商品情報 | t_items
+- 11 | 商品お気に入り | t_items_likes
+- 12 | 商品画像 | t_items_images
+- 13 | 配送方法マスタ | m_shipping_method
+- 14 | 注文情報 | t_orders
+- 15 | 注文商品明細 | t_orders_items
+- 16 | 配送情報 | t_shipments
+- 17 | 決済履歴 | t_payments
+- 18 | 資金移動/売上台帳 | t_transactions
+- 19 | 場所・拠点マスター | m_spots
+- 20 | 発送日数マスタ | m_shipping_days
+- 21 | 商品レビュー情報 | t_item_reviews
+- 22 | ユーザーメッセージ | t_messages
+- 23 | 商品コメント | t_item_comment
+- 24 | 都道府県マスタ | m_prefectures
+- 25 | 2段階認証設定 | t_user_two_factor
+- 26 | 一時的検証コード | t_verification_codes
+- 27 | アプリバージョン管理 | m_app_versions
+- 28 | アプリ更新内容 | m_app_update_notes
+- 29 | ユーザーセッション管理 | t_user_sessions
+- 30 | ユーザー認証ステータス | t_user_auth_status
+- 31 | ユーザーメールアドレス | t_user_emails
+- 32 | OAuth連携情報 | t_user_oauth_connections
+
+
