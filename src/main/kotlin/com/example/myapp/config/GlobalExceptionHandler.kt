@@ -52,20 +52,6 @@ class GlobalExceptionHandler {
     }
 
     /**
-     * ビジネス例外 (BusinessException)
-     */
-    @ExceptionHandler(com.example.myapp.exception.BusinessException::class)
-    fun handleBusinessException(ex: com.example.myapp.exception.BusinessException): ResponseEntity<ErrorResponse> {
-        val response = ErrorResponse(
-            errorCode = ex.errorCode,
-            message = ex.message,
-            details = ex.details,
-            timestamp = LocalDateTime.now()
-        )
-        return ResponseEntity.status(ex.httpStatus).body(response)
-    }
-
-    /**
      * その他の例外
      */
     @ExceptionHandler(Exception::class)
