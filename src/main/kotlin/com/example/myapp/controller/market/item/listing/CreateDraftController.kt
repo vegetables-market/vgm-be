@@ -32,6 +32,6 @@ class CreateDraftController(
             throw AppException(ErrorCode.AUTH_REQUIRED, "Login required")
         }
         val item = itemService.createDraft(userId)
-        return ResponseEntity.ok(CreateDraftResponse(itemId = item.itemId!!))
+        return ResponseEntity.ok(CreateDraftResponse(itemId = item.displayId))
     }
 }

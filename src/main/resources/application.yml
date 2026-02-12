@@ -16,6 +16,8 @@ spring:
     import: "optional:file:./.env.local[.properties]"
   application:
     name: vgm-backend
+  jackson:
+    property-naming-strategy: SNAKE_CASE
 
   datasource:
     url: ${DB_URL}

@@ -31,7 +31,8 @@ class CompleteLogin(
         existingSession: UserSession? = null,
         ipAddress: String? = null,
         userAgent: String? = null,
-        guestId: String? = null
+        guestId: String? = null,
+        provider: String = "email"
     ): LoginResponse {
         val user = userRepository.findById(userId).orElseThrow { IllegalStateException("User not found") }
 
@@ -43,7 +44,7 @@ class CompleteLogin(
         val sessionKey = if (existingSession != null) {
             sessionService.updateLastAccessed(existingSession)
         } else {
-            sessionService.createSession(userId, ipAddress, userAgent)
+            sessionService.createSession(userId, ipAddress, userAgent, provider)
         }
 
         // ゲストデータの統合

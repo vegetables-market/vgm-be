@@ -55,7 +55,8 @@ class SessionReadController(
                     createdAt = session.createdAt,
                     lastActiveAt = session.lastAccessedAt,
                     expiresAt = session.expiresAt,
-                    isCurrent = session.sessionKey == currentSessionKey
+                    isCurrent = session.sessionKey == currentSessionKey,
+                    provider = session.provider
                 )
             }
             .sortedByDescending { it.isCurrent }  // 現在のセッションを先頭に

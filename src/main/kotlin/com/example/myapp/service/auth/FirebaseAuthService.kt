@@ -43,7 +43,9 @@ class FirebaseAuthService(
     fun processLogin(
         token: String,
         provider: String,
-        guestId: String?
+        guestId: String?,
+        ipAddress: String? = null,
+        userAgent: String? = null
     ): LoginResponse {
         try {
             // 1. IDトークンを検証
@@ -57,7 +59,7 @@ class FirebaseAuthService(
 
             // 2. ログイン/登録ロジックを実行
             val providerUserId = decodedToken.uid  // Firebase UID
-            val sessionKey = oauthService.processOAuth2User(email, name, provider, providerUserId, guestId)
+            val sessionKey = oauthService.processOAuth2User(email, name, provider, providerUserId, guestId, ipAddress, userAgent)
 
             // 3. 成功レスポンスを返す
             var user = userRepository.findByUsername(email)

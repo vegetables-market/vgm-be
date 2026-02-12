@@ -24,7 +24,7 @@ class AddFavoriteController(
 
     @PostMapping("/{itemId}")
     fun addFavorite(
-        @PathVariable itemId: Long,
+        @PathVariable itemId: String,
         servletRequest: HttpServletRequest,
         servletResponse: HttpServletResponse
     ): ResponseEntity<Map<String, Any>> {

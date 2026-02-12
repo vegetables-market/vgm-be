@@ -15,7 +15,7 @@ package com.example.myapp.dto.market.item
  */
 
 data class SimpleItemResponse(
-    val id: Long,
+    val id: String,
     val name: String?,
     val price: Int?,
     val status: Int,

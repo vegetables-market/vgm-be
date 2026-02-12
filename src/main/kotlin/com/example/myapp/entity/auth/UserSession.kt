@@ -26,6 +26,9 @@ data class UserSession(
     @Column(name = "f_ip_address")
     val ipAddress: String? = null,
 
+    @Column(name = "f_provider")
+    val provider: String? = null,
+
     @Column(name = "f_is_revoked")
     var isRevoked: Boolean = false,
 

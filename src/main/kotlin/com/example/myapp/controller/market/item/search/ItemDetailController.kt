@@ -30,7 +30,7 @@ class ItemDetailController(
      */
     @GetMapping("/{itemId}")
     fun getItemDetail(
-        @PathVariable itemId: Long,
+        @PathVariable itemId: String,
         servletRequest: HttpServletRequest
     ): ResponseEntity<ItemDetailResponse> {
         val (userId, guestId) = servletRequest.getMarketUser(appCookieService, sessionService)

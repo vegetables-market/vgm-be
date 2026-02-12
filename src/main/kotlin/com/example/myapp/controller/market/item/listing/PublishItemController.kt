@@ -30,7 +30,7 @@ class PublishItemController(
 
     @PutMapping("/{itemId}")
     fun publishItem(
-        @PathVariable itemId: Long,
+        @PathVariable itemId: String,
         @RequestBody request: CreateItemRequest,
         servletRequest: HttpServletRequest
     ): ResponseEntity<SimpleItemResponse> {

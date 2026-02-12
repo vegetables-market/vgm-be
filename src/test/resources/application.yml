@@ -4,6 +4,8 @@
     username: sa
     password: 
     driver-class-name: org.h2.Driver
+  jackson:
+    property-naming-strategy: SNAKE_CASE
   flyway:
     enabled: false  # テスト時はFlywayを無効化
   jpa:

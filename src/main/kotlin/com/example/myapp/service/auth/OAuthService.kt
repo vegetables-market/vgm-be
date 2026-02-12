@@ -27,10 +27,20 @@ class OAuthService(
      * @param provider プロバイダ名 (google, github など)
      * @param providerUserId プロバイダ側のユーザーID
      * @param guestId ゲストID (データ統合用)
+     * @param ipAddress IPアドレス
+     * @param userAgent User-Agentヘッダー
      * @return セッションキー
      */
     @Transactional
-    fun processOAuth2User(email: String, name: String, provider: String, providerUserId: String, guestId: String? = null): String {
+    fun processOAuth2User(
+        email: String, 
+        name: String, 
+        provider: String, 
+        providerUserId: String, 
+        guestId: String? = null,
+        ipAddress: String? = null,
+        userAgent: String? = null
+    ): String {
         // 1. OAuth接続が存在するか確認
         val existingConnection = oauthConnectionService.findConnection(provider, providerUserId)
         
@@ -79,7 +89,9 @@ class OAuthService(
         oauthUserService.updateLoginInfo(user.userId, provider)
 
         // SessionService経由でセッションを作成
-        val sessionKey = sessionService.createSession(user.userId, null, "OAuth2: $provider")
+        // デバイス名としてUser-Agentを使用（なければプロバイダ名）
+        val deviceName = userAgent ?: "OAuth2: $provider"
+        val sessionKey = sessionService.createSession(user.userId, ipAddress, deviceName, provider)
         
         // ゲストデータ統合
         if (guestId != null) {

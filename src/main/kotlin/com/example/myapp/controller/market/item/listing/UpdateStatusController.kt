@@ -28,7 +28,7 @@ class UpdateStatusController(
 
     @PatchMapping("/{itemId}/status")
     fun updateItemStatus(
-        @PathVariable itemId: Long,
+        @PathVariable itemId: String,
         @RequestBody request: UpdateStatusRequest,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Void> {
