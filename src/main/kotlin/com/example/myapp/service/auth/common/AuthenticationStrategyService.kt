@@ -6,7 +6,8 @@ import org.springframework.stereotype.Service
 
 enum class AuthType {
     TOTP,
-    EMAIL
+    EMAIL,
+    PASSWORD
 }
 
 /**

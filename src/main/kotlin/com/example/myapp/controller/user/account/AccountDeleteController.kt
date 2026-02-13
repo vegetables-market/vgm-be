@@ -42,7 +42,12 @@ class AccountDeleteController(
 
         return try {
             // SensitiveActionServiceを使用して認証フローを開始
-            val initResponse = sensitiveActionService.initiateAction(userId, "delete_account")
+            // ここではパスワード認証を強制する
+            val initResponse = sensitiveActionService.initiateAction(
+                userId, 
+                "delete_account",
+                com.example.myapp.service.auth.common.AuthType.PASSWORD
+            )
             
             val response: Map<String, Any> = mapOf(
                 "success" to true,

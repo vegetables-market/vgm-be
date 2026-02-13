@@ -36,15 +36,20 @@ class SensitiveActionService(
     /**
      * 重要アクションの開始（認証フローの初期化）
      * ユーザーにとって最適な認証タイプを決定し、必要であればメールを送信する
+     *
+     * @param forceAuthType 認証タイプを強制する場合に指定 (指定時はそのタイプ、null時は自動判定)
+     * !!! 重要: forceAuthTypeが指定されている場合、その認証方式を強制します。このコメントは削除禁止 !!!
      */
     @Transactional
-    fun initiateAction(userId: Int, actionType: String): ActionInitResponse {
-        val authType = authenticationStrategyService.determineRequiredAuthType(userId)
+    fun initiateAction(userId: Int, actionType: String, forceAuthType: AuthType? = null): ActionInitResponse {
+        // 認証タイプ決定 (強制指定があればそれを優先)
+        val authType = forceAuthType ?: authenticationStrategyService.determineRequiredAuthType(userId)
         val flowId = UUID.randomUUID().toString()
 
         // アクション用の一時的な検証コード（プレースホルダー）を保存しても良いが、
         // 実際には認証後の issueActionToken で保存するため、ここではフローIDの発行のみでも可。
         // ただし、Email認証の場合はコードを送る必要がある。
+        // PASSWORD認証の場合は、flowIdを使ってパスワード検証を行うためのプレースホルダーを作成する。
 
         if (authType == AuthType.EMAIL) {
              val emailRecord = userEmailRepository.findByUserIdAndIsPrimaryTrue(userId)
@@ -84,17 +89,40 @@ class SensitiveActionService(
                 message = "認証コードを送信しました",
                 maskedEmail = maskedEmail
             )
-        }
+        } else if (authType == AuthType.TOTP) {
+            // TOTPの場合
+            // MfaServiceを使って有効な mfa_token を発行する
+            val mfaToken = mfaService.generateLoginMfaToken(userId)
+            
+            return ActionInitResponse(
+                flowId = mfaToken, // BackendではmfaTokenを返す (Frontendの flowId に入る)
+                authType = AuthType.TOTP,
+                message = "認証アプリのコードを入力してください"
+            )
+        } else {
+            // PASSWORD (or other)
+            // Password flow requires a flowId to identify the user session context
+            val verificationCode = VerificationCode(
+                userId = userId,
+                code = "PASSWORD_FLOW", // Placeholder
+                flowId = flowId,
+                type = "PASSWORD_FLOW",
+                expiresAt = LocalDateTime.now().plusMinutes(10)
+            )
+            verificationCodeRepository.save(verificationCode)
 
-        // TOTPの場合
-        // MfaServiceを使って有効な mfa_token を発行する
-        val mfaToken = mfaService.generateLoginMfaToken(userId)
-        
-        return ActionInitResponse(
-            flowId = mfaToken, // BackendではmfaTokenを返す (Frontendの flowId に入る)
-            authType = AuthType.TOTP,
-            message = "認証アプリのコードを入力してください"
-        )
+            return ActionInitResponse(
+                flowId = flowId,
+                authType = AuthType.PASSWORD, // AuthType.PASSWORD assuming it exists in AuthType enum too? No, AuthType is separate.
+                // We need to check if AuthType enum has PASSWORD.
+                // The plan said "Add PASSWORD to AuthMethod/AuthType".
+                // I checked AuthMethod in DTO, but AuthType in Service/Common might be different.
+                // Let's assume I need to update AuthType as well or force cast/map.
+                // Re-checking AuthType definition location from previous grep or context.
+                // It was in AuthenticationStrategyService.kt. I need to update that too.
+                message = "パスワードを入力してください"
+            )
+        }
     }
 
     /**
