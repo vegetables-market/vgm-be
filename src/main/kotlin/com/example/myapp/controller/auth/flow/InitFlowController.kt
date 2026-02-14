@@ -6,6 +6,7 @@ import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.repository.user.UserRepository
 import com.example.myapp.service.email.verification.SendVerificationEmail
+import com.example.myapp.util.AuthUtils
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -37,10 +38,14 @@ class InitFlowController(
              sendVerificationEmail.sendPreRegistration(request.email)
         }
 
+        // マスクされたメールアドレス
+        val maskedEmail = AuthUtils.maskEmail(request.email)
+
         // 統一レスポンス
         return ResponseEntity.ok(mapOf(
             "flow" to "CHALLENGE",
             "flow_id" to flowId,
+            "masked_email" to maskedEmail,
             "expires_at" to expiresAt.toString(),
             "next_resend_at" to createdAt.plusSeconds(30).toString(),
             "message" to "Verification code sent."

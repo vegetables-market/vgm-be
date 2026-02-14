@@ -2,13 +2,13 @@ package com.example.myapp.service.email.verification
 
 import com.example.myapp.entity.auth.VerificationCode
 import com.example.myapp.repository.auth.VerificationCodeRepository
-import com.example.myapp.repository.user.email.UserEmailRepository
 import com.example.myapp.service.email.EmailSenderService
 import com.example.myapp.service.email.template.VerificationCodeEmailTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 
 /**
  * 認証コード送信ユースケース
@@ -61,24 +61,13 @@ class SendVerificationEmail(
 
         val verificationCode = VerificationCode(
             userId = userId,
-            email = toEmail, // Always save the email being sent to
+            email = toEmail,
             code = code,
             flowId = flowId,
             type = "EMAIL_VERIFY",
             expiresAt = expiresAt,
             resendCount = resendCount
         )
-        // しかし VerificationCode.email は val らしいので、コンストラクタでセットする
-        if (userId != null) {
-             // コンストラクタで emailForRecord (which is null for registered but passed as null in call)
-             // Wait, verify logic uses userEmailRepository for registered users if email in verification is null?
-             // No, VerificationCode table likely stores email for both?
-             // Let's check VerificationCode entity definition if possible, but I can just pass toEmail to constructor if emailForRecord is null
-        }
-        // Actually, in generateAndSendCode(userId, null, email, ...)
-        // I passed null for emailForRecord when userId is not null.
-        // I should just pass toEmail there if I want it to be saved.
-        // Let's modify the construction.
 
         verificationCodeRepository.save(verificationCode)
 
@@ -89,9 +78,16 @@ class SendVerificationEmail(
         println("Email: $toEmail")
         println("=======================================")
 
+        // メール送信を非同期で実行（APIレスポンスを即返すため）
         val subject = "【VGM】認証コードのお知らせ"
         val htmlContent = verificationCodeEmailTemplate.generate(code)
-        emailSenderService.sendHtmlEmail(toEmail, subject, htmlContent)
+        CompletableFuture.runAsync {
+            try {
+                emailSenderService.sendHtmlEmail(toEmail, subject, htmlContent)
+            } catch (e: Exception) {
+                println("Failed to send verification email to $toEmail: ${e.message}")
+            }
+        }
 
         return Triple(flowId, expiresAt, now)
     }
