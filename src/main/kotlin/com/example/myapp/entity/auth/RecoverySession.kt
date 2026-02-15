@@ -10,8 +10,8 @@ data class RecoverySession(
     @Column(name = "f_session_id", length = 36)
     val sessionId: String, // UUID
 
-    @Column(name = "f_user_id", nullable = false)
-    val userId: Int,
+    @Column(name = "f_user_id")
+    val userId: Int?,
 
     @Column(name = "f_status", nullable = false, length = 20)
     var status: String, // CREATED, CHALLENGE_SENT, VERIFIED, COMPLETED, LOCKED, EXPIRED

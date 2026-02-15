@@ -42,6 +42,7 @@ class AccountRecoveryService(
         const val CODE_TTL_MINUTES = 10L
     }
 
+
     /**
      * Start recovery process
      * Returns a session ID (state)
@@ -52,20 +53,16 @@ class AccountRecoveryService(
         var user = userRepository.findByUsername(username)
         if (user == null) {
             val emails = userEmailRepository.findByEmail(username)
-            if (emails != null) { // Note: findByEmail returns UserEmail? (single) based on interface def in step 146
+            if (emails != null) {
                  user = userRepository.findById(emails.userId).orElse(null)
             }
         }
 
-        if (user == null) {
-            throw IllegalArgumentException("User not found") 
-        }
-
-        // Create Session
+        // Create Session (User may be null for decoy session)
         val sessionId = UUID.randomUUID().toString()
         val session = RecoverySession(
             sessionId = sessionId,
-            userId = user.userId,
+            userId = user?.userId, // Nullable
             status = STATUS_CREATED,
             expiresAt = LocalDateTime.now().plusMinutes(SESSION_TTL_MINUTES)
         )
@@ -76,23 +73,42 @@ class AccountRecoveryService(
 
     /**
      * Get available recovery options
+     * Always returns constant options to prevent enumeration
      */
     fun getOptions(sessionId: String): List<String> {
-        val session = getValidSession(sessionId)
+        val session = findValidSession(sessionId)
+        
+        // If session is invalid or user not found, strictly mimic the response
+        if (session == null || session.userId == null) {
+            return listOf(METHOD_EMAIL)
+        }
+
+        // Real user options
         val options = mutableListOf<String>()
 
-        // Check Email
-        val email = userEmailRepository.findByUserIdAndIsPrimaryTrue(session.userId)
+        // Check Email (Always added for valid user to match decoy)
+        val email = userEmailRepository.findByUserIdAndIsPrimaryTrue(session.userId!!)
         if (email != null) {
             options.add(METHOD_EMAIL)
+        } else {
+             // Should theoretically not happen for a valid user in this flow, but fallback
+             options.add(METHOD_EMAIL)
         }
 
         // Check TOTP
-        if (mfaService.isTotpEnabled(session.userId)) {
-            options.add(METHOD_TOTP)
+        if (mfaService.isTotpEnabled(session.userId!!)) {
+            // For now, only returning email to keep response identical
+            // If we want to support TOTP, we must ensure decoy also returns it if it was requested in a way that implies TOTP is possible?
+            // Or just return email only for now as per plan.
+            // Plan says: "recommended" is okay but list should be fixed.
+            // Let's stick to ["email"] for now to be perfectly safe as per "options: constant response" task.
+            // However, the previous code supported TOTP.
+            // To be safe against enumeration, we should only return commonly available options.
+            // If we return TOTP only for users who have it, that leaks info.
+            // So we return ["email"] for everyone for now.
         }
 
-        return options
+        return listOf(METHOD_EMAIL)
     }
 
     /**
@@ -100,35 +116,41 @@ class AccountRecoveryService(
      */
     @Transactional
     fun sendChallenge(sessionId: String, method: String) {
-        val session = getValidSession(sessionId)
+        val session = findValidSession(sessionId)
+
+        // Invalid session or Decoy session -> Do nothing, return success (200 OK)
+        if (session == null || session.userId == null) {
+            return
+        }
         
         // Allow resend even if SENT
         if (session.status != STATUS_CREATED && session.status != STATUS_CHALLENGE_SENT) {
-            throw IllegalStateException("Invalid status for sending challenge")
+            // Treat as success to avoid leaking state
+            return
         }
 
         when (method) {
             METHOD_EMAIL -> {
-                val email = userEmailRepository.findByUserIdAndIsPrimaryTrue(session.userId)
-                    ?: throw IllegalStateException("No primary email found")
+                val email = userEmailRepository.findByUserIdAndIsPrimaryTrue(session.userId!!)
                 
-                // Generate Code
-                val code = (100000..999999).random().toString()
-                
-                // Save Code
-                // Invalidate potential old codes for this flow
-                val expiresAt = LocalDateTime.now().plusMinutes(CODE_TTL_MINUTES)
-                val newCode = VerificationCode(
-                    userId = session.userId,
-                    email = email.email,
-                    code = code,
-                    type = "PASSWORD_RESET",
-                    flowId = sessionId,
-                    expiresAt = expiresAt
-                )
-                verificationCodeRepository.save(newCode)
-                
-                emailSenderService.sendHtmlEmail(email.email, "パスワード再設定確認コード", "<p>あなたの確認コードは <b>$code</b> です。</p>")
+                if (email != null) {
+                    // Generate Code
+                    val code = (100000..999999).random().toString()
+                    
+                    // Save Code
+                    val expiresAt = LocalDateTime.now().plusMinutes(CODE_TTL_MINUTES)
+                    val newCode = VerificationCode(
+                        userId = session.userId!!,
+                        email = email.email,
+                        code = code,
+                        type = "PASSWORD_RESET",
+                        flowId = sessionId,
+                        expiresAt = expiresAt
+                    )
+                    verificationCodeRepository.save(newCode)
+                    
+                    emailSenderService.sendHtmlEmail(email.email, "パスワード再設定確認コード", "<p>あなたの確認コードは <b>$code</b> です。</p>")
+                }
                 
                 // Update Session
                 session.status = STATUS_CHALLENGE_SENT
@@ -139,7 +161,7 @@ class AccountRecoveryService(
                 session.status = STATUS_CHALLENGE_SENT
                 recoverySessionRepository.save(session)
             }
-            else -> throw IllegalArgumentException("Unsupported method")
+            // Ignore unsupported methods
         }
     }
 
@@ -148,19 +170,25 @@ class AccountRecoveryService(
      */
     @Transactional
     fun verifyChallenge(sessionId: String, method: String, code: String): Boolean {
-        val session = getValidSession(sessionId)
+        val session = findValidSession(sessionId)
+
+        // Invalid or Decoy -> Always false
+        if (session == null || session.userId == null) {
+            // Simulate processing time if needed? For now, just return false.
+            return false
+        }
         
         // Rate limit check
         if (session.attemptCount >= MAX_ATTEMPTS) {
             session.status = STATUS_LOCKED
             recoverySessionRepository.save(session)
-            throw IllegalStateException("Too many failed attempts. Session locked.")
+            // Locked session acts as invalid/failed verify
+            return false
         }
 
         var isValid = false
         when (method) {
             METHOD_EMAIL -> {
-                // Find valid code by flowId
                 val verificationCode = verificationCodeRepository.findByFlowIdAndCodeAndIsUsedFalseAndExpiresAtAfter(
                     flowId = sessionId,
                     code = code,
@@ -174,7 +202,7 @@ class AccountRecoveryService(
                 }
             }
             METHOD_TOTP -> {
-                isValid = mfaService.verifyCode(session.userId, code)
+                isValid = mfaService.verifyCode(session.userId!!, code)
             }
         }
 
@@ -194,30 +222,48 @@ class AccountRecoveryService(
      */
     @Transactional
     fun completeRecovery(sessionId: String) {
-        val session = getValidSession(sessionId)
-        if (session.status != STATUS_VERIFIED && session.status != STATUS_COMPLETED) { // Allow retry if verified
-             throw IllegalStateException("Session not verified")
+        val session = findValidSession(sessionId)
+
+        // Invalid or Decoy -> Do nothing, return success
+        if (session == null || session.userId == null) {
+            return
+        }
+
+        // Must be VERIFIED
+        if (session.status != STATUS_VERIFIED && session.status != STATUS_COMPLETED) {
+             // Return success to hide state
+             return
         }
 
         // Send Password Reset Email
-        passwordResetService.sendResetEmail(session.userId)
+        passwordResetService.sendResetEmail(session.userId!!)
 
         session.status = STATUS_COMPLETED
         recoverySessionRepository.save(session)
     }
 
-    private fun getValidSession(sessionId: String): RecoverySession {
-        val session = recoverySessionRepository.findById(sessionId)
-            .orElseThrow { IllegalArgumentException("Session not found") }
+    /**
+     * Helper to find a strictly valid session.
+     * Returns null if not found, expired, locked, etc.
+     */
+    private fun findValidSession(sessionId: String): RecoverySession? {
+        val sessionOpt = recoverySessionRepository.findById(sessionId)
+        if (sessionOpt.isEmpty) {
+            return null
+        }
+        val session = sessionOpt.get()
 
         if (session.status == STATUS_LOCKED) {
-             throw IllegalStateException("Session is locked")
+             return null
         }
         
-        if(session.status == STATUS_EXPIRED || session.expiresAt.isBefore(LocalDateTime.now())) {
-             session.status = STATUS_EXPIRED
-             recoverySessionRepository.save(session)
-             throw IllegalStateException("Session expired")
+        if (session.status == STATUS_EXPIRED || session.expiresAt.isBefore(LocalDateTime.now())) {
+             // Mark as expired if not already? Or just treat as invalid.
+             if (session.status != STATUS_EXPIRED) {
+                 session.status = STATUS_EXPIRED
+                 recoverySessionRepository.save(session)
+             }
+             return null
         }
 
         return session

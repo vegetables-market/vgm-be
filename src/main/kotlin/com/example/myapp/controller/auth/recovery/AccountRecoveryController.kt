@@ -30,13 +30,9 @@ class AccountRecoveryController(
     }
 
     @PostMapping("/verify")
-    fun verifyChallenge(@RequestBody request: VerifyChallengeRequest): ResponseEntity<Void> {
+    fun verifyChallenge(@RequestBody request: VerifyChallengeRequest): ResponseEntity<VerifyChallengeResponse> {
         val isValid = accountRecoveryService.verifyChallenge(request.state, request.method, request.code)
-        if (isValid) {
-            return ResponseEntity.ok().build()
-        } else {
-            return ResponseEntity.badRequest().build()
-        }
+        return ResponseEntity.ok(VerifyChallengeResponse(isValid))
     }
 
     @PostMapping("/complete")

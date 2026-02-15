@@ -3,7 +3,7 @@
 -- -----------------------------------------------------
 CREATE TABLE t_recovery_sessions (
     f_session_id VARCHAR(36) PRIMARY KEY, -- UUID
-    f_user_id INTEGER NOT NULL,
+    f_user_id INTEGER,
     f_status VARCHAR(20) NOT NULL, -- CREATED, CHALLENGE_SENT, VERIFIED, COMPLETED, LOCKED, EXPIRED
     f_expires_at TIMESTAMP NOT NULL,
     f_attempt_count INTEGER DEFAULT 0,

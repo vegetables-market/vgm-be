@@ -26,3 +26,7 @@ data class VerifyChallengeRequest(
 data class CompleteRecoveryRequest(
     val state: String
 )
+
+data class VerifyChallengeResponse(
+    val verified: Boolean
+)
