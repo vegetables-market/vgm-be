@@ -21,6 +21,14 @@ class OAuthService(
 ) {
 
     /**
+     * OAuth処理結果
+     */
+    sealed class OAuthProcessingResult {
+        data class Authenticated(val sessionKey: String) : OAuthProcessingResult()
+        data class NewUser(val email: String, val name: String, val provider: String, val providerUserId: String) : OAuthProcessingResult()
+    }
+
+    /**
      * OAuth2ユーザーを処理してセッションを作成
      * @param email メールアドレス
      * @param name 表示名
@@ -29,7 +37,7 @@ class OAuthService(
      * @param guestId ゲストID (データ統合用)
      * @param ipAddress IPアドレス
      * @param userAgent User-Agentヘッダー
-     * @return セッションキー
+     * @return 処理結果
      */
     @Transactional
     fun processOAuth2User(
@@ -40,12 +48,11 @@ class OAuthService(
         guestId: String? = null,
         ipAddress: String? = null,
         userAgent: String? = null
-    ): String {
+    ): OAuthProcessingResult {
         // 1. OAuth接続が存在するか確認
         val existingConnection = oauthConnectionService.findConnection(provider, providerUserId)
         
         var user: User? = null
-        var isNewUser = false
 
         if (existingConnection != null) {
             // 既存のOAuth接続 - ユーザーを取得
@@ -67,13 +74,13 @@ class OAuthService(
             user = oauthUserService.findUserByEmail(email)
 
             if (user == null) {
-                // 新規ユーザー作成 (OAuthのみ - パスワードなし)
-                isNewUser = true
-                user = oauthUserService.createOAuthUser(email, name, provider)
+                // 新規ユーザー -> 登録登録フローへ誘導するために情報を返す
+                return OAuthProcessingResult.NewUser(email, name, provider, providerUserId)
             }
 
-            // メールレコードが存在しない場合は作成
-            val emailRecord = oauthUserService.ensureEmailRecord(user.userId, email, provider, isNewUser)
+            // メールレコードが存在しない場合は作成 (既存ユーザーがOAuth連携した場合)
+            // ここは既存ユーザーのOAuth連携フローとして維持
+            val emailRecord = oauthUserService.ensureEmailRecord(user.userId, email, provider, false)
 
             // OAuth接続を作成
             oauthConnectionService.createConnection(
@@ -98,6 +105,6 @@ class OAuthService(
             dataMergeService.mergeGuestData(user.userId, guestId)
         }
         
-        return sessionKey
+        return OAuthProcessingResult.Authenticated(sessionKey)
     }
 }

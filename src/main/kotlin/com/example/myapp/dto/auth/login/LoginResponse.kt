@@ -22,7 +22,9 @@ data class LoginResponse(
     val mfaToken: String? = null, // MFA検証用の一時トークン
     val mfaType: String? = null, // "TOTP", "EMAIL" etc.
     val expiresAt: String? = null, // 認証コードの有効期限 (ISO 8601)
-    val nextResendAt: String? = null // 認証コード再送可能時刻 (ISO 8601)
+    val nextResendAt: String? = null, // 認証コード再送可能時刻 (ISO 8601)
+    val oauthProvider: String? = null, // OAuthプロバイダ (google, etc) - 新規登録用
+    val oauthToken: String? = null // OAuthトークン (ID Token) - 新規登録用
 )
 
 data class UserInfo(

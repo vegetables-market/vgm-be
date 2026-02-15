@@ -1,5 +1,7 @@
 package com.example.myapp.dto.auth.signup
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 /**
  * ユーザー新規登録リクエストDTO
  *
@@ -23,5 +25,10 @@ data class SignupRequest(
     val birthMonth: Int? = null,
     val birthDay: Int? = null,
     val gender: String? = null, // "male", "female", "other"
-    val flowId: String? = null // 事前認証フローID (Optional)
+    @JsonProperty("flow_id")
+    val flowId: String? = null, // 事前認証フローID (Optional)
+    @JsonProperty("oauth_token")
+    val oauthToken: String? = null,
+    @JsonProperty("oauth_provider")
+    val oauthProvider: String? = null
 )

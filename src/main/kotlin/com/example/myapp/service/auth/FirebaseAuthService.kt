@@ -58,28 +58,48 @@ class FirebaseAuthService(
             }
 
             // 2. ログイン/登録ロジックを実行
+            // 2. ログイン/登録ロジックを実行
             val providerUserId = decodedToken.uid  // Firebase UID
-            val sessionKey = oauthService.processOAuth2User(email, name, provider, providerUserId, guestId, ipAddress, userAgent)
+            val result = oauthService.processOAuth2User(email, name, provider, providerUserId, guestId, ipAddress, userAgent)
 
-            // 3. 成功レスポンスを返す
-            var user = userRepository.findByUsername(email)
-            if (user == null) {
-                user = userEmailRepository.findByEmail(email)?.let { 
-                     userRepository.findById(it.userId).orElse(null) 
+            // 3. 結果に応じたレスポンスを返す
+            return when (result) {
+                is com.example.myapp.service.auth.OAuthService.OAuthProcessingResult.Authenticated -> {
+                    var user = userRepository.findByUsername(email)
+                    if (user == null) {
+                        user = userEmailRepository.findByEmail(email)?.let { 
+                             userRepository.findById(it.userId).orElse(null) 
+                        }
+                    }
+                    
+                    LoginResponse(
+                        status = "AUTHENTICATED",
+                        user = UserInfo(
+                            username = user?.username ?: "",
+                            displayName = user?.displayName ?: name,
+                            email = email,
+                            avatarUrl = null,
+                            isEmailVerified = true
+                        ),
+                        flowId = result.sessionKey
+                    )
+                }
+                is com.example.myapp.service.auth.OAuthService.OAuthProcessingResult.NewUser -> {
+                    // 新規ユーザー -> 登録フローへ誘導
+                    LoginResponse(
+                        status = "OAUTH_REGISTRATION_REQUIRED",
+                        user = UserInfo(
+                            username = "", // 未定
+                            displayName = result.name,
+                            email = result.email,
+                            avatarUrl = null,
+                            isEmailVerified = true
+                        ),
+                        oauthProvider = result.provider,
+                        oauthToken = token // 検証済みのIDトークンを返す
+                    )
                 }
             }
-            
-            return LoginResponse(
-                status = "AUTHENTICATED",
-                user = UserInfo(
-                    username = user?.username ?: "",
-                    displayName = user?.displayName ?: name,
-                    email = email,
-                    avatarUrl = null, // TODO: ユーザーエンティティまたはトークンから取得
-                    isEmailVerified = true
-                ),
-                flowId = sessionKey
-            )
 
         } catch (e: com.example.myapp.exception.AppException) {
             throw e
