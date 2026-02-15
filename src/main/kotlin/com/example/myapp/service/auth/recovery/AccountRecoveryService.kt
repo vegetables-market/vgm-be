@@ -136,18 +136,28 @@ class AccountRecoveryService(
                 if (email != null) {
                     // Generate Code
                     val code = (100000..999999).random().toString()
-                    
-                    // Save Code
                     val expiresAt = LocalDateTime.now().plusMinutes(CODE_TTL_MINUTES)
-                    val newCode = VerificationCode(
-                        userId = session.userId!!,
-                        email = email.email,
-                        code = code,
-                        type = "PASSWORD_RESET",
-                        flowId = sessionId,
-                        expiresAt = expiresAt
-                    )
-                    verificationCodeRepository.save(newCode)
+                    
+                    // Check if code exists for this flow
+                    val existingCode = verificationCodeRepository.findByFlowId(sessionId)
+                    
+                    if (existingCode != null) {
+                        existingCode.code = code
+                        existingCode.expiresAt = expiresAt
+                        existingCode.isUsed = false
+                        existingCode.resendCount++
+                        verificationCodeRepository.save(existingCode)
+                    } else {
+                        val newCode = VerificationCode(
+                            userId = session.userId!!,
+                            email = email.email,
+                            code = code,
+                            type = "PASSWORD_RESET",
+                            flowId = sessionId,
+                            expiresAt = expiresAt
+                        )
+                        verificationCodeRepository.save(newCode)
+                    }
                     
                     emailSenderService.sendHtmlEmail(email.email, "パスワード再設定確認コード", "<p>あなたの確認コードは <b>$code</b> です。</p>")
                 }

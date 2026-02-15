@@ -18,7 +18,7 @@ data class VerificationCode(
     val email: String? = null,
 
     @Column(name = "f_code", nullable = false, length = 50)
-    val code: String,
+    var code: String,
 
     @Column(name = "f_flow_id", unique = true) // 追加
     val flowId: String? = null,
@@ -27,13 +27,13 @@ data class VerificationCode(
     val type: String, // "EMAIL_VERIFY", "PASSWORD_RESET", "2FA_SMS"
 
     @Column(name = "f_expires_at", nullable = false)
-    val expiresAt: LocalDateTime,
+    var expiresAt: LocalDateTime,
 
     @Column(name = "f_is_used")
     var isUsed: Boolean = false,
 
     @Column(name = "f_resend_count")
-    val resendCount: Int = 0,
+    var resendCount: Int = 0,
 
     @Column(name = "f_created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
