@@ -20,7 +20,9 @@ data class LoginResponse(
     val flowId: String? = null,
     val maskedEmail: String? = null,
     val mfaToken: String? = null, // MFA検証用の一時トークン
-    val mfaType: String? = null // "TOTP", "EMAIL" etc.
+    val mfaType: String? = null, // "TOTP", "EMAIL" etc.
+    val expiresAt: String? = null, // 認証コードの有効期限 (ISO 8601)
+    val nextResendAt: String? = null // 認証コード再送可能時刻 (ISO 8601)
 )
 
 data class UserInfo(

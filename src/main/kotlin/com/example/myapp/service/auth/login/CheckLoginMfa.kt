@@ -49,7 +49,7 @@ class CheckLoginMfa(
                 )
             } else if (authStatus.primaryMfaType == "EMAIL") {
                 if (email == null) throw RuntimeException("メールアドレスが登録されていません")
-                sendVerificationEmail(user.userId, email)
+                val (emailFlowId, expiresAt, _) = sendVerificationEmail(user.userId, email)
                 
                 return Result.MfaRunning(
                     LoginResponse(
@@ -57,7 +57,9 @@ class CheckLoginMfa(
                         user = null,
                         mfaToken = mfaToken,
                         mfaType = "EMAIL",
-                        maskedEmail = AuthUtils.maskEmail(email)
+                        maskedEmail = AuthUtils.maskEmail(email),
+                        flowId = emailFlowId,
+                        expiresAt = expiresAt.toString()
                     )
                 )
             }
@@ -67,7 +69,7 @@ class CheckLoginMfa(
         if (!isKnownDevice) {
             val email = getPrimaryEmail(user.userId) ?: user.username
             
-            val (flowId, _, _) = sendVerificationEmail(user.userId, email)
+            val (flowId, expiresAt, _) = sendVerificationEmail(user.userId, email)
             val maskedEmail = getPrimaryEmail(user.userId)?.let { AuthUtils.maskEmail(it) }
 
             return Result.MfaRunning(
@@ -77,7 +79,8 @@ class CheckLoginMfa(
                     requireVerification = true,
                     flowId = flowId,
                     maskedEmail = maskedEmail,
-                    mfaToken = null
+                    mfaToken = null,
+                    expiresAt = expiresAt.toString()
                 )
             )
         }

@@ -30,3 +30,7 @@ data class CompleteRecoveryRequest(
 data class VerifyChallengeResponse(
     val verified: Boolean
 )
+
+data class ForgotIdRequest(
+    val email: String
+)

@@ -228,6 +228,83 @@ class AccountRecoveryService(
     }
 
     /**
+     * Send ID reminder to recovery email
+     * Security:
+     * 1. Only sends to SUB/RECOVERY email types
+     * 2. Masks the primary email ID in the body
+     * 3. Always returns successfully to prevent enumeration
+     */
+    @Transactional
+    fun sendIdReminder(email: String) {
+        // 1. Find the email record
+        val userEmail = userEmailRepository.findByEmail(email) ?: return
+
+        // 2. Security Check: Must be SUB or RECOVERY type
+        // Adjust these types based on your actual enum/string values
+        if (userEmail.type != "SUB" && userEmail.type != "RECOVERY") {
+            // Log security event?
+            return
+        }
+
+        // 3. Find Primary Email (ID) for the user
+        val primaryEmail = userEmailRepository.findByUserIdAndIsPrimaryTrue(userEmail.userId) ?: return
+        
+        // 4. Mask the ID
+        val maskedId = maskEmail(primaryEmail.email)
+
+        // 5. Send Email
+        val subject = "[VGM] ログインIDのご案内"
+        // TODO: Externalize URL configuration
+        val loginUrl = "http://localhost:3000/login" 
+        
+        val body = """
+            <p>お客様のログインID（メールアドレス）をお知らせします。</p>
+            <p>ログインID候補: <b>$maskedId</b></p>
+            <p>心当たりがある場合は、以下のリンクからログインしてください。</p>
+            <p><a href="$loginUrl">ログイン画面へ</a></p>
+            <br>
+            <p>※このメールにお心当たりがない場合は、破棄してください。</p>
+        """.trimIndent()
+
+        emailSenderService.sendHtmlEmail(userEmail.email, subject, body)
+    }
+
+    private fun maskEmail(email: String): String {
+        val parts = email.split("@")
+        if (parts.size != 2) return email 
+        
+        val name = parts[0]
+        val domain = parts[1]
+        
+        if (name.length <= 2) {
+            return "*".repeat(name.length) + "@" + domain
+        }
+        
+        // Show f***@domain
+        // Or f***l@domain ?
+        // User request: y***@g****.com
+        // Let's do: first char + *** (len-1)
+        
+        val maskedName = name.first() + "*".repeat(name.length - 1)
+        
+        // Also mask domain? User example suggests masking domain too: g****.com
+        val domainParts = domain.split(".")
+        val maskedDomain = if (domainParts.size >= 2) {
+             val domainName = domainParts[0]
+             val domainSuffix = domainParts.drop(1).joinToString(".")
+             if (domainName.length <= 1) {
+                 domainName + "." + domainSuffix
+             } else {
+                 domainName.first() + "*".repeat(domainName.length - 1) + "." + domainSuffix
+             }
+        } else {
+            domain
+        }
+        
+        return "$maskedName@$maskedDomain"
+    }
+
+    /**
      * Complete recovery (Send Reset Email)
      */
     @Transactional

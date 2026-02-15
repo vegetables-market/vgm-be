@@ -53,13 +53,14 @@ class AccountRecoveryControllerTest {
                 username = existingUsername,
                 passwordHash = "hash",
                 displayName = "Test User",
-                isEnabled = true
+                status = 2 // 2: Valid
             )
             val savedUser = userRepository.save(user)
             
             val userEmail = UserEmail(
                 userId = savedUser.userId,
                 email = existingUsername,
+                type = "PRIMARY",
                 isPrimary = true,
                 isVerified = true
             )
@@ -165,6 +166,27 @@ class AccountRecoveryControllerTest {
         mockMvc.perform(post("/v1/auth/recovery/complete")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(mapOf("state" to invalidState))))
+                .andExpect(status().isOk)
+    }
+
+    @Test
+    fun `forgotId returns 200 OK for valid and invalid emails`() {
+        // 1. Valid User Email
+        mockMvc.perform(post("/v1/auth/recovery/forgot-id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(mapOf("email" to existingUsername))))
+                .andExpect(status().isOk)
+
+        // 2. Non-Existing Email
+        mockMvc.perform(post("/v1/auth/recovery/forgot-id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(mapOf("email" to nonExistingUsername))))
+                .andExpect(status().isOk)
+                
+        // 3. Invalid Format Email
+        mockMvc.perform(post("/v1/auth/recovery/forgot-id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(mapOf("email" to "invalid-email"))))
                 .andExpect(status().isOk)
     }
 }

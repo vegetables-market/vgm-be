@@ -57,7 +57,7 @@ class SendVerificationEmail(
         val code = (100000..999999).random().toString()
         val flowId = UUID.randomUUID().toString()
         val now = LocalDateTime.now()
-        val expiresAt = now.plusMinutes(10)
+        val expiresAt = now.plusMinutes(20)
 
         val verificationCode = VerificationCode(
             userId = userId,

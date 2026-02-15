@@ -40,4 +40,14 @@ class AccountRecoveryController(
         accountRecoveryService.completeRecovery(request.state)
         return ResponseEntity.ok().build()
     }
+
+    @PostMapping("/forgot-id")
+    fun forgotId(@RequestBody request: ForgotIdRequest): ResponseEntity<Void> {
+        // TODO: Implement proper rate limiting (IP/Email based)
+        // Simple delay to mitigate timing attacks
+        Thread.sleep(500) 
+        
+        accountRecoveryService.sendIdReminder(request.email)
+        return ResponseEntity.ok().build()
+    }
 }
