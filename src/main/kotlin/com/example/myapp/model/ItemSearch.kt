@@ -1,12 +1,15 @@
 package com.example.myapp.service
 
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
 import com.example.myapp.model.ItemSearchResult
 import java.sql.DriverManager
 
+@Service
 class ItemSearch(
-    private val url: String,
-    private val user: String,
-    private val pass: String
+    @Value("\${myapp.db.url}") private val url: String,
+    @Value("\${myapp.db.user}") private val user: String,
+    @Value("\${myapp.db.pass}") private val pass: String
 ) {
 
     fun search(keyword: String, synonyms: List<String>): List<ItemSearchResult> {

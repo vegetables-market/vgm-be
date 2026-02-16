@@ -1,0 +1,18 @@
+### キーワード検索（基本動作確認）
+GET http://localhost:8080/api/items/search?keyword=りんご
+Accept: application/json
+
+
+### 別キーワードで検索
+GET http://localhost:8080/api/items/search?keyword=みかん
+Accept: application/json
+
+
+### 0件確認用（存在しないワード）
+GET http://localhost:8080/api/items/search?keyword=存在しない商品名
+Accept: application/json
+
+
+### synonyms を API 側で使うようにした場合（任意）
+GET http://localhost:8080/api/items/search?keyword=りんご&synonyms=アップル&synonyms=林檎
+Accept: application/json
