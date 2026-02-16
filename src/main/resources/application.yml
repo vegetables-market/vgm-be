@@ -16,6 +16,19 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
 
+myapp:
+  db:
+    url: jdbc:postgresql://vgm-postgres:5432/yourdb
+    user: youruser
+    pass: yourpass
+
+spring:
+  datasource:
+    url: jdbc:postgresql://vgm-postgres:5432/yourdb
+    username: youruser
+    password: yourpass
+    driver-class-name: org.postgresql.Driver
+
 # CORS設定（Cloudflare Pagesからのアクセス許可）
 cors:
   allowed-origins: "https://vgm-fe.pages.dev,https://develop.vgm-fe.pages.dev"
