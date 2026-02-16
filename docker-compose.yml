@@ -13,6 +13,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - MYAPP_DB_URL=jdbc:postgresql://postgres:5432/myapp
+      - MYAPP_DB_USER=postgres
+      - MYAPP_DB_PASS=postgres
     depends_on:
       postgres:
         condition: service_healthy

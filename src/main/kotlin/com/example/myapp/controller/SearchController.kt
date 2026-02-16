@@ -1,3 +1,9 @@
+package com.example.myapp.controller
+
+import org.springframework.web.bind.annotation.*
+import com.example.myapp.service.ItemSearch
+import com.example.myapp.model.ItemSearchResult
+
 @RestController
 @RequestMapping("/api/items")
 class SearchController(
