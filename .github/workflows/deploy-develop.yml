@@ -34,9 +34,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        # テストは環境依存(DB等)の可能性があるためスキップし、ビルド(コンパイル)可否を確認
-        run: ./gradlew build -x test
+      - name: Build and test with Gradle
+        run: ./gradlew build
 
       - name: Set environment specific variables (Develop)
         id: env-vars
