@@ -1,12 +1,7 @@
 name: Deploy to Cloud Run (Develop / Minimal)
 
 on:
-  push:
-    branches:
-      - develop
-    paths:
-      - "**"
-      - ".github/workflows/**"
+  workflow_dispatch:
 
 env:
   REGION: asia-northeast1
