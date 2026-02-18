@@ -67,11 +67,9 @@ jobs:
           image: ${{ env.IMAGE_TAG }}
           env_vars: |
             IS_TAILSCALE=true
-            # ★repo secret の名前に合わせる
             TAILSCALE_AUTH_KEY=${{ secrets.TAILSCALE_AUTH_KEY_CLOUDRUN }}
-
-            # ★DBは env variables / secrets から組み立てる
-             DB_URL=${{ vars.DB_URL }}
+            DB_URL=${{ vars.DB_URL }}
             DB_USER=${{ vars.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           flags: --allow-unauthenticated --memory=2Gi --cpu=2 --timeout=300 --cpu-boost
+

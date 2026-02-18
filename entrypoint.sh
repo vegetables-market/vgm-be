@@ -27,7 +27,6 @@ if [ "$IS_TAILSCALE" = "true" ]; then
   until tailscale up \
     --authkey="$TAILSCALE_AUTH_KEY" \
     --hostname="$TS_HOSTNAME" \
-    --ephemeral \
     --accept-dns=false \
     --advertise-tags=tag:gcp
   do
