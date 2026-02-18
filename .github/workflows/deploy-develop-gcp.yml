@@ -65,11 +65,7 @@ jobs:
             TAILSCALE_AUTH_KEY=${{ secrets.TAILSCALE_AUTH_KEY_CLOUDRUN }}
 
             # ★DBは env variables / secrets から組み立てる
-            DB_HOST=${{ vars.DB_HOST }}
-            DB_NAME=${{ vars.DB_NAME }}
+             DB_URL=${{ vars.DB_URL }}
             DB_USER=${{ vars.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-
-            # ★Java(Sprint) 側がDB_URLを読むならこう
-            DB_URL=jdbc:postgresql://${{ vars.DB_HOST }}:5432/${{ vars.DB_NAME }}
           flags: --allow-unauthenticated --memory=2Gi --cpu=2 --timeout=300 --cpu-boost
