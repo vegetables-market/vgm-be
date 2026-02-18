@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
  * カテゴリーコントローラー
  */
 @RestController
-@RequestMapping("/v1/categories")
+@RequestMapping("/v1/market/categories")
 class CategoryController(
     private val getAllCategories: GetAllCategories
 ) {
