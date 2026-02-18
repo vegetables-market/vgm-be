@@ -1,9 +1,7 @@
 name: Home Build (Develop)
 
 on:
-  push:
-    branches:
-      - develop
+  workflow_dispatch:
 
 jobs:
   build-and-push:

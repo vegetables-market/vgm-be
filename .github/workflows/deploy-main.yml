@@ -54,14 +54,7 @@ jobs:
           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD_PROD }}" >> $GITHUB_ENV
           echo "MAIL_FROM_EMAIL=${{ vars.MAIL_FROM_EMAIL_PROD }}" >> $GITHUB_ENV
           echo "MAIL_FROM_NAME=${{ vars.MAIL_FROM_NAME_PROD }}" >> $GITHUB_ENV
-          echo "STRIPE_API_KEY=${{ secrets.STRIPE_API_KEY_PROD }}" >> $GITHUB_ENV
-          echo "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET_PROD }}" >> $GITHUB_ENV
-          echo "PAYPAY_API_KEY=${{ secrets.PAYPAY_API_KEY_PROD }}" >> $GITHUB_ENV
-          echo "PAYPAY_API_SECRET=${{ secrets.PAYPAY_API_SECRET_PROD }}" >> $GITHUB_ENV
-          echo "PAYPAY_API_BASE_URL=${{ vars.PAYPAY_API_BASE_URL_PROD }}" >> $GITHUB_ENV
-          echo "PAYPAY_MERCHANT_ID=${{ vars.PAYPAY_MERCHANT_ID_PROD }}" >> $GITHUB_ENV
           echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_PROD }}" >> $GITHUB_ENV
-          echo "PLATFORM_FEE_RATE=${{ vars.PLATFORM_FEE_RATE_PROD }}" >> $GITHUB_ENV
 
       # 1. Google Cloud 認証
       - id: "auth"
@@ -104,12 +97,5 @@ jobs:
             MAIL_PASSWORD=${{ env.MAIL_PASSWORD }}
             MAIL_FROM_EMAIL=${{ env.MAIL_FROM_EMAIL }}
             MAIL_FROM_NAME=${{ env.MAIL_FROM_NAME }}
-            STRIPE_API_KEY=${{ env.STRIPE_API_KEY }}
-            STRIPE_WEBHOOK_SECRET=${{ env.STRIPE_WEBHOOK_SECRET }}
-            PAYPAY_API_KEY=${{ env.PAYPAY_API_KEY }}
-            PAYPAY_API_SECRET=${{ env.PAYPAY_API_SECRET }}
-            PAYPAY_API_BASE_URL=${{ env.PAYPAY_API_BASE_URL }}
-            PAYPAY_MERCHANT_ID=${{ env.PAYPAY_MERCHANT_ID }}
             CORS_ALLOWED_ORIGINS=${{ env.CORS_ALLOWED_ORIGINS }}
-            PLATFORM_FEE_RATE=${{ env.PLATFORM_FEE_RATE }}
           flags: --allow-unauthenticated --memory=2Gi --cpu=2 --timeout=300 --cpu-boost

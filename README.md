@@ -14,7 +14,6 @@ Spring Boot と Kotlin で構築され、マイクロサービスライクな構
 | **Database**   | PostgreSQL                            | 15 (Docker) |
 | **Migration**  | Flyway                                | 11.7.2      |
 | **Auth**       | Spring Security, JJWT, Firebase Admin | -           |
-| **Payment**    | Stripe API                            | 26.3.0      |
 | **MFA**        | TOTP (dev.samstevens.totp)            | 1.7.1       |
 | **API Docs**   | SpringDoc OpenAPI (Swagger)           | 2.8.5       |
 
@@ -36,7 +35,6 @@ Spring Boot と Kotlin で構築され、マイクロサービスライクな構
   - 商品検索・詳細表示
   - ショッピングカート機能
   - お気に入り (Wishlist) 機能
-  - 決済処理 (Stripe Integration)
 
 ## 📂 プロジェクト構成
 
@@ -54,8 +52,7 @@ com.example.myapp
 │   ├── auth/           # 認証サービス (LoginService, SignupService etc.)
 │   ├── market/         # マーケットサービス
 │   ├── user/           # ユーザーサービス
-│   ├── email/          # メール送信サービス
-│   └── payment/        # 決済サービス
+│   └── email/          # メール送信サービス
 ├── repository/         # データアクセス (JPA)
 ├── entity/             # JPA エンティティ
 ├── dto/                # データ転送オブジェクト (Request/Response)
@@ -68,14 +65,19 @@ com.example.myapp
 
 ### 1. データベースの起動 (Docker)
 
-開発時は、データベース (PostgreSQL) のみを Docker で起動し、アプリケーションはローカルで動かす構成を推奨します。
+開発時は、データベース (PostgreSQL) を Docker で起動し、アプリケーションはローカルで動かす構成を推奨します。
 
 ```bash
-# DBのみをバックグラウンド起動
+# DBをバックグラウンド起動
 docker-compose up -d postgres
 ```
 
-※ `docker-compose.yml` の設定により、ホスト側のポート **5433** でアクセス可能です。
+**起動されるサービス:**
+- PostgreSQL: ホスト側ポート **5433** でアクセス可能
+
+**メール送信について:**
+- 実際のGmail SMTPサーバーを使用します
+- `.env.local` に Google アカウント情報を設定してください
 
 ### 2. アプリケーションの起動 (Gradle)
 
@@ -145,6 +147,34 @@ docker-compose up -d postgres
 # 特定のテストのみ実行 (例)
 ./gradlew test --tests "com.example.myapp.service.auth.*"
 ```
+
+## 📧 メール機能
+
+本プロジェクトでは、Gmail SMTPサーバーを使用してメール送信を行います。
+
+### メール設定
+
+**Gmail を使用する場合:**
+1. Googleアカウントで2段階認証を有効化
+2. アプリパスワードを生成: https://myaccount.google.com/apppasswords
+3. `.env.local` に以下を設定:
+
+```dotenv
+# メール設定
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-google-app-password
+MAIL_FROM_NAME=GrandMarket
+```
+
+**設定項目:**
+- `MAIL_USERNAME` - Gmailアドレス（認証用）
+- `MAIL_PASSWORD` - Googleアプリパスワード
+- `MAIL_FROM_NAME` - メール送信者名（カスタマイズ可能）
+
+**注意:**
+- SMTPサーバー（`smtp.gmail.com:587`）は固定値として `application.yml` に設定済み
+- 送信元アドレスは自動的に `MAIL_USERNAME` が使用されます
+- Googleが送信元を強制的に認証アカウントに設定するため、別のアドレスからの送信はできません
 
 ## データベース接続
 
