@@ -7,11 +7,14 @@ env:
   REGION: asia-northeast1
   REPO_NAME: vgm-repo
   WORKDIR: .
-  SERVICE_NAME: vgm-backend-dev
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    # ★ここ重要：Environment secrets/variables を使うため
+    environment: gcp-dev
+
     permissions:
       contents: "read"
       id-token: "write"
@@ -45,7 +48,7 @@ jobs:
       - name: "Build and Push Container"
         working-directory: ${{ env.WORKDIR }}
         run: |
-          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          IMAGE_TAG="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ vars.SERVICE_NAME }}:${{ github.sha }}"
           docker build -t "${IMAGE_TAG}" .
           docker push "${IMAGE_TAG}"
           echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
@@ -53,14 +56,20 @@ jobs:
       - name: "Deploy to Cloud Run"
         uses: "google-github-actions/deploy-cloudrun@v2"
         with:
-          service: ${{ env.SERVICE_NAME }}
+          service: ${{ vars.SERVICE_NAME }}
           region: ${{ env.REGION }}
           image: ${{ env.IMAGE_TAG }}
           env_vars: |
             IS_TAILSCALE=true
-            TAILSCALE_AUTH_KEY=${{ secrets.TAILSCALE_AUTH_KEY }}
-            TAILSCALE_VGM_DB_HOST=${{ vars.TAILSCALE_VGM_DB_HOST }}
-            DB_URL=jdbc:postgresql://127.0.0.1:5432/vgm_db_dev
+            # ★repo secret の名前に合わせる
+            TAILSCALE_AUTH_KEY=${{ secrets.TAILSCALE_AUTH_KEY_CLOUDRUN }}
+
+            # ★DBは env variables / secrets から組み立てる
+            DB_HOST=${{ vars.DB_HOST }}
+            DB_NAME=${{ vars.DB_NAME }}
             DB_USER=${{ vars.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+
+            # ★Java(Sprint) 側がDB_URLを読むならこう
+            DB_URL=jdbc:postgresql://${{ vars.DB_HOST }}:5432/${{ vars.DB_NAME }}
           flags: --allow-unauthenticated --memory=2Gi --cpu=2 --timeout=300 --cpu-boost
