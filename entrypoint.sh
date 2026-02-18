@@ -23,6 +23,7 @@ if [ "$IS_TAILSCALE" = "true" ]; then
   TS_HOSTNAME="cloudrun-${K_SERVICE:-svc}-${K_REVISION:-rev}-${HOSTNAME:-inst}"
 
   # 2. ログイン待機（ephemeral + tag）
+  tailscale version || true
   until tailscale up \
     --authkey="$TAILSCALE_AUTH_KEY" \
     --hostname="$TS_HOSTNAME" \

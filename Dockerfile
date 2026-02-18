@@ -2,7 +2,7 @@
 FROM gradle:8-jdk21-alpine AS builder
 WORKDIR /app
 
-# Gradle キャッシュの効率化
+# Gradle キャッシュ効率化
 COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle ./gradle
 COPY gradlew ./
@@ -17,19 +17,17 @@ RUN ./gradlew bootJar --no-daemon
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# 1. 必要なツールをインストール
-RUN apk update && apk add --no-cache curl socat ca-certificates iptables
+# 必要最低限（DB_URLでTailscale IP直なら socat/iptables 不要）
+RUN apk add --no-cache ca-certificates
 
-# 2. Tailscaleのインストール
-RUN apk add --no-cache tailscale
+# Tailscale（edge/community から入れる。通常repoからは入れない）
+RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community tailscale
 
-# 3. entrypoint.sh をコピー
+# entrypoint.sh をコピー（改行コード対策 + 実行権限）
 COPY entrypoint.sh /entrypoint.sh
-
-# ★ここを追加！ (sedで改行コード \r を削除して、実行権限をつける)
 RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
-# 4. ビルド成果物をコピー
+# ビルド成果物をコピー
 COPY --from=builder /app/build/libs/*.jar app.jar
 
 ENV PORT=8080
