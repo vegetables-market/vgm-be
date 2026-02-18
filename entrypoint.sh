@@ -50,6 +50,10 @@ if [ "$IS_TAILSCALE" = "true" ]; then
 
   echo "Tailscale is UP. Starting socat tunnel: 127.0.0.1:5432 -> ${TAILSCALE_VGM_DB_HOST}:5432 (via SOCKS5 127.0.0.1:1055)"
 
+  command -v socat >/dev/null 2>&1 || { echo "!!! ERROR: socat not installed"; exit 1; }
+  command -v nc    >/dev/null 2>&1 || { echo "!!! ERROR: nc not installed"; exit 1; }
+
+
   # socat: localhost:5432 を LISTEN して、SOCKS5 経由で 100.x のDBへ
   socat -d -d \
     TCP-LISTEN:5432,fork,reuseaddr \

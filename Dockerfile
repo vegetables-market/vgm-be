@@ -17,10 +17,9 @@ RUN ./gradlew bootJar --no-daemon
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# 必要最低限（DB_URLでTailscale IP直なら socat/iptables 不要）
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates socat busybox-extras curl
 
-# Tailscale（edge/community から入れる。通常repoからは入れない）
+# Tailscale（edge/community）
 RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community tailscale
 
 # entrypoint.sh をコピー（改行コード対策 + 実行権限）
@@ -35,3 +34,4 @@ EXPOSE 8080
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["java", "-jar", "app.jar"]
+
