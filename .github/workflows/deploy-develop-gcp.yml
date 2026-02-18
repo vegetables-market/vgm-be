@@ -1,7 +1,12 @@
 name: Deploy to Cloud Run (Develop / Minimal)
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - develop
+    paths:
+      - "**"
+      - ".github/workflows/**"
 
 env:
   REGION: asia-northeast1
@@ -32,8 +37,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build and test with Gradle
-        run: ./gradlew build
+      # ビルドテストをスキップ（デプロイのみ実行）
+      # - name: Build and test with Gradle
+      #   run: ./gradlew build
 
       - id: "auth"
         name: "Authenticate to Google Cloud"

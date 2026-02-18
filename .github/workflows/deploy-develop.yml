@@ -1,12 +1,8 @@
 name: Deploy to Cloud Run (Develop)
 
 on:
-  push:
-    branches:
-      - develop
-    paths:
-      - "**"
-      - ".github/workflows/**"
+  workflow_dispatch:
+
 
 env:
   REGION: asia-northeast1
@@ -55,6 +51,7 @@ jobs:
           echo "MAIL_FROM_EMAIL=${{ vars.MAIL_FROM_EMAIL_DEV }}" >> $GITHUB_ENV
           echo "MAIL_FROM_NAME=${{ vars.MAIL_FROM_NAME_DEV }}" >> $GITHUB_ENV
           echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_DEV }}" >> $GITHUB_ENV
+          echo "FIREBASE_CREDENTIALS_JSON=${{ secrets.FIREBASE_CREDENTIALS_JSON_DEV }}" >> $GITHUB_ENV
 
       # 1. Google Cloud 認証
       - id: "auth"
@@ -98,4 +95,5 @@ jobs:
             MAIL_FROM_EMAIL=${{ env.MAIL_FROM_EMAIL }}
             MAIL_FROM_NAME=${{ env.MAIL_FROM_NAME }}
             CORS_ALLOWED_ORIGINS=${{ env.CORS_ALLOWED_ORIGINS }}
+            FIREBASE_CREDENTIALS_JSON=${{ env.FIREBASE_CREDENTIALS_JSON }}
           flags: --allow-unauthenticated --memory=2Gi --cpu=2 --timeout=300 --cpu-boost
