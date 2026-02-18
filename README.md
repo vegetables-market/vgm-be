@@ -163,22 +163,22 @@ docker-compose up -d postgres
 # メール設定
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-google-app-password
-MAIL_FROM_NAME=GrandMarket
+MAIL_FROM_NAME=VGM Application
 ```
 
-**設定項目:**
-- `MAIL_USERNAME` - Gmailアドレス（認証用）
-- `MAIL_PASSWORD` - Googleアプリパスワード
-- `MAIL_FROM_NAME` - メール送信者名（カスタマイズ可能）
+**必須の環境変数:**
+- `MAIL_USERNAME` - Gmailアドレス（SMTP認証用、送信元アドレスとしても使用）
+- `MAIL_PASSWORD` - Googleアプリパスワード（通常のパスワードではありません）
+- `MAIL_FROM_NAME` - メール送信者名（任意、デフォルト: "VGM Application"）
 
-**注意:**
-- SMTPサーバー（`smtp.gmail.com:587`）は固定値として `application.yml` に設定済み
-- 送信元アドレスは自動的に `MAIL_USERNAME` が使用されます
-- Googleが送信元を強制的に認証アカウントに設定するため、別のアドレスからの送信はできません
+**重要な注意事項:**
+- SMTPサーバー（`smtp.gmail.com:587`）は `application.yml` に設定済みのため、`MAIL_HOST` や `MAIL_PORT` の環境変数は不要です
+- 送信元メールアドレスは自動的に `MAIL_USERNAME` の値が使用されます（`application.yml` で `${spring.mail.username}` を参照）
+- Googleのセキュリティポリシーにより、送信元は認証に使用したアカウントに強制されます
 
-## データベース接続
+## 🗄 データベース接続
 
-### 接続情報
+### ローカル開発環境
 
 ```
 Host: localhost
@@ -186,4 +186,101 @@ Port: 5433
 User: postgres
 Password: postgres
 Database: myapp
+JDBC URL: jdbc:postgresql://localhost:5433/myapp
 ```
+
+**環境変数設定 (`.env.local`):**
+```dotenv
+DB_URL=jdbc:postgresql://localhost:5433/myapp
+DB_USER=postgres
+DB_PASSWORD=postgres
+IS_TAILSCALE=false
+```
+
+### Tailscale経由のリモートDB接続（Cloud Run用）
+
+本プロジェクトは、Cloud Run環境から Tailscale VPN 経由でプライベートなデータベースに安全に接続できるよう設計されています。
+
+**Tailscaleとは:**
+- WireGuardベースのセキュアなVPNサービス
+- パブリッククラウド（Cloud Run）からプライベートネットワーク（自宅サーバー等）への安全な接続を実現
+
+**仕組み:**
+1. `entrypoint.sh` でTailscaleデーモンを起動（userspace-networkingモード）
+2. SOCKS5プロキシ経由でリモートDBへのトンネルを確立
+3. アプリケーションは `127.0.0.1:5432` に接続（内部でリモートDBにルーティング）
+
+**必要な環境変数（Cloud Runデプロイ時）:**
+```yaml
+IS_TAILSCALE=true
+TAILSCALE_AUTH_KEY=tskey-auth-xxxxx      # Tailscale認証キー
+TAILSCALE_VGM_DB_HOST=100.x.x.x          # TailscaleネットワークでのDBのIPアドレス
+DB_URL=jdbc:postgresql://127.0.0.1:5432/vgm_db_prod
+DB_USER=db_username
+DB_PASSWORD=db_password
+```
+
+**注意:**
+- `TAILSCALE_VGM_DB_HOST` はネットワークトンネル用のホストIPです
+- アプリケーションの `DB_URL` には `127.0.0.1:5432` を指定します（socatトンネル経由）
+- ローカル開発では `IS_TAILSCALE=false` にしてTailscaleを無効化してください
+
+詳細は [`Tailscale機能調査レポート.md`](./Tailscale機能調査レポート.md) を参照してください。
+
+## 🔐 Firebase認証設定
+
+本プロジェクトは、Firebase Admin SDK を使用してトークン検証を行います。
+
+**ローカル開発:**
+```dotenv
+FIREBASE_CREDENTIALS_PATH=grandmarket-app-firebase-adminsdk-fbsvc-ce7593aba8.json
+```
+
+**Cloud Runデプロイ:**
+```dotenv
+FIREBASE_CREDENTIALS_JSON=ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCg...（Base64エンコード）
+```
+
+**Base64エンコード方法（PowerShell）:**
+```powershell
+cd vgm-be
+[Convert]::ToBase64String([IO.File]::ReadAllBytes(".\grandmarket-app-firebase-adminsdk-fbsvc-ce7593aba8.json"))
+```
+
+詳細は [`Firebase認証情報の設定方法.md`](./Firebase認証情報の設定方法.md) を参照してください。
+
+## ⚙️ 環境変数一覧
+
+### 必須の環境変数
+
+| 環境変数 | 説明 | ローカル例 | 本番例 |
+|---------|------|-----------|--------|
+| `DB_URL` | PostgreSQL接続URL | `jdbc:postgresql://localhost:5433/myapp` | `jdbc:postgresql://127.0.0.1:5432/vgm_db_prod` |
+| `DB_USER` | データベースユーザー名 | `postgres` | `prod_user` |
+| `DB_PASSWORD` | データベースパスワード | `postgres` | `secure_password` |
+| `MAIL_USERNAME` | Gmail送信用アドレス | `your-email@gmail.com` | `noreply@yourdomain.com` |
+| `MAIL_PASSWORD` | Googleアプリパスワード | `xxxx xxxx xxxx xxxx` | `xxxx xxxx xxxx xxxx` |
+| `FIREBASE_CREDENTIALS_PATH` or `FIREBASE_CREDENTIALS_JSON` | Firebase認証情報 | `path/to/file.json` | `Base64文字列` |
+
+### オプションの環境変数
+
+| 環境変数 | 説明 | デフォルト値 |
+|---------|------|------------|
+| `PORT` | サーバーポート | `8080` |
+| `CORS_ALLOWED_ORIGINS` | CORS許可オリジン | `http://localhost:3000` |
+| `MAIL_FROM_NAME` | メール送信者名 | `VGM Application` |
+| `IS_TAILSCALE` | Tailscale使用フラグ | `false` |
+| `MEDIA_JWT_SECRET` | vgm-media通信用JWT秘密鍵 | `your-256-bit-secret...` |
+
+### 現在未使用の環境変数
+
+以下の環境変数は定義されていますが、現在のコードでは使用されていません：
+
+- `PLATFORM_FEE_RATE` - マーケットプレイス手数料率（将来実装予定）
+- `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET` - Stripe決済（コード全体がコメントアウト）
+- `PAYPAY_API_KEY`, `PAYPAY_API_SECRET`, `PAYPAY_MERCHANT_ID`, `PAYPAY_API_BASE_URL` - PayPay決済（コード全体がコメントアウト）
+
+詳細な設定例は [`.env.local.example`](./.env.local.example) を参照してください。
+
+## データベース接続（旧セクション - 削除予定）
+

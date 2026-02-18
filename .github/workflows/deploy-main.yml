@@ -98,4 +98,5 @@ jobs:
             MAIL_FROM_EMAIL=${{ env.MAIL_FROM_EMAIL }}
             MAIL_FROM_NAME=${{ env.MAIL_FROM_NAME }}
             CORS_ALLOWED_ORIGINS=${{ env.CORS_ALLOWED_ORIGINS }}
+            FIREBASE_CREDENTIALS_JSON=${{ env.FIREBASE_CREDENTIALS_JSON }}
           flags: --allow-unauthenticated --memory=2Gi --cpu=2 --timeout=300 --cpu-boost
