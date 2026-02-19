@@ -6,6 +6,8 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    name: Deploy Production
+    environment: home-prod
     permissions:
       contents: read
       packages: write
@@ -13,6 +15,41 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Preflight - Validate home-prod vars/secrets
+        shell: bash
+        env:
+          RESOLVED_DB_NAME: ${{ vars.DB_NAME }}
+          RESOLVED_DB_USER: ${{ vars.DB_USER }}
+          RESOLVED_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          RESOLVED_MAIL_FROM_NAME: ${{ vars.MAIL_FROM_NAME }}
+          RESOLVED_MAIL_USERNAME: ${{ vars.MAIL_USERNAME }}
+          RESOLVED_MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          RESOLVED_CORS_ALLOWED_ORIGINS_UI: ${{ vars.CORS_ALLOWED_ORIGINS_UI }}
+          RESOLVED_FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
+          RESOLVED_MEDIA_JWT_SECRET: ${{ secrets.MEDIA_JWT_SECRET }}
+        run: |
+          set -euo pipefail
+
+          check_required() {
+            local name="$1"
+            local value="${!name:-}"
+            if [ -z "$value" ]; then
+              echo "::error::$name is empty. Check home-prod environment vars/secrets."
+              exit 1
+            fi
+            echo "$name=OK"
+          }
+
+          check_required RESOLVED_DB_NAME
+          check_required RESOLVED_DB_USER
+          check_required RESOLVED_DB_PASSWORD
+          check_required RESOLVED_MAIL_FROM_NAME
+          check_required RESOLVED_MAIL_USERNAME
+          check_required RESOLVED_MAIL_PASSWORD
+          check_required RESOLVED_CORS_ALLOWED_ORIGINS_UI
+          check_required RESOLVED_FIREBASE_CREDENTIALS_JSON
+          check_required RESOLVED_MEDIA_JWT_SECRET
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -44,3 +81,11 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ghcr.io/yukiidayo/vgm-backend:prod
+
+      - name: Delete untagged GHCR versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: vgm-backend
+          package-type: container
+          min-versions-to-keep: 0
+          delete-only-untagged-versions: true
