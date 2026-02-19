@@ -270,13 +270,57 @@ cd vgm-be
 | `CORS_ALLOWED_ORIGINS` | CORS許可オリジン | `http://localhost:3000` |
 | `MAIL_FROM_NAME` | メール送信者名 | `VGM Application` |
 | `IS_TAILSCALE` | Tailscale使用フラグ | `false` |
+| `TAILSCALE_AUTH_KEY` | Tailscale認証キー（Cloud Run用） | - |
+| `TAILSCALE_VGM_DB_HOST` | TailscaleネットワークのDBホストIP | - |
 | `MEDIA_JWT_SECRET` | vgm-media通信用JWT秘密鍵 | `your-256-bit-secret...` |
+
+### 環境変数に関する重要な注意事項
+
+#### CORS設定について
+- `CORS_ALLOWED_ORIGINS`はカンマ区切りで**複数のオリジンを指定可能**です
+- 例: `https://develop.vgm-app.pages.dev,https://vgm-app.pages.dev`
+- **ローカル開発**: `http://localhost:3000`（デフォルト）
+- **開発環境**: `https://develop.vgm-app.pages.dev`
+- **本番環境**: `https://vgm-app.pages.dev`
+- ⚠️ **CORSエラーが発生する場合は、フロントエンドのURLが正しく設定されているか確認してください**
+
+#### メール送信設定について
+- `MAIL_USERNAME`が**送信元メールアドレス**としても使用されます
+- `application.yml`の`mail.from.email`は`${spring.mail.username}`から取得されます
+- ~~`MAIL_FROM_EMAIL`環境変数は不要です~~（過去に使用されていましたが削除されました）
+- Gmailを使用する場合、SMTPサーバー設定は`application.yml`に固定されています（`smtp.gmail.com:587`）
+
+#### Firebase認証設定について
+- **ローカル開発**: `FIREBASE_CREDENTIALS_PATH`にJSONファイルのパスを指定
+- **Cloud Run**: `FIREBASE_CREDENTIALS_JSON`にBase64エンコードされたJSONを指定
+- Base64エンコード方法（PowerShell）:
+  ```powershell
+  [Convert]::ToBase64String([IO.File]::ReadAllBytes(".\grandmarket-app-firebase-adminsdk-fbsvc-ce7593aba8.json"))
+  ```
+
+#### Tailscale設定について
+- `IS_TAILSCALE=true`の場合、`entrypoint.sh`がTailscaleネットワークを起動します
+- Cloud Runでは`TAILSCALE_AUTH_KEY`が必須です
+- `DB_URL`は`127.0.0.1`を指定し、Tailscale経由でリモートDBに接続します
+
+#### メディアサービス（vgm-media）設定について
+- `MEDIA_JWT_SECRET`はバックエンド⇔メディアサーバー間のJWT署名用秘密鍵です
+- **必ず256ビット以上のランダムな値を設定してください**
+- 生成方法（PowerShell）:
+  ```powershell
+  $bytes = New-Object byte[] 32
+  [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+  [Convert]::ToBase64String($bytes)
+  ```
+- デフォルト値（`your-256-bit-secret-must-be-very-long-and-secure`）は開発用です。本番環境では必ず変更してください
 
 ### 現在未使用の環境変数
 
-以下の環境変数は定義されていますが、現在のコードでは使用されていません：
+以下の環境変数は削除されました：
 
-- `PLATFORM_FEE_RATE` - マーケットプレイス手数料率（将来実装予定）
+- ~~`PLATFORM_FEE_RATE`~~ - マーケットプレイス手数料率（コード内で未使用のため削除）
+- ~~`MAIL_FROM_EMAIL`~~ - `MAIL_USERNAME`が代わりに使用されます
+- ~~`DB_HOST`~~, ~~`DB_NAME`~~ - `DB_URL`に統合されました
 - `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET` - Stripe決済（コード全体がコメントアウト）
 - `PAYPAY_API_KEY`, `PAYPAY_API_SECRET`, `PAYPAY_MERCHANT_ID`, `PAYPAY_API_BASE_URL` - PayPay決済（コード全体がコメントアウト）
 

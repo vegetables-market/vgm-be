@@ -48,7 +48,6 @@ jobs:
           # 開発環境用の環境変数
           echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME_DEV }}" >> $GITHUB_ENV
           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD_DEV }}" >> $GITHUB_ENV
-          echo "MAIL_FROM_EMAIL=${{ vars.MAIL_FROM_EMAIL_DEV }}" >> $GITHUB_ENV
           echo "MAIL_FROM_NAME=${{ vars.MAIL_FROM_NAME_DEV }}" >> $GITHUB_ENV
           echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_DEV }}" >> $GITHUB_ENV
           echo "FIREBASE_CREDENTIALS_JSON=${{ secrets.FIREBASE_CREDENTIALS_JSON_DEV }}" >> $GITHUB_ENV
@@ -92,7 +91,6 @@ jobs:
             DB_PASSWORD=${{ env.DB_PASSWORD }}
             MAIL_USERNAME=${{ env.MAIL_USERNAME }}
             MAIL_PASSWORD=${{ env.MAIL_PASSWORD }}
-            MAIL_FROM_EMAIL=${{ env.MAIL_FROM_EMAIL }}
             MAIL_FROM_NAME=${{ env.MAIL_FROM_NAME }}
             CORS_ALLOWED_ORIGINS=${{ env.CORS_ALLOWED_ORIGINS }}
             FIREBASE_CREDENTIALS_JSON=${{ env.FIREBASE_CREDENTIALS_JSON }}

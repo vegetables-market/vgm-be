@@ -1,8 +1,8 @@
-name: Deploy to Cloud Run (Develop)
+name: Deploy to Cloud Run (Production)
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
     paths:
       - "**"
       - ".github/workflows/**"
@@ -15,7 +15,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: gcp-dev
+    environment: gcp-prod
 
     permissions:
       contents: "read"
@@ -62,15 +62,12 @@ jobs:
             IS_TAILSCALE=true
             TAILSCALE_AUTH_KEY=${{ secrets.TAILSCALE_AUTH_KEY_CLOUDRUN }}
             TAILSCALE_VGM_DB_HOST=${{ vars.TAILSCALE_VGM_DB_HOST }}
-            
-            DB_NAME=${{ vars.DB_NAME }}
+            DB_URL=jdbc:postgresql://127.0.0.1:5432/${{ vars.DB_NAME }}
             DB_USER=${{ vars.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-
             MAIL_FROM_NAME=${{ vars.MAIL_FROM_NAME }}
             MAIL_USERNAME=${{ vars.MAIL_USERNAME }}
             MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-
             CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_UI }}
             FIREBASE_CREDENTIALS_JSON=${{ secrets.FIREBASE_CREDENTIALS_JSON }}
             MEDIA_JWT_SECRET=${{ secrets.MEDIA_JWT_SECRET }}
