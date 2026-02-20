@@ -14,7 +14,6 @@ Spring Boot と Kotlin で構築され、マイクロサービスライクな構
 | **Database**   | PostgreSQL                            | 15 (Docker) |
 | **Migration**  | Flyway                                | 11.7.2      |
 | **Auth**       | Spring Security, JJWT, Firebase Admin | -           |
-| **Payment**    | Stripe API                            | 26.3.0      |
 | **MFA**        | TOTP (dev.samstevens.totp)            | 1.7.1       |
 | **API Docs**   | SpringDoc OpenAPI (Swagger)           | 2.8.5       |
 
@@ -36,7 +35,6 @@ Spring Boot と Kotlin で構築され、マイクロサービスライクな構
   - 商品検索・詳細表示
   - ショッピングカート機能
   - お気に入り (Wishlist) 機能
-  - 決済処理 (Stripe Integration)
 
 ## 📂 プロジェクト構成
 
@@ -54,8 +52,7 @@ com.example.myapp
 │   ├── auth/           # 認証サービス (LoginService, SignupService etc.)
 │   ├── market/         # マーケットサービス
 │   ├── user/           # ユーザーサービス
-│   ├── email/          # メール送信サービス
-│   └── payment/        # 決済サービス
+│   └── email/          # メール送信サービス
 ├── repository/         # データアクセス (JPA)
 ├── entity/             # JPA エンティティ
 ├── dto/                # データ転送オブジェクト (Request/Response)
@@ -68,14 +65,19 @@ com.example.myapp
 
 ### 1. データベースの起動 (Docker)
 
-開発時は、データベース (PostgreSQL) のみを Docker で起動し、アプリケーションはローカルで動かす構成を推奨します。
+開発時は、データベース (PostgreSQL) を Docker で起動し、アプリケーションはローカルで動かす構成を推奨します。
 
 ```bash
-# DBのみをバックグラウンド起動
+# DBをバックグラウンド起動
 docker-compose up -d postgres
 ```
 
-※ `docker-compose.yml` の設定により、ホスト側のポート **5433** でアクセス可能です。
+**起動されるサービス:**
+- PostgreSQL: ホスト側ポート **5433** でアクセス可能
+
+**メール送信について:**
+- 実際のGmail SMTPサーバーを使用します
+- `.env.local` に Google アカウント情報を設定してください
 
 ### 2. アプリケーションの起動 (Gradle)
 
@@ -146,9 +148,37 @@ docker-compose up -d postgres
 ./gradlew test --tests "com.example.myapp.service.auth.*"
 ```
 
-## データベース接続
+## 📧 メール機能
 
-### 接続情報
+本プロジェクトでは、Gmail SMTPサーバーを使用してメール送信を行います。
+
+### メール設定
+
+**Gmail を使用する場合:**
+1. Googleアカウントで2段階認証を有効化
+2. アプリパスワードを生成: https://myaccount.google.com/apppasswords
+3. `.env.local` に以下を設定:
+
+```dotenv
+# メール設定
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-google-app-password
+MAIL_FROM_NAME=VGM Application
+```
+
+**必須の環境変数:**
+- `MAIL_USERNAME` - Gmailアドレス（SMTP認証用、送信元アドレスとしても使用）
+- `MAIL_PASSWORD` - Googleアプリパスワード（通常のパスワードではありません）
+- `MAIL_FROM_NAME` - メール送信者名（任意、デフォルト: "VGM Application"）
+
+**重要な注意事項:**
+- SMTPサーバー（`smtp.gmail.com:587`）は `application.yml` に設定済みのため、`MAIL_HOST` や `MAIL_PORT` の環境変数は不要です
+- 送信元メールアドレスは自動的に `MAIL_USERNAME` の値が使用されます（`application.yml` で `${spring.mail.username}` を参照）
+- Googleのセキュリティポリシーにより、送信元は認証に使用したアカウントに強制されます
+
+## 🗄 データベース接続
+
+### ローカル開発環境
 
 ```
 Host: localhost
@@ -156,4 +186,101 @@ Port: 5433
 User: postgres
 Password: postgres
 Database: myapp
+JDBC URL: jdbc:postgresql://localhost:5433/myapp
 ```
+
+**環境変数設定 (`.env.local`):**
+```dotenv
+DB_URL=jdbc:postgresql://localhost:5433/myapp
+DB_USER=postgres
+DB_PASSWORD=postgres
+IS_TAILSCALE=false
+```
+
+### Tailscale経由のリモートDB接続（Cloud Run用）
+
+本プロジェクトは、Cloud Run環境から Tailscale VPN 経由でプライベートなデータベースに安全に接続できるよう設計されています。
+
+**Tailscaleとは:**
+- WireGuardベースのセキュアなVPNサービス
+- パブリッククラウド（Cloud Run）からプライベートネットワーク（自宅サーバー等）への安全な接続を実現
+
+**仕組み:**
+1. `entrypoint.sh` でTailscaleデーモンを起動（userspace-networkingモード）
+2. SOCKS5プロキシ経由でリモートDBへのトンネルを確立
+3. アプリケーションは `127.0.0.1:5432` に接続（内部でリモートDBにルーティング）
+
+**必要な環境変数（Cloud Runデプロイ時）:**
+```yaml
+IS_TAILSCALE=true
+TAILSCALE_AUTH_KEY=tskey-auth-xxxxx      # Tailscale認証キー
+TAILSCALE_VGM_DB_HOST=100.x.x.x          # TailscaleネットワークでのDBのIPアドレス
+DB_URL=jdbc:postgresql://127.0.0.1:5432/vgm_db_prod
+DB_USER=db_username
+DB_PASSWORD=db_password
+```
+
+**注意:**
+- `TAILSCALE_VGM_DB_HOST` はネットワークトンネル用のホストIPです
+- アプリケーションの `DB_URL` には `127.0.0.1:5432` を指定します（socatトンネル経由）
+- ローカル開発では `IS_TAILSCALE=false` にしてTailscaleを無効化してください
+
+詳細は [`Tailscale機能調査レポート.md`](./Tailscale機能調査レポート.md) を参照してください。
+
+## 🔐 Firebase認証設定
+
+本プロジェクトは、Firebase Admin SDK を使用してトークン検証を行います。
+
+**ローカル開発:**
+```dotenv
+FIREBASE_CREDENTIALS_PATH=grandmarket-app-firebase-adminsdk-fbsvc-ce7593aba8.json
+```
+
+**Cloud Runデプロイ:**
+```dotenv
+FIREBASE_CREDENTIALS_JSON=ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCg...（Base64エンコード）
+```
+
+**Base64エンコード方法（PowerShell）:**
+```powershell
+cd vgm-be
+[Convert]::ToBase64String([IO.File]::ReadAllBytes(".\grandmarket-app-firebase-adminsdk-fbsvc-ce7593aba8.json"))
+```
+
+詳細は [`Firebase認証情報の設定方法.md`](./Firebase認証情報の設定方法.md) を参照してください。
+
+## ⚙️ 環境変数一覧
+
+### 必須の環境変数
+
+| 環境変数 | 説明 | ローカル例 | 本番例 |
+|---------|------|-----------|--------|
+| `DB_URL` | PostgreSQL接続URL | `jdbc:postgresql://localhost:5433/myapp` | `jdbc:postgresql://127.0.0.1:5432/vgm_db_prod` |
+| `DB_USER` | データベースユーザー名 | `postgres` | `prod_user` |
+| `DB_PASSWORD` | データベースパスワード | `postgres` | `secure_password` |
+| `MAIL_USERNAME` | Gmail送信用アドレス | `your-email@gmail.com` | `noreply@yourdomain.com` |
+| `MAIL_PASSWORD` | Googleアプリパスワード | `xxxx xxxx xxxx xxxx` | `xxxx xxxx xxxx xxxx` |
+| `FIREBASE_CREDENTIALS_PATH` or `FIREBASE_CREDENTIALS_JSON` | Firebase認証情報 | `path/to/file.json` | `Base64文字列` |
+
+### オプションの環境変数
+
+| 環境変数 | 説明 | デフォルト値 |
+|---------|------|------------|
+| `PORT` | サーバーポート | `8080` |
+| `CORS_ALLOWED_ORIGINS` | CORS許可オリジン | `http://localhost:3000` |
+| `MAIL_FROM_NAME` | メール送信者名 | `VGM Application` |
+| `IS_TAILSCALE` | Tailscale使用フラグ | `false` |
+| `MEDIA_JWT_SECRET` | vgm-media通信用JWT秘密鍵 | `your-256-bit-secret...` |
+
+### 現在未使用の環境変数
+
+以下の環境変数は定義されていますが、現在のコードでは使用されていません：
+
+- `PLATFORM_FEE_RATE` - マーケットプレイス手数料率（将来実装予定）
+- `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET` - Stripe決済（コード全体がコメントアウト）
+- `PAYPAY_API_KEY`, `PAYPAY_API_SECRET`, `PAYPAY_MERCHANT_ID`, `PAYPAY_API_BASE_URL` - PayPay決済（コード全体がコメントアウト）
+
+詳細な設定例は [`.env.local.example`](./.env.local.example) を参照してください。
+
+## データベース接続（旧セクション - 削除予定）
+

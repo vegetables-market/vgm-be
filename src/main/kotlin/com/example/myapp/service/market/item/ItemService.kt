@@ -28,9 +28,10 @@ class ItemService(
             quantity = 1,
             // デフォルト値
             shippingPayerType = 0,
-            shippingMethodId = 1, // 仮
-            shippingDaysId = 1, // 仮
-            shippingOriginArea = 1, // 仮
+            // マスタ未投入環境でもDraft作成が失敗しないよう、配送系はnullで開始
+            shippingMethodId = null,
+            shippingDaysId = null,
+            shippingOriginArea = null,
             categoryId = null, 
             name = null,
             price = null,

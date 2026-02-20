@@ -12,6 +12,7 @@ import org.springframework.security.authentication.LockedException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.time.LocalDateTime
 
 @RestControllerAdvice
@@ -49,6 +50,14 @@ class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException::class)
     fun handleAccessDeniedException(ex: AccessDeniedException): ResponseEntity<ErrorResponse> {
         return buildResponse(ErrorCode.AUTH_FORBIDDEN)
+    }
+
+    /**
+     * Static resource not found
+     */
+    @ExceptionHandler(NoResourceFoundException::class)
+    fun handleNoResourceFoundException(ex: NoResourceFoundException): ResponseEntity<ErrorResponse> {
+        return buildResponse(ErrorCode.RESOURCE_NOT_FOUND, listOf(ex.message ?: "Resource not found"))
     }
 
     /**
