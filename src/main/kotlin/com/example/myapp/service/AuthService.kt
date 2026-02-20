@@ -99,7 +99,11 @@ class AuthService(
             userId = user.id,
             username = user.username,
             email = user.email,
+<<<<<<< HEAD
             theme = user.theme
+=======
+            theme = user.theme ?: "light"
+>>>>>>> 98a3824ee00446e97cfcc4f58bfe5960549fbdcb
         )
     }
 

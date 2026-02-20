@@ -13,7 +13,11 @@ Content-Type: application/json
 
 {
   "email": "test@example.com",
+<<<<<<< HEAD
   "password": "pass",
+=======
+  "password": "password",
+>>>>>>> 98a3824ee00446e97cfcc4f58bfe5960549fbdcb
   "username": "wkm"
 }
 
@@ -26,4 +30,37 @@ GET http://localhost:8080/api/users/me/theme
 Authorization: Basic user password
 
 ### 登録されたアイテムを全件取得する
+<<<<<<< HEAD
 GET http://localhost:8080/api/items
+=======
+GET http://localhost:8080/api/items
+
+### Get theme of user 1
+GET http://localhost:8080/api/users/1/theme
+Accept: application/json
+
+### Update theme of user 1
+PUT http://localhost:8080/api/users/1/theme
+Content-Type: application/json
+
+{
+  "theme": "dark"
+}
+
+### Update theme of user 1 to light
+PUT http://localhost:8080/api/users/1/theme
+Content-Type: application/json
+
+{
+  "theme": "light"
+}
+
+
+curl -i -c cookies.txt -X POST http://localhost:8080/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"themeuser","password":"secret123"}'
+
+curl -b cookies.txt -X PUT http://localhost:8080/api/users/me/theme \
+  -H "Content-Type: application/json" \
+  -d '{"theme":1}'
+>>>>>>> 98a3824ee00446e97cfcc4f58bfe5960549fbdcb
