@@ -8,6 +8,8 @@ services:
     container_name: vgm-be
     ports:
       - "8080:8080"
+    volumes:
+      - ./firebase-key.json:/app/firebase-key.json
     environment:
       - IS_TAILSCALE=${IS_TAILSCALE:-false}
       # Docker起動時は .env.local の有無に関わらずローカルDBを強制使用
@@ -15,6 +17,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/firebase-key.json
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,7 +36,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -42,6 +45,7 @@ services:
 
 volumes:
   postgres_data:
+
 
 networks:
   vgm-network:
