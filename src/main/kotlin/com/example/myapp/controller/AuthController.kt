@@ -8,6 +8,10 @@ import com.example.myapp.repository.UserRepository
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.RequestMapping
 
 @RestController
 @RequestMapping("/api/auth")
@@ -49,7 +53,10 @@ class AuthController(
                 userId = user.id,
                 username = user.username,
                 email = user.email,
-                theme = user.theme
+                theme = when (user.theme.toInt()) {
+                    1 -> "dark"
+                    else -> "light"
+                }
             ))
         } else {
             ResponseEntity.notFound().build()

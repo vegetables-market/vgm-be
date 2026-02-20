@@ -5,5 +5,5 @@ data class RegisterResponse(
     val message: String,
     val userId: Long? = null,
     val username: String? = null,
-    val theme: Int? = null
+    val theme: String? = null
 )

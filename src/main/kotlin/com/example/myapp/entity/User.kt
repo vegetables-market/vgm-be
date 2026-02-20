@@ -29,10 +29,9 @@ data class User(
 
     /**
      * User preference: theme.
-     * DB: stored in table `users`, column name `theme` (VARCHAR).
-     * If your database uses a different table/column name, update this annotation accordingly.
-     * Possible values: "light" (default), "dark".
+     * DB: stored in table `users`, column name `theme` (TINYINT).
+     * 0 = light, 1 = dark
      */
-    @Column(name = "theme")
-    var theme: Int = 0  // 0: light, 1: dark
+    @Column(name = "theme", columnDefinition = "TINYINT(1)")
+    var theme: Byte = 0
 )

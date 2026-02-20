@@ -6,12 +6,16 @@ import org.springframework.stereotype.Service
 @Service
 class UserServiceImpl(
     private val userRepository: UserRepository
-) : UserService {
+) {
 
-    override fun getTheme(id: Long): Int {
+    fun getTheme(id: Long): String {
         val user = userRepository.findById(id)
             .orElseThrow { IllegalArgumentException("User not found: $id") }
 
-        return user.theme
+        return when (user.theme.toInt()) {
+            0 -> "light"
+            1 -> "dark"
+            else -> "light"
+        }
     }
 }

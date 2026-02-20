@@ -59,7 +59,10 @@ class AuthService(
             message = "登録が完了しました",
             userId = savedUser.id,
             username = savedUser.username,
-            theme = savedUser.theme
+            theme = when (savedUser.theme.toInt()) {
+                1 -> "dark"
+                else -> "light"
+            }
         )
     }
 
@@ -99,7 +102,10 @@ class AuthService(
             userId = user.id,
             username = user.username,
             email = user.email,
-            theme = user.theme
+            theme = when (user.theme.toInt()) {
+                1 -> "dark"
+                else -> "light"
+            }
         )
     }
 
