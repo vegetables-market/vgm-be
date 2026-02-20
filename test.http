@@ -16,15 +16,14 @@ Content-Type: application/json
   "username": "themeuser",
   "password": "secret123"
 }
-
-### Get user info (replace {{userId}} with the id returned by register or login)
-GET http://localhost:8080/api/auth/user/{{userId}}
+### Get user info
+GET http://localhost:8080/api/auth/user/1
 
 ### Get theme
-GET http://localhost:8080/api/users/{{userId}}/theme
+GET http://localhost:8080/api/users/1/theme
 
 ### Set theme to dark
-PUT http://localhost:8080/api/users/{{userId}}/theme
+PUT http://localhost:8080/api/users/1/theme
 Content-Type: application/json
 
 {
