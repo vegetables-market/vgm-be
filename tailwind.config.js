@@ -8,7 +8,10 @@ export default {
 
 module.exports = {
   darkMode: "class",
-  content: ["./src/**/*.{html,ts,tsx,js}"],
+  content: [
+    "./src/main/resources/templates/**/*.html",
+    "./src/**/*.{html,ts,tsx,js}"
+  ],
   theme: {
     extend: {},
   },

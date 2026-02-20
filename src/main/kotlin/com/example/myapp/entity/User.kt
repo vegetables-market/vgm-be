@@ -34,5 +34,5 @@ data class User(
      * Possible values: "light" (default), "dark".
      */
     @Column(name = "theme")
-    var theme: String? = "light"
+    var theme: Int = 0  // 0: light, 1: dark
 )

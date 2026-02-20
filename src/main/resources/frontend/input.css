@@ -1,1 +1,13 @@
  @import 'tailwindcss';
+
+ /* ライトテーマ */
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+}
+
+/* ダークテーマ */
+.dark {
+  --bg: #000000;
+  --text: #ffffff;
+}

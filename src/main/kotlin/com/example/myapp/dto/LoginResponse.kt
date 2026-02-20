@@ -7,5 +7,5 @@ data class LoginResponse(
     val userId: Long? = null,
     val username: String? = null,
     val email: String? = null,
-    val theme: String? = null
+    val theme: Int? = null
 )
