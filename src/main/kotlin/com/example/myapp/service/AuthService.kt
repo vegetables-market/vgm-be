@@ -102,10 +102,18 @@ class AuthService(
             userId = user.id,
             username = user.username,
             email = user.email,
+<<<<<<< HEAD
             theme = when (user.theme.toInt()) {
                 1 -> "dark"
                 else -> "light"
             }
+=======
+<<<<<<< HEAD
+            theme = user.theme
+=======
+            theme = user.theme ?: "light"
+>>>>>>> 98a3824ee00446e97cfcc4f58bfe5960549fbdcb
+>>>>>>> 4f7cb93640299e817facd2e4d1a78f462dc09144
         )
     }
 

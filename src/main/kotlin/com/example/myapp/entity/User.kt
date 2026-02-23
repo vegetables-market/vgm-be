@@ -32,6 +32,15 @@ data class User(
      * DB: stored in table `users`, column name `theme` (TINYINT).
      * 0 = light, 1 = dark
      */
+<<<<<<< HEAD
     @Column(name = "theme", columnDefinition = "TINYINT(1)")
     var theme: Byte = 0
+=======
+    @Column(name = "theme")
+<<<<<<< HEAD
+    var theme: Int = 0  // 0: light, 1: dark
+=======
+    var theme: String? = "light"
+>>>>>>> 98a3824ee00446e97cfcc4f58bfe5960549fbdcb
+>>>>>>> 4f7cb93640299e817facd2e4d1a78f462dc09144
 )
