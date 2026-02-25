@@ -19,6 +19,7 @@ data class CartItemResponse(
     val name: String,
     val price: Long,
     val quantity: Int,
+    val availableQuantity: Int,
     val subtotal: Long,
     val thumbnailUrl: String?
 )

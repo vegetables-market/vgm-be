@@ -10,5 +10,6 @@ package com.example.myapp.dto.market.item.liisting
  */
 
 data class LinkImagesRequest(
-    val filenames: List<String>
+    val filenames: List<String>,
+    val replaceExisting: Boolean = false
 )

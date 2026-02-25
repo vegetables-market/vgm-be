@@ -1,7 +1,8 @@
 package com.example.myapp.controller.market.cart
 
 import com.example.myapp.controller.market.getMarketUser
-import com.example.myapp.dto.market.cart.AddCartRequest
+import com.example.myapp.exception.AppException
+import com.example.myapp.exception.ErrorCode
 import com.example.myapp.service.auth.session.AppCookieService
 import com.example.myapp.service.auth.session.GuestSessionService
 import com.example.myapp.service.auth.session.SessionService
@@ -25,18 +26,31 @@ class AddToCartController(
 
     @PostMapping
     fun addToCart(
-        @RequestBody request: AddCartRequest,
+        @RequestBody request: Map<String, Any?>,
         servletRequest: HttpServletRequest,
         servletResponse: HttpServletResponse
     ): ResponseEntity<Map<String, Any>> {
         val (userId, currentGuestId) = servletRequest.getMarketUser(appCookieService, sessionService)
-        
+
+        val itemId = (request["itemId"] ?: request["item_id"])
+            ?.toString()
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?: throw AppException(ErrorCode.INVALID_INPUT, "itemId is required")
+
+        val quantity = when (val raw = request["quantity"]) {
+            null -> 1
+            is Number -> raw.toInt()
+            is String -> raw.toIntOrNull()
+            else -> null
+        } ?: throw AppException(ErrorCode.INVALID_INPUT, "quantity must be a number")
+
         // Ensure guest session if not logged in
         val effectiveGuestId = if (userId == null) {
              guestSessionService.ensureGuestSession(currentGuestId, servletResponse)
         } else null
 
-        addToCart(userId, effectiveGuestId, request.itemId, request.quantity)
+        addToCart(userId, effectiveGuestId, itemId, quantity)
         return ResponseEntity.ok(mapOf("success" to true, "message" to "カートに追加しました"))
     }
 }

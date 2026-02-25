@@ -41,19 +41,24 @@ class ItemService(
     }
 
     @Transactional
-    fun linkImages(userId: Int, displayId: String, filenames: List<String>) {
+    fun linkImages(
+        userId: Int,
+        displayId: String,
+        filenames: List<String>,
+        replaceExisting: Boolean = false
+    ) {
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         val itemId = item.itemId!!
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
 
-        // 既存画像をクリアするか、追加するか。ここでは「追加」とするか、
-        // 「Draftへの画像追加」はCreate時の一回とみなすか。
-        // シンプルに「現在のリストで上書き」または「追加」。
-        // ユースケース: createDraft -> upload -> linkImages
-        
-        // 既存の画像を削除せずに追加する実装にする
-        val currentMaxOrder = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId).maxOfOrNull { it.displayOrder } ?: 0
-        
+        val currentMaxOrder = if (replaceExisting) {
+            itemImageRepository.deleteByItemId(itemId)
+            0
+        } else {
+            itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
+                .maxOfOrNull { it.displayOrder } ?: 0
+        }
+
         filenames.forEachIndexed { index, filename ->
             val itemImage = ItemImage(
                 itemId = itemId,
@@ -69,6 +74,7 @@ class ItemService(
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         val itemId = item.itemId!!
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
+        if (request.categoryId <= 0) throw RuntimeException("Invalid categoryId: ${request.categoryId}")
 
         // 必須チェック (name, price, etc)
         // ここでバリデーションを行っても良い
@@ -88,19 +94,20 @@ class ItemService(
         item.updatedAt = LocalDateTime.now()
         
         val savedItem = itemRepository.save(item)
-
-        // 画像URLリストがリクエストに含まれている場合、
-        // もし「LinkImages」で既に紐付いているなら何もしないか、
-        // あるいはリクエストのimage_urlsで順序を再設定するなど。
-        // 今回のフローでは「Direct Uploadしたfilename」がimage_urlsに入ってくる想定。
-        // しかし既にlinkImagesで保存済みかもしれない。
-        // シンプルにするため: Draft作成 -> 画像Upload&Link -> 最後にPublish(内容はupdate)
-        // Publish時に画像リストは送られてこない（または無視する）方が安全かもだが、
-        // Frontendの既存のCreateItemRequestを再利用するなら、そこに含まれるimage_urlsを使って
-        // 画像の順序などを整える処理を入れてもいい。
-        
-        // 今回は「既にlinkImagesで保存されている」前提とし、request.imageUrlsは無視する
-        // （または確認用に使う）
+        // imageUrls が指定された場合は、既存画像を置換する。
+        // 編集画面で「削除した画像が残る」問題を避けるため、更新APIで最終状態を確定させる。
+        request.imageUrls?.let { urls ->
+            itemImageRepository.deleteByItemId(itemId)
+            urls.forEachIndexed { index, url ->
+                itemImageRepository.save(
+                    ItemImage(
+                        itemId = itemId,
+                        imageUrl = url,
+                        displayOrder = index + 1
+                    )
+                )
+            }
+        }
         
         return toSimpleResponse(savedItem)
     }

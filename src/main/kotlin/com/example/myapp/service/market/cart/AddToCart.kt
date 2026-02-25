@@ -1,6 +1,8 @@
 package com.example.myapp.service.market.cart
 
 import com.example.myapp.entity.market.cart.CartItem
+import com.example.myapp.exception.AppException
+import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.market.cart.CartItemRepository
 import com.example.myapp.repository.market.item.ItemRepository
 import org.springframework.stereotype.Service
@@ -18,14 +20,22 @@ class AddToCart(
     @Transactional
     operator fun invoke(userId: Int?, guestId: String?, displayId: String, quantity: Int): Long {
         if (userId == null && guestId == null) {
-            throw IllegalArgumentException("User ID or Guest ID must be provided")
+            throw AppException(ErrorCode.AUTH_REQUIRED, "User ID or Guest ID must be provided")
+        }
+        if (quantity <= 0) {
+            throw AppException(ErrorCode.INVALID_INPUT, "Quantity must be greater than 0")
         }
 
         // Check if item exists
-        val item = itemRepository.findByDisplayId(displayId) ?: throw IllegalArgumentException("Item not found")
+        val item = itemRepository.findByDisplayId(displayId)
+            ?: throw AppException(ErrorCode.RESOURCE_NOT_FOUND, "Item not found")
         val itemId = item.itemId!!
-
-        // Check availability (e.g. status == 2) - skipping for brevity, should be added
+        if (item.status.toInt() != 2) {
+            throw AppException(ErrorCode.INVALID_INPUT, "Item is not available for sale")
+        }
+        if (item.quantity <= 0) {
+            throw AppException(ErrorCode.ITEM_OUT_OF_STOCK, "Item is out of stock")
+        }
         
         // Check if already in cart
         val existingItem = if (userId != null) {
@@ -35,10 +45,23 @@ class AddToCart(
         }
 
         if (existingItem != null) {
-            existingItem.quantity += quantity
+            val updatedQuantity = existingItem.quantity + quantity
+            if (updatedQuantity > item.quantity) {
+                throw AppException(
+                    ErrorCode.ITEM_OUT_OF_STOCK,
+                    "Requested quantity exceeds available stock (${item.quantity})",
+                )
+            }
+            existingItem.quantity = updatedQuantity
             cartItemRepository.save(existingItem)
             return existingItem.cartItemId
         } else {
+            if (quantity > item.quantity) {
+                throw AppException(
+                    ErrorCode.ITEM_OUT_OF_STOCK,
+                    "Requested quantity exceeds available stock (${item.quantity})",
+                )
+            }
             val newItem = CartItem(
                 userId = userId,
                 guestId = guestId,
