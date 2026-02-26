@@ -10,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.DisabledException
 import org.springframework.security.authentication.LockedException
 import org.springframework.security.core.AuthenticationException
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
@@ -58,6 +59,14 @@ class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException::class)
     fun handleNoResourceFoundException(ex: NoResourceFoundException): ResponseEntity<ErrorResponse> {
         return buildResponse(ErrorCode.RESOURCE_NOT_FOUND, listOf(ex.message ?: "Resource not found"))
+    }
+
+    /**
+     * JSONパース失敗（入力形式不正）
+     */
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleHttpMessageNotReadableException(ex: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
+        return buildResponse(ErrorCode.INVALID_INPUT, listOf(ex.message ?: "Invalid request body"))
     }
 
     /**
