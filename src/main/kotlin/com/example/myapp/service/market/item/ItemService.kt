@@ -10,25 +10,24 @@ import com.example.myapp.repository.user.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import jakarta.persistence.EntityManager
 
 @Service
 class ItemService(
     private val itemRepository: ItemRepository,
     private val itemImageRepository: ItemImageRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val entityManager: EntityManager
 ) {
     @Transactional
     fun createDraft(userId: Int): Item {
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
         
-        // 空のDraftアイテムを作成 status=0
         val draftItem = Item(
             user = user,
             status = 0,
             quantity = 1,
-            // デフォルト値
             shippingPayerType = 0,
-            // マスタ未投入環境でもDraft作成が失敗しないよう、配送系はnullで開始
             shippingMethodId = null,
             shippingDaysId = null,
             shippingOriginArea = null,
@@ -40,33 +39,28 @@ class ItemService(
         return itemRepository.save(draftItem)
     }
 
+    // 修正: 戻り値を SimpleItemResponse に指定
     @Transactional
-    fun linkImages(
-        userId: Int,
-        displayId: String,
-        filenames: List<String>,
-        replaceExisting: Boolean = false
-    ) {
+    fun linkImages(userId: Int, displayId: String, filenames: List<String>): SimpleItemResponse {
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         val itemId = item.itemId!!
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
 
-        val currentMaxOrder = if (replaceExisting) {
-            itemImageRepository.deleteByItemId(itemId)
-            0
-        } else {
-            itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
-                .maxOfOrNull { it.displayOrder } ?: 0
-        }
-
+        val currentMaxOrder = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId).maxOfOrNull { it.displayOrder } ?: 0
+        
         filenames.forEachIndexed { index, filename ->
             val itemImage = ItemImage(
                 itemId = itemId,
-                imageUrl = filename, // Direct Uploadされたファイル名
+                imageUrl = filename,
                 displayOrder = currentMaxOrder + index + 1
             )
             itemImageRepository.save(itemImage)
         }
+        itemRepository.flush()
+        entityManager.clear()
+
+        val finalItem = itemRepository.findById(itemId).orElseThrow()
+        return toSimpleResponse(finalItem)
     }
 
     @Transactional
@@ -76,9 +70,9 @@ class ItemService(
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
         if (request.categoryId <= 0) throw RuntimeException("Invalid categoryId: ${request.categoryId}")
 
-        // 必須チェック (name, price, etc)
-        // ここでバリデーションを行っても良い
-        
+        println("[DEBUG] publishItem called: displayId=$displayId, itemId=$itemId")
+        println("[DEBUG] request.imageUrls = ${request.imageUrls}")
+
         // 更新
         item.name = request.name
         item.description = request.description
@@ -93,28 +87,37 @@ class ItemService(
         item.itemCondition = request.itemCondition
         item.updatedAt = LocalDateTime.now()
         
-        val savedItem = itemRepository.save(item)
-        // imageUrls が指定された場合は、既存画像を置換する。
-        // 編集画面で「削除した画像が残る」問題を避けるため、更新APIで最終状態を確定させる。
-        request.imageUrls?.let { urls ->
-            itemImageRepository.deleteByItemId(itemId)
-            urls.forEachIndexed { index, url ->
-                itemImageRepository.save(
-                    ItemImage(
-                        itemId = itemId,
-                        imageUrl = url,
-                        displayOrder = index + 1
-                    )
-                )
-            }
+        itemRepository.save(item)
+
+        // 画像の更新 (deleteAllByItemId を使用)
+        val existingImages = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
+        println("[DEBUG] 既存画像数 (削除前): ${existingImages.size}")
+        itemImageRepository.deleteAllByItemId(itemId)
+        itemImageRepository.flush()
+        println("[DEBUG] deleteAllByItemId 完了")
+
+        request.imageUrls?.forEachIndexed { index, url ->
+            println("[DEBUG] 画像保存: index=$index, url=$url, itemId=$itemId")
+            val itemImage = ItemImage(
+                itemId = itemId,
+                imageUrl = url,
+                displayOrder = index
+            )
+            itemImageRepository.save(itemImage)
         }
+
+        // キャッシュ対策を追加
+        itemImageRepository.flush()
+        entityManager.clear()
         
-        return toSimpleResponse(savedItem)
+        val savedImages = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
+        println("[DEBUG] 保存後の画像数: ${savedImages.size}")
+        savedImages.forEach { println("[DEBUG]   imageId=${it.imageId}, url=${it.imageUrl}") }
+
+        val finalItem = itemRepository.findById(itemId).orElseThrow()
+        return toSimpleResponse(finalItem)
     }
 
-    // 既存のcreateItemも残すが、内部実体はDraft->Publishフローにするか、
-    // あるいはレガシーとして維持しつつnullable対応だけするか。
-    // ここではLegacy維持+nullable対応
     @Transactional
     fun createItem(userId: Int, request: CreateItemRequest): SimpleItemResponse {
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
@@ -126,7 +129,7 @@ class ItemService(
             categoryId = request.categoryId,
             price = request.price,
             quantity = request.quantity,
-            status = 1.toShort(), // 出品中
+            status = 1.toShort(),
             shippingPayerType = request.shippingPayerType,
             shippingOriginArea = request.shippingOriginArea,
             shippingDaysId = request.shippingDaysId,
@@ -150,14 +153,14 @@ class ItemService(
     }
 
     fun getMyItems(userId: Int): List<SimpleItemResponse> {
-        // 出品中(2)、取引中(3)、売切(4)、停止(5)のみ表示（ドラフト・削除済みは除外）
         val visibleStatuses = listOf<Short>(2, 3, 4, 5)
         val items = itemRepository.findByUser_UserIdAndStatusInOrderByCreatedAtDesc(userId, visibleStatuses)
         return items.map { toSimpleResponse(it) }
     }
     
     private fun toSimpleResponse(item: Item): SimpleItemResponse {
-        val imageUrl = itemImageRepository.findByItemIdOrderByDisplayOrder(item.itemId!!)
+        // メソッド名を存在する Asc ありの方に変更
+        val imageUrl = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(item.itemId!!)
             .firstOrNull()?.imageUrl
         
         return SimpleItemResponse(
@@ -175,8 +178,7 @@ class ItemService(
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
         
-        // ソフトデリート: ステータスを削除済みに変更
-        item.status = 6 // DELETED
+        item.status = 6 
         item.updatedAt = LocalDateTime.now()
         itemRepository.save(item)
     }
@@ -186,11 +188,9 @@ class ItemService(
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
         
-        // ステータス変更（出品中⇔停止中など）
-        // 許可されたステータス遷移のみ実行
         when (newStatus) {
-            2 -> item.status = 2 // ON_SALE (出品中)
-            5 -> item.status = 5 // SUSPENDED (停止中)
+            2 -> item.status = 2 
+            5 -> item.status = 5 
             else -> throw RuntimeException("Invalid status transition")
         }
         

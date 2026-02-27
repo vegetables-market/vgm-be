@@ -1,4 +1,5 @@
 package com.example.myapp.dto.market.item.liisting
+import com.fasterxml.jackson.annotation.JsonProperty
 
 import com.fasterxml.jackson.annotation.JsonAlias
 
@@ -22,7 +23,8 @@ import com.fasterxml.jackson.annotation.JsonAlias
 data class CreateItemRequest(
     val name: String,
     val description: String,
-    @JsonAlias("category_id")
+
+    @JsonProperty("categoryId")
     val categoryId: Long,
     val price: Int,
     val quantity: Int = 1,
@@ -30,12 +32,14 @@ data class CreateItemRequest(
     val shippingPayerType: Int,
     @JsonAlias("shipping_origin_area")
     val shippingOriginArea: Int,
-    @JsonAlias("shipping_days_id")
+
+    @JsonProperty("shippingDaysId")
     val shippingDaysId: Int,
-    @JsonAlias("shipping_method_id")
+
+    @JsonProperty("shippingMethodId")
     val shippingMethodId: Int,
-    @JsonAlias("item_condition")
+
     val itemCondition: Int,
-    @JsonAlias("image_urls")
+    @JsonProperty("imageUrls")
     val imageUrls: List<String>? = null
 )

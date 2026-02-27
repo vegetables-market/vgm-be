@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository
 interface ItemImageRepository : JpaRepository<ItemImage, Long> {
     fun findByItemIdOrderByDisplayOrderAsc(itemId: Long): List<ItemImage>
     fun findByItemIdOrderByDisplayOrder(itemId: Long): List<ItemImage>
-    fun deleteByItemId(itemId: Long)
+    fun deleteAllByItemId(itemId: Long)
 }
