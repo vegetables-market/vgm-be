@@ -68,6 +68,7 @@ class ItemService(
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         val itemId = item.itemId!!
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
+        if (request.categoryId <= 0) throw RuntimeException("Invalid categoryId: ${request.categoryId}")
 
         println("[DEBUG] publishItem called: displayId=$displayId, itemId=$itemId")
         println("[DEBUG] request.imageUrls = ${request.imageUrls}")
