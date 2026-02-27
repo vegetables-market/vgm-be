@@ -43,6 +43,7 @@ class GetCart(
                     name = item.name ?: "Unknown Item",
                     price = item.price?.toLong() ?: 0L,
                     quantity = cartItem.quantity,
+                    availableQuantity = item.quantity,
                     subtotal = (item.price?.toLong() ?: 0L) * cartItem.quantity,
                     thumbnailUrl = thumbnail
                 )
