@@ -1,5 +1,8 @@
 package com.example.myapp.service.market.cart
 
+import com.example.myapp.exception.AppException
+import com.example.myapp.exception.ErrorCode
+import com.example.myapp.repository.market.item.ItemRepository
 import com.example.myapp.repository.market.cart.CartItemRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -9,7 +12,8 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 class UpdateCartItemQuantity(
-    private val cartItemRepository: CartItemRepository
+    private val cartItemRepository: CartItemRepository,
+    private val itemRepository: ItemRepository
 ) {
 
     @Transactional
@@ -34,6 +38,19 @@ class UpdateCartItemQuantity(
             }
         } else {
              throw com.example.myapp.exception.AppException(com.example.myapp.exception.ErrorCode.AUTH_REQUIRED, "User not authenticated")
+        }
+
+        val item = itemRepository.findById(cartItem.itemId)
+            .orElseThrow { AppException(ErrorCode.RESOURCE_NOT_FOUND, "Item not found") }
+
+        if (item.status.toInt() != 2) {
+            throw AppException(ErrorCode.INVALID_INPUT, "Item is not available for sale")
+        }
+        if (newQuantity > item.quantity) {
+            throw AppException(
+                ErrorCode.ITEM_OUT_OF_STOCK,
+                "Requested quantity exceeds available stock (${item.quantity})",
+            )
         }
 
         cartItem.quantity = newQuantity
