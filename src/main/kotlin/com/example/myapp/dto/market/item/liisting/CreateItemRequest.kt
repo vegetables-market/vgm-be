@@ -1,4 +1,5 @@
 package com.example.myapp.dto.market.item.liisting
+import com.fasterxml.jackson.annotation.JsonProperty
 
 /**
  * 商品出品/更新リクエストDTO
@@ -20,13 +21,21 @@ package com.example.myapp.dto.market.item.liisting
 data class CreateItemRequest(
     val name: String,
     val description: String,
+
+    @JsonProperty("categoryId")
     val categoryId: Long,
     val price: Int,
     val quantity: Int = 1,
     val shippingPayerType: Int,
     val shippingOriginArea: Int,
+
+    @JsonProperty("shippingDaysId")
     val shippingDaysId: Int,
+
+    @JsonProperty("shippingMethodId")
     val shippingMethodId: Int,
+
     val itemCondition: Int,
+    @JsonProperty("imageUrls")
     val imageUrls: List<String>? = null
 )

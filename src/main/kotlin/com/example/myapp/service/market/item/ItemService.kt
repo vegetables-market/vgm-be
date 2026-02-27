@@ -10,25 +10,24 @@ import com.example.myapp.repository.user.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import jakarta.persistence.EntityManager
 
 @Service
 class ItemService(
     private val itemRepository: ItemRepository,
     private val itemImageRepository: ItemImageRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val entityManager: EntityManager
 ) {
     @Transactional
     fun createDraft(userId: Int): Item {
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
         
-        // 空のDraftアイテムを作成 status=0
         val draftItem = Item(
             user = user,
             status = 0,
             quantity = 1,
-            // デフォルト値
             shippingPayerType = 0,
-            // マスタ未投入環境でもDraft作成が失敗しないよう、配送系はnullで開始
             shippingMethodId = null,
             shippingDaysId = null,
             shippingOriginArea = null,
@@ -40,28 +39,28 @@ class ItemService(
         return itemRepository.save(draftItem)
     }
 
+    // 修正: 戻り値を SimpleItemResponse に指定
     @Transactional
-    fun linkImages(userId: Int, displayId: String, filenames: List<String>) {
+    fun linkImages(userId: Int, displayId: String, filenames: List<String>): SimpleItemResponse {
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         val itemId = item.itemId!!
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
 
-        // 既存画像をクリアするか、追加するか。ここでは「追加」とするか、
-        // 「Draftへの画像追加」はCreate時の一回とみなすか。
-        // シンプルに「現在のリストで上書き」または「追加」。
-        // ユースケース: createDraft -> upload -> linkImages
-        
-        // 既存の画像を削除せずに追加する実装にする
         val currentMaxOrder = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId).maxOfOrNull { it.displayOrder } ?: 0
         
         filenames.forEachIndexed { index, filename ->
             val itemImage = ItemImage(
                 itemId = itemId,
-                imageUrl = filename, // Direct Uploadされたファイル名
+                imageUrl = filename,
                 displayOrder = currentMaxOrder + index + 1
             )
             itemImageRepository.save(itemImage)
         }
+        itemRepository.flush()
+        entityManager.clear()
+
+        val finalItem = itemRepository.findById(itemId).orElseThrow()
+        return toSimpleResponse(finalItem)
     }
 
     @Transactional
@@ -70,9 +69,9 @@ class ItemService(
         val itemId = item.itemId!!
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
 
-        // 必須チェック (name, price, etc)
-        // ここでバリデーションを行っても良い
-        
+        println("[DEBUG] publishItem called: displayId=$displayId, itemId=$itemId")
+        println("[DEBUG] request.imageUrls = ${request.imageUrls}")
+
         // 更新
         item.name = request.name
         item.description = request.description
@@ -87,27 +86,37 @@ class ItemService(
         item.itemCondition = request.itemCondition
         item.updatedAt = LocalDateTime.now()
         
-        val savedItem = itemRepository.save(item)
+        itemRepository.save(item)
 
-        // 画像URLリストがリクエストに含まれている場合、
-        // もし「LinkImages」で既に紐付いているなら何もしないか、
-        // あるいはリクエストのimage_urlsで順序を再設定するなど。
-        // 今回のフローでは「Direct Uploadしたfilename」がimage_urlsに入ってくる想定。
-        // しかし既にlinkImagesで保存済みかもしれない。
-        // シンプルにするため: Draft作成 -> 画像Upload&Link -> 最後にPublish(内容はupdate)
-        // Publish時に画像リストは送られてこない（または無視する）方が安全かもだが、
-        // Frontendの既存のCreateItemRequestを再利用するなら、そこに含まれるimage_urlsを使って
-        // 画像の順序などを整える処理を入れてもいい。
+        // 画像の更新 (deleteAllByItemId を使用)
+        val existingImages = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
+        println("[DEBUG] 既存画像数 (削除前): ${existingImages.size}")
+        itemImageRepository.deleteAllByItemId(itemId)
+        itemImageRepository.flush()
+        println("[DEBUG] deleteAllByItemId 完了")
+
+        request.imageUrls?.forEachIndexed { index, url ->
+            println("[DEBUG] 画像保存: index=$index, url=$url, itemId=$itemId")
+            val itemImage = ItemImage(
+                itemId = itemId,
+                imageUrl = url,
+                displayOrder = index
+            )
+            itemImageRepository.save(itemImage)
+        }
+
+        // キャッシュ対策を追加
+        itemImageRepository.flush()
+        entityManager.clear()
         
-        // 今回は「既にlinkImagesで保存されている」前提とし、request.imageUrlsは無視する
-        // （または確認用に使う）
-        
-        return toSimpleResponse(savedItem)
+        val savedImages = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
+        println("[DEBUG] 保存後の画像数: ${savedImages.size}")
+        savedImages.forEach { println("[DEBUG]   imageId=${it.imageId}, url=${it.imageUrl}") }
+
+        val finalItem = itemRepository.findById(itemId).orElseThrow()
+        return toSimpleResponse(finalItem)
     }
 
-    // 既存のcreateItemも残すが、内部実体はDraft->Publishフローにするか、
-    // あるいはレガシーとして維持しつつnullable対応だけするか。
-    // ここではLegacy維持+nullable対応
     @Transactional
     fun createItem(userId: Int, request: CreateItemRequest): SimpleItemResponse {
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
@@ -119,7 +128,7 @@ class ItemService(
             categoryId = request.categoryId,
             price = request.price,
             quantity = request.quantity,
-            status = 1.toShort(), // 出品中
+            status = 1.toShort(),
             shippingPayerType = request.shippingPayerType,
             shippingOriginArea = request.shippingOriginArea,
             shippingDaysId = request.shippingDaysId,
@@ -143,14 +152,14 @@ class ItemService(
     }
 
     fun getMyItems(userId: Int): List<SimpleItemResponse> {
-        // 出品中(2)、取引中(3)、売切(4)、停止(5)のみ表示（ドラフト・削除済みは除外）
         val visibleStatuses = listOf<Short>(2, 3, 4, 5)
         val items = itemRepository.findByUser_UserIdAndStatusInOrderByCreatedAtDesc(userId, visibleStatuses)
         return items.map { toSimpleResponse(it) }
     }
     
     private fun toSimpleResponse(item: Item): SimpleItemResponse {
-        val imageUrl = itemImageRepository.findByItemIdOrderByDisplayOrder(item.itemId!!)
+        // メソッド名を存在する Asc ありの方に変更
+        val imageUrl = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(item.itemId!!)
             .firstOrNull()?.imageUrl
         
         return SimpleItemResponse(
@@ -168,8 +177,7 @@ class ItemService(
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
         
-        // ソフトデリート: ステータスを削除済みに変更
-        item.status = 6 // DELETED
+        item.status = 6 
         item.updatedAt = LocalDateTime.now()
         itemRepository.save(item)
     }
@@ -179,11 +187,9 @@ class ItemService(
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
         
-        // ステータス変更（出品中⇔停止中など）
-        // 許可されたステータス遷移のみ実行
         when (newStatus) {
-            2 -> item.status = 2 // ON_SALE (出品中)
-            5 -> item.status = 5 // SUSPENDED (停止中)
+            2 -> item.status = 2 
+            5 -> item.status = 5 
             else -> throw RuntimeException("Invalid status transition")
         }
         
