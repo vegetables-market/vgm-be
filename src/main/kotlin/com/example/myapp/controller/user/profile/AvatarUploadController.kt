@@ -9,11 +9,10 @@ import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.multipart.MultipartFile
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-import java.time.LocalDateTime
+
+data class UpdateAvatarRequest(
+    val filename: String
+)
 
 @RestController
 @RequestMapping("/v1/user/profile")
@@ -47,11 +46,11 @@ class AvatarUploadController(
     }
 
     /**
-     * アバター画像アップロード
+     * vgm-media にアップロード済みのアバター画像をユーザープロフィールへ紐付け
      */
-    @PostMapping("/avatar")
-    fun uploadAvatar(
-        @RequestParam("image") file: MultipartFile,
+    @PutMapping("/avatar")
+    fun updateAvatar(
+        @RequestBody request: UpdateAvatarRequest,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
         val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
@@ -60,46 +59,22 @@ class AvatarUploadController(
                 .body(mapOf("error" to "ログインが必要です"))
         }
 
-        // ファイルサイズチェック (5MB)
-        if (file.size > 5 * 1024 * 1024) {
+        val filename = request.filename.trim()
+        if (filename.isBlank()) {
             return ResponseEntity.badRequest()
-                .body(mapOf("error" to "ファイルサイズは5MB以下にしてください"))
+                .body(mapOf("error" to "filename is required"))
         }
-
-        // ファイル形式チェック
-        val contentType = file.contentType
-        if (contentType !in listOf("image/jpeg", "image/png", "image/webp")) {
+        if (filename.contains("/") || filename.contains("\\")) {
             return ResponseEntity.badRequest()
-                .body(mapOf("error" to "JPEG、PNG、WebP形式の画像のみアップロード可能です"))
+                .body(mapOf("error" to "invalid filename"))
         }
 
         try {
-            // ファイル名生成
-            val extension = when (contentType) {
-                "image/jpeg" -> "jpg"
-                "image/png" -> "png"
-                "image/webp" -> "webp"
-                else -> "jpg"
-            }
-            val filename = "avatar_${userId}_${System.currentTimeMillis()}.$extension"
-
-            // 保存先ディレクトリ
-            val uploadDir = Paths.get("uploads/avatars")
-            Files.createDirectories(uploadDir)
-
-            // ファイル保存
-            val filePath = uploadDir.resolve(filename)
-            Files.copy(file.inputStream, filePath, StandardCopyOption.REPLACE_EXISTING)
-
-            // URLを生成（実際の環境に応じて調整）
-            val avatarUrl = "/uploads/avatars/$filename"
-
-            // プロフィールを更新
-            userProfileService.updateAvatarUrl(userId, avatarUrl)
+            userProfileService.updateAvatarUrl(userId, filename)
 
             return ResponseEntity.ok(mapOf(
                 "success" to true,
-                "avatarUrl" to avatarUrl,
+                "avatarUrl" to filename,
                 "message" to "プロフィール画像を更新しました"
             ))
         } catch (e: Exception) {

@@ -53,3 +53,6 @@ firebase-service-account.json
 *-firebase-adminsdk-*.json
 firebase-key.json
 /firebase/
+
+# Local uploaded files
+/uploads/
