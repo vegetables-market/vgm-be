@@ -22,6 +22,9 @@ class AvatarUploadController(
     private val generateUploadToken: GenerateUploadToken,
     private val userProfileService: UserProfileService
 ) {
+    companion object {
+        private const val DEFAULT_AVATAR_IMAGE = "/images/no-image.png"
+    }
 
     /**
      * アバター画像アップロード用トークン生成
@@ -51,6 +54,48 @@ class AvatarUploadController(
     @PutMapping("/avatar")
     fun updateAvatar(
         @RequestBody request: UpdateAvatarRequest,
+        servletRequest: HttpServletRequest
+    ): ResponseEntity<Map<String, Any>> {
+        return saveAvatarFilename(request, servletRequest)
+    }
+
+    /**
+     * vgm-media にアップロード済みのアバター画像をユーザープロフィールへ紐付け
+     * （新エンドポイント）
+     */
+    @PostMapping("/upload-avatar")
+    fun uploadAvatar(
+        @RequestBody request: UpdateAvatarRequest,
+        servletRequest: HttpServletRequest
+    ): ResponseEntity<Map<String, Any>> {
+        return saveAvatarFilename(request, servletRequest)
+    }
+
+    /**
+     * 現在のユーザーのアバターURLを返却
+     * （新エンドポイント）
+     */
+    @GetMapping("/get-avatar")
+    fun getAvatar(
+        servletRequest: HttpServletRequest
+    ): ResponseEntity<Map<String, Any?>> {
+        val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(mapOf("error" to "ログインが必要です"))
+        }
+
+        val profile = userProfileService.getProfile(userId)
+        val avatarUrl = profile?.profileImageUrl ?: DEFAULT_AVATAR_IMAGE
+        return ResponseEntity.ok(
+            mapOf(
+                "avatarUrl" to avatarUrl
+            )
+        )
+    }
+
+    private fun saveAvatarFilename(
+        request: UpdateAvatarRequest,
         servletRequest: HttpServletRequest
     ): ResponseEntity<Map<String, Any>> {
         val (userId, _) = servletRequest.getAppUser(appCookieService, sessionService)
