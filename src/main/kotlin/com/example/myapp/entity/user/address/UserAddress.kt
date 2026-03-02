@@ -23,6 +23,12 @@ class UserAddress(
     @Column(name = "f_postal_code", nullable = false, length = 100)
     var postalCode: String,
 
+    @Column(name = "f_name", length = 100)
+    var name: String? = null,
+
+    @Column(name = "f_name_kana", length = 100)
+    var nameKana: String? = null,
+
     @Column(name = "f_prefecture", nullable = false, length = 50)
     var prefecture: String,
 
@@ -37,6 +43,9 @@ class UserAddress(
 
     @Column(name = "f_country_code", length = 2)
     var countryCode: String = "JP",
+
+    @Column(name = "f_phone_number", length = 50)
+    var phoneNumber: String? = null,
 
     @Column(name = "f_is_default")
     var isDefault: Short = 0,

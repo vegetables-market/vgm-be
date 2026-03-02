@@ -25,11 +25,14 @@ class UserAddressService(
         val address = userAddressRepository.save(
             UserAddress(
                 userId = userId,
+                name = request.name.trim(),
+                nameKana = request.nameKana?.trim()?.ifBlank { null },
                 postalCode = normalizePostalCode(request.postalCode),
                 prefecture = request.prefecture.trim(),
                 city = request.city.trim(),
                 addressLine1 = request.addressLine1.trim(),
                 addressLine2 = request.addressLine2?.trim()?.ifBlank { null },
+                phoneNumber = request.phoneNumber?.trim()?.ifBlank { null },
                 countryCode = request.countryCode?.trim()?.ifBlank { "JP" } ?: "JP",
                 isDefault = if (request.isDefault) 1 else 0,
             ),
@@ -45,11 +48,14 @@ class UserAddressService(
         validate(request)
         val address = getAddressOrThrow(addressId, userId)
 
+        address.name = request.name.trim()
+        address.nameKana = request.nameKana?.trim()?.ifBlank { null }
         address.postalCode = normalizePostalCode(request.postalCode)
         address.prefecture = request.prefecture.trim()
         address.city = request.city.trim()
         address.addressLine1 = request.addressLine1.trim()
         address.addressLine2 = request.addressLine2?.trim()?.ifBlank { null }
+        address.phoneNumber = request.phoneNumber?.trim()?.ifBlank { null }
         address.countryCode = request.countryCode?.trim()?.ifBlank { "JP" } ?: "JP"
         address.isDefault = if (request.isDefault) 1 else 0
 
@@ -86,6 +92,9 @@ class UserAddressService(
             ?: throw AppException(ErrorCode.RESOURCE_NOT_FOUND, "Address not found")
 
     private fun validate(request: UpsertUserAddressRequest) {
+        if (request.name.isBlank()) {
+            throw AppException(ErrorCode.INVALID_INPUT, "name is required")
+        }
         if (request.postalCode.isBlank() || !POSTAL_CODE_REGEX.matches(request.postalCode.trim())) {
             throw AppException(ErrorCode.INVALID_INPUT, "postalCode is invalid")
         }
@@ -111,11 +120,14 @@ class UserAddressService(
     private fun UserAddress.toResponse(): UserAddressResponse =
         UserAddressResponse(
             addressId = addressId,
+            name = name,
+            nameKana = nameKana,
             postalCode = postalCode,
             prefecture = prefecture,
             city = city,
             addressLine1 = addressLine1,
             addressLine2 = addressLine2,
+            phoneNumber = phoneNumber,
             countryCode = countryCode,
             isDefault = isDefault.toInt() == 1,
         )
