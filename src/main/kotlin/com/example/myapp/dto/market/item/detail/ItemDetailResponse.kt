@@ -32,6 +32,8 @@ data class ItemDetailResponse(
  * @property brand ブランド名
  * @property weight 重量
  * @property shippingPayerType 配送料負担
+ * @property shippingOriginArea 発送元地域（都道府県ID）
+ * @property shippingOriginAddressId 発送元住所ID
  * @property images 画像リスト
  * @property seller 出品者情報
  * @property createdAt 作成日時
@@ -53,6 +55,8 @@ data class ItemDetail(
     val brand: String?,
     val weight: Int?,
     val shippingPayerType: Int,
+    val shippingOriginArea: Int?,
+    val shippingOriginAddressId: Int?,
     val images: List<ItemImageInfo>,
     val seller: SellerDetailInfo,
     val createdAt: String,
