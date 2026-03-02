@@ -53,6 +53,7 @@ class SecurityConfig(
                         "/v1/user/mfa/**",  // MFAエンドポイント(独自認証)
                         "/v1/user/account/**",  // アカウント管理(独自認証)
                         "/v1/user/profile/**",  // プロフィール管理(独自認証)
+                        "/v1/user/addresses/**",  // 住所管理(独自認証)
                         "/v1/user/emails/**",  // メール管理(独自認証)
                         "/v1/user/sessions/**",  // セッション管理(独自認証)
                         "/v1/user/oauth/**",  // OAuth管理(独自認証)
@@ -109,6 +110,7 @@ class SecurityConfig(
                         "/v1/user/mfa/**",           // MFA設定
                         "/v1/user/account/**",       // アカウント管理（削除等）
                         "/v1/user/profile/**",       // プロフィール管理
+                        "/v1/user/addresses/**",     // 住所管理
                         "/v1/user/emails/**",        // メール管理
                         "/v1/user/sessions/**",      // セッション管理
                         "/v1/user/oauth/**",         // OAuth管理
