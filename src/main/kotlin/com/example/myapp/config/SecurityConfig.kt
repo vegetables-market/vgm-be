@@ -101,8 +101,7 @@ class SecurityConfig(
                         "/v1/auth/init-flow",        // 認証フロー開始
                         "/v1/auth/check-user",       // ユーザー識別子チェック
                         "/v1/auth/recovery/**",      // アカウント復元
-                        "/v1/auth/password/**",      // パスワードリセット
-                        "/uploads/**"                // アップロード済み画像
+                        "/v1/auth/password/**"       // パスワードリセット
                     ).permitAll()
 
                     // 独自セッション認証を使用するエンドポイント（Controller内で認証チェック）

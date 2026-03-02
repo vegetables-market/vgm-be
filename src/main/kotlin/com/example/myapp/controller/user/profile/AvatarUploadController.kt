@@ -50,17 +50,6 @@ class AvatarUploadController(
 
     /**
      * vgm-media にアップロード済みのアバター画像をユーザープロフィールへ紐付け
-     */
-    @PutMapping("/avatar")
-    fun updateAvatar(
-        @RequestBody request: UpdateAvatarRequest,
-        servletRequest: HttpServletRequest
-    ): ResponseEntity<Map<String, Any>> {
-        return saveAvatarFilename(request, servletRequest)
-    }
-
-    /**
-     * vgm-media にアップロード済みのアバター画像をユーザープロフィールへ紐付け
      * （新エンドポイント）
      */
     @PostMapping("/upload-avatar")
