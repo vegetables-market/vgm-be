@@ -37,4 +37,5 @@ data class UserAddressResponse(
     val phoneNumber: String?,
     val countryCode: String,
     val isDefault: Boolean,
+    val addressType: String,
 )

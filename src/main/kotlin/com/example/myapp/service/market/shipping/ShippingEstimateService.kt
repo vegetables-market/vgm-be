@@ -6,6 +6,7 @@ import com.example.myapp.exception.AppException
 import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.market.item.ItemRepository
 import com.example.myapp.repository.user.address.UserAddressRepository
+import com.example.myapp.service.user.address.UserAddressService
 import org.springframework.stereotype.Service
 import kotlin.math.asin
 import kotlin.math.cos
@@ -23,15 +24,15 @@ class ShippingEstimateService(
     fun estimate(userId: Int, request: ShippingEstimateRequest): ShippingEstimateResponse {
         val item = itemRepository.findByDisplayId(request.itemId)
             ?: throw AppException(ErrorCode.RESOURCE_NOT_FOUND, "Item not found")
-        val originPrefectureId = item.shippingOriginArea
-            ?: throw AppException(ErrorCode.INVALID_INPUT, "Item shipping origin is not set")
-        val origin = prefectureCentroidService.findByPrefectureId(originPrefectureId)
-            ?: throw AppException(ErrorCode.INVALID_INPUT, "Unsupported shipping origin area")
+        val origin = resolveOriginCoordinate(item.shippingOriginAddressId, item.shippingOriginArea)
 
         val destinationAddress = userAddressRepository.findByAddressIdAndUserIdAndDeletedAtIsNull(
             request.addressId,
             userId,
         ) ?: throw AppException(ErrorCode.RESOURCE_NOT_FOUND, "Address not found")
+        if (destinationAddress.addressType != UserAddressService.ADDRESS_TYPE_DELIVERY) {
+            throw AppException(ErrorCode.INVALID_INPUT, "addressId must be DELIVERY type")
+        }
 
         val destination = prefectureCentroidService.findByPrefectureName(destinationAddress.prefecture)
             ?: throw AppException(ErrorCode.INVALID_INPUT, "Unsupported destination prefecture")
@@ -56,6 +57,21 @@ class ShippingEstimateService(
             distanceBand = distanceBand,
             estimatedLabel = "お届け目安: ${estimatedDays}日",
         )
+    }
+
+    private fun resolveOriginCoordinate(shippingOriginAddressId: Int?, shippingOriginArea: Int?): Coordinate {
+        if (shippingOriginAddressId != null) {
+            val originAddress = userAddressRepository.findById(shippingOriginAddressId).orElse(null)
+            if (originAddress != null && originAddress.deletedAt == null) {
+                val byAddress = prefectureCentroidService.findByPrefectureName(originAddress.prefecture)
+                if (byAddress != null) return byAddress
+            }
+        }
+
+        val originPrefectureId = shippingOriginArea
+            ?: throw AppException(ErrorCode.INVALID_INPUT, "Item shipping origin is not set")
+        return prefectureCentroidService.findByPrefectureId(originPrefectureId)
+            ?: throw AppException(ErrorCode.INVALID_INPUT, "Unsupported shipping origin area")
     }
 
     private fun haversineKm(origin: Coordinate, destination: Coordinate): Double {

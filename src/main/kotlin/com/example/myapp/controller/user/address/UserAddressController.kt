@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -29,20 +30,22 @@ class UserAddressController(
 ) {
     @GetMapping
     fun getAddresses(
+        @RequestParam(name = "addressType", defaultValue = "DELIVERY") addressType: String,
         servletRequest: HttpServletRequest,
     ): ResponseEntity<Map<String, List<UserAddressResponse>>> {
         val userId = getUserId(servletRequest)
-        val addresses = userAddressService.getAddresses(userId)
+        val addresses = userAddressService.getAddresses(userId, addressType)
         return ResponseEntity.ok(mapOf("addresses" to addresses))
     }
 
     @PostMapping
     fun createAddress(
+        @RequestParam(name = "addressType", defaultValue = "DELIVERY") addressType: String,
         @RequestBody request: UpsertUserAddressRequest,
         servletRequest: HttpServletRequest,
     ): ResponseEntity<Map<String, Any>> {
         val userId = getUserId(servletRequest)
-        val address = userAddressService.createAddress(userId, request)
+        val address = userAddressService.createAddress(userId, addressType, request)
         return ResponseEntity.status(HttpStatus.CREATED).body(
             mapOf(
                 "success" to true,
@@ -54,11 +57,12 @@ class UserAddressController(
     @PutMapping("/{addressId}")
     fun updateAddress(
         @PathVariable addressId: Int,
+        @RequestParam(name = "addressType", defaultValue = "DELIVERY") addressType: String,
         @RequestBody request: UpsertUserAddressRequest,
         servletRequest: HttpServletRequest,
     ): ResponseEntity<Map<String, Any>> {
         val userId = getUserId(servletRequest)
-        val address = userAddressService.updateAddress(userId, addressId, request)
+        val address = userAddressService.updateAddress(userId, addressId, addressType, request)
         return ResponseEntity.ok(
             mapOf(
                 "success" to true,
@@ -70,10 +74,11 @@ class UserAddressController(
     @PutMapping("/{addressId}/default")
     fun setDefaultAddress(
         @PathVariable addressId: Int,
+        @RequestParam(name = "addressType", defaultValue = "DELIVERY") addressType: String,
         servletRequest: HttpServletRequest,
     ): ResponseEntity<Map<String, Any>> {
         val userId = getUserId(servletRequest)
-        val address = userAddressService.setDefaultAddress(userId, addressId)
+        val address = userAddressService.setDefaultAddress(userId, addressId, addressType)
         return ResponseEntity.ok(
             mapOf(
                 "success" to true,
@@ -85,10 +90,11 @@ class UserAddressController(
     @DeleteMapping("/{addressId}")
     fun deleteAddress(
         @PathVariable addressId: Int,
+        @RequestParam(name = "addressType", defaultValue = "DELIVERY") addressType: String,
         servletRequest: HttpServletRequest,
     ): ResponseEntity<Map<String, Any>> {
         val userId = getUserId(servletRequest)
-        userAddressService.deleteAddress(userId, addressId)
+        userAddressService.deleteAddress(userId, addressId, addressType)
         return ResponseEntity.ok(mapOf("success" to true))
     }
 

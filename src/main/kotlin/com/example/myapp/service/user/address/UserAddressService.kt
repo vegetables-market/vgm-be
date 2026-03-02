@@ -14,13 +14,16 @@ import java.time.LocalDateTime
 class UserAddressService(
     private val userAddressRepository: UserAddressRepository,
 ) {
-    fun getAddresses(userId: Int): List<UserAddressResponse> =
-        userAddressRepository
-            .findByUserIdAndDeletedAtIsNullOrderByIsDefaultDescUpdatedAtDesc(userId)
+    fun getAddresses(userId: Int, addressTypeRaw: String): List<UserAddressResponse> {
+        val addressType = normalizeAddressType(addressTypeRaw)
+        return userAddressRepository
+            .findByUserIdAndAddressTypeAndDeletedAtIsNullOrderByIsDefaultDescUpdatedAtDesc(userId, addressType)
             .map { it.toResponse() }
+    }
 
     @Transactional
-    fun createAddress(userId: Int, request: UpsertUserAddressRequest): UserAddressResponse {
+    fun createAddress(userId: Int, addressTypeRaw: String, request: UpsertUserAddressRequest): UserAddressResponse {
+        val addressType = normalizeAddressType(addressTypeRaw)
         validate(request)
         val address = userAddressRepository.save(
             UserAddress(
@@ -35,18 +38,25 @@ class UserAddressService(
                 phoneNumber = request.phoneNumber?.trim()?.ifBlank { null },
                 countryCode = request.countryCode?.trim()?.ifBlank { "JP" } ?: "JP",
                 isDefault = if (request.isDefault) 1 else 0,
+                addressType = addressType,
             ),
         )
         if (request.isDefault) {
-            setDefaultAddress(userId, address.addressId)
+            setDefaultAddress(userId, address.addressId, addressType)
         }
-        return getAddressOrThrow(address.addressId, userId).toResponse()
+        return getAddressOrThrow(address.addressId, userId, addressType).toResponse()
     }
 
     @Transactional
-    fun updateAddress(userId: Int, addressId: Int, request: UpsertUserAddressRequest): UserAddressResponse {
+    fun updateAddress(
+        userId: Int,
+        addressId: Int,
+        addressTypeRaw: String,
+        request: UpsertUserAddressRequest,
+    ): UserAddressResponse {
+        val addressType = normalizeAddressType(addressTypeRaw)
         validate(request)
-        val address = getAddressOrThrow(addressId, userId)
+        val address = getAddressOrThrow(addressId, userId, addressType)
 
         address.name = request.name.trim()
         address.nameKana = request.nameKana?.trim()?.ifBlank { null }
@@ -61,34 +71,37 @@ class UserAddressService(
 
         userAddressRepository.save(address)
         if (request.isDefault) {
-            setDefaultAddress(userId, addressId)
+            setDefaultAddress(userId, addressId, addressType)
         }
-        return getAddressOrThrow(addressId, userId).toResponse()
+        return getAddressOrThrow(addressId, userId, addressType).toResponse()
     }
 
     @Transactional
-    fun deleteAddress(userId: Int, addressId: Int) {
-        val address = getAddressOrThrow(addressId, userId)
+    fun deleteAddress(userId: Int, addressId: Int, addressTypeRaw: String) {
+        val addressType = normalizeAddressType(addressTypeRaw)
+        val address = getAddressOrThrow(addressId, userId, addressType)
         address.deletedAt = LocalDateTime.now()
         address.isDefault = 0
         userAddressRepository.save(address)
     }
 
     @Transactional
-    fun setDefaultAddress(userId: Int, addressId: Int): UserAddressResponse {
-        val target = getAddressOrThrow(addressId, userId)
-        val addresses = userAddressRepository.findByUserIdAndDeletedAtIsNullOrderByIsDefaultDescUpdatedAtDesc(userId)
+    fun setDefaultAddress(userId: Int, addressId: Int, addressTypeRaw: String): UserAddressResponse {
+        val addressType = normalizeAddressType(addressTypeRaw)
+        val target = getAddressOrThrow(addressId, userId, addressType)
+        val addresses = userAddressRepository
+            .findByUserIdAndAddressTypeAndDeletedAtIsNullOrderByIsDefaultDescUpdatedAtDesc(userId, addressType)
 
         addresses.forEach { address ->
             address.isDefault = if (address.addressId == target.addressId) 1 else 0
         }
         userAddressRepository.saveAll(addresses)
 
-        return getAddressOrThrow(addressId, userId).toResponse()
+        return getAddressOrThrow(addressId, userId, addressType).toResponse()
     }
 
-    private fun getAddressOrThrow(addressId: Int, userId: Int): UserAddress =
-        userAddressRepository.findByAddressIdAndUserIdAndDeletedAtIsNull(addressId, userId)
+    private fun getAddressOrThrow(addressId: Int, userId: Int, addressType: String): UserAddress =
+        userAddressRepository.findByAddressIdAndUserIdAndAddressTypeAndDeletedAtIsNull(addressId, userId, addressType)
             ?: throw AppException(ErrorCode.RESOURCE_NOT_FOUND, "Address not found")
 
     private fun validate(request: UpsertUserAddressRequest) {
@@ -117,6 +130,14 @@ class UserAddressService(
         return cleaned.replace(POSTAL_CODE_CAPTURE_REGEX, "$1-$2")
     }
 
+    private fun normalizeAddressType(addressTypeRaw: String): String {
+        val normalized = addressTypeRaw.trim().uppercase()
+        return when (normalized) {
+            ADDRESS_TYPE_DELIVERY, ADDRESS_TYPE_SENDER -> normalized
+            else -> throw AppException(ErrorCode.INVALID_INPUT, "addressType is invalid")
+        }
+    }
+
     private fun UserAddress.toResponse(): UserAddressResponse =
         UserAddressResponse(
             addressId = addressId,
@@ -130,10 +151,13 @@ class UserAddressService(
             phoneNumber = phoneNumber,
             countryCode = countryCode,
             isDefault = isDefault.toInt() == 1,
+            addressType = addressType,
         )
 
     companion object {
         private val POSTAL_CODE_REGEX = Regex("^\\d{3}-?\\d{4}$")
         private val POSTAL_CODE_CAPTURE_REGEX = Regex("^(\\d{3})(\\d{4})$")
+        const val ADDRESS_TYPE_DELIVERY = "DELIVERY"
+        const val ADDRESS_TYPE_SENDER = "SENDER"
     }
 }

@@ -8,4 +8,13 @@ import org.springframework.stereotype.Repository
 interface UserAddressRepository : JpaRepository<UserAddress, Int> {
     fun findByUserIdAndDeletedAtIsNullOrderByIsDefaultDescUpdatedAtDesc(userId: Int): List<UserAddress>
     fun findByAddressIdAndUserIdAndDeletedAtIsNull(addressId: Int, userId: Int): UserAddress?
+    fun findByUserIdAndAddressTypeAndDeletedAtIsNullOrderByIsDefaultDescUpdatedAtDesc(
+        userId: Int,
+        addressType: String,
+    ): List<UserAddress>
+    fun findByAddressIdAndUserIdAndAddressTypeAndDeletedAtIsNull(
+        addressId: Int,
+        userId: Int,
+        addressType: String,
+    ): UserAddress?
 }

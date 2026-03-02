@@ -47,6 +47,9 @@ class UserAddress(
     @Column(name = "f_phone_number", length = 50)
     var phoneNumber: String? = null,
 
+    @Column(name = "f_address_type", nullable = false, length = 20)
+    var addressType: String = "DELIVERY",
+
     @Column(name = "f_is_default")
     var isDefault: Short = 0,
 

@@ -30,6 +30,8 @@ data class CreateItemRequest(
     val shippingPayerType: Int,
     @JsonAlias("shipping_origin_area")
     val shippingOriginArea: Int,
+    @JsonAlias("shipping_origin_address_id", "shippingOriginAddressId")
+    val shippingOriginAddressId: Int? = null,
     @JsonAlias("shipping_days_id")
     val shippingDaysId: Int,
     @JsonAlias("shipping_method_id")
