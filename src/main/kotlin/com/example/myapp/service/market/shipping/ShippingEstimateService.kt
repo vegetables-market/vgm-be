@@ -20,6 +20,7 @@ class ShippingEstimateService(
     private val itemRepository: ItemRepository,
     private val userAddressRepository: UserAddressRepository,
     private val prefectureCentroidService: PrefectureCentroidService,
+    private val googleRoutesService: GoogleRoutesService,
 ) {
     fun estimate(userId: Int, request: ShippingEstimateRequest): ShippingEstimateResponse {
         val item = itemRepository.findByDisplayId(request.itemId)
@@ -37,7 +38,10 @@ class ShippingEstimateService(
         val destination = prefectureCentroidService.findByPrefectureName(destinationAddress.prefecture)
             ?: throw AppException(ErrorCode.INVALID_INPUT, "Unsupported destination prefecture")
 
-        val distanceKm = haversineKm(origin, destination).roundToInt()
+        val fallbackDistanceKm = haversineKm(origin, destination).roundToInt()
+        val routeEstimate = googleRoutesService.computeRouteMatrix(origin, destination)
+        val distanceKm = routeEstimate?.distanceKm?.roundToInt() ?: fallbackDistanceKm
+        val estimateSource = if (routeEstimate == null) "CENTROID_FALLBACK" else "GOOGLE_ROUTES_API"
         val estimatedDays = when {
             distanceKm < 300 -> 1
             distanceKm < 800 -> 2
@@ -53,9 +57,15 @@ class ShippingEstimateService(
             itemId = request.itemId,
             addressId = request.addressId,
             distanceKm = distanceKm,
+            routeDurationSeconds = routeEstimate?.durationSeconds,
             estimatedDays = estimatedDays,
             distanceBand = distanceBand,
             estimatedLabel = "お届け目安: ${estimatedDays}日",
+            estimateSource = estimateSource,
+            originLat = origin.lat,
+            originLng = origin.lng,
+            destinationLat = destination.lat,
+            destinationLng = destination.lng,
         )
     }
 
