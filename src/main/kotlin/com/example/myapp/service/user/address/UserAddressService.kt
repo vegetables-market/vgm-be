@@ -25,6 +25,19 @@ class UserAddressService(
     fun createAddress(userId: Int, addressTypeRaw: String, request: UpsertUserAddressRequest): UserAddressResponse {
         val addressType = normalizeAddressType(addressTypeRaw)
         validate(request)
+        if (addressType == ADDRESS_TYPE_SENDER) {
+            val existingSenderAddresses = userAddressRepository
+                .findByUserIdAndAddressTypeAndDeletedAtIsNullOrderByIsDefaultDescUpdatedAtDesc(
+                    userId,
+                    addressType,
+                )
+            if (existingSenderAddresses.isNotEmpty()) {
+                throw AppException(
+                    ErrorCode.INVALID_INPUT,
+                    "Only one active sender address is allowed",
+                )
+            }
+        }
         val address = userAddressRepository.save(
             UserAddress(
                 userId = userId,
