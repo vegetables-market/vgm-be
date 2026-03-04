@@ -1,6 +1,8 @@
 package com.example.myapp.dto.market.checkout
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.annotation.JsonNaming
 
 data class CheckoutRequest(
     val items: List<CheckoutItemRequest>,
@@ -29,13 +31,17 @@ data class CheckoutShippingRequest(
     val addressLine2: String? = null,
 )
 
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class CheckoutResponse(
     val orderId: Long,
     val status: String,
     val items: List<CheckoutItemResult>,
     val totalAmount: Long,
+    val paymentIntentId: String? = null,
+    val clientSecret: String? = null,
 )
 
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class CheckoutItemResult(
     val itemId: String,
     val quantity: Int,
@@ -46,8 +52,11 @@ data class CheckoutItemResult(
 data class CheckoutPayRequest(
     @JsonAlias("payment_method")
     val paymentMethod: String? = null,
+    @JsonAlias("payment_intent_id")
+    val paymentIntentId: String? = null,
 )
 
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class CheckoutPayResponse(
     val orderId: Long,
     val status: String,

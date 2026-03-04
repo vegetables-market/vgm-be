@@ -26,6 +26,12 @@ class GlobalExceptionHandler {
      */
     @ExceptionHandler(AppException::class)
     fun handleAppException(ex: AppException): ResponseEntity<ErrorResponse> {
+        logger.warn(
+            "AppException handled: code={}, message={}, details={}",
+            ex.errorCode.code,
+            ex.message,
+            ex.details,
+        )
         return buildResponse(ex.errorCode, ex.details)
     }
 
