@@ -11,6 +11,7 @@ import org.springframework.security.authentication.DisabledException
 import org.springframework.security.authentication.LockedException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.web.HttpMediaTypeNotSupportedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.resource.NoResourceFoundException
@@ -26,6 +27,12 @@ class GlobalExceptionHandler {
      */
     @ExceptionHandler(AppException::class)
     fun handleAppException(ex: AppException): ResponseEntity<ErrorResponse> {
+        logger.warn(
+            "AppException handled: code={}, message={}, details={}",
+            ex.errorCode.code,
+            ex.message,
+            ex.details,
+        )
         return buildResponse(ex.errorCode, ex.details)
     }
 
@@ -67,6 +74,14 @@ class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleHttpMessageNotReadableException(ex: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
         return buildResponse(ErrorCode.INVALID_INPUT, listOf(ex.message ?: "Invalid request body"))
+    }
+
+    /**
+     * Content-Type不正（入力形式不正）
+     */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
+    fun handleHttpMediaTypeNotSupportedException(ex: HttpMediaTypeNotSupportedException): ResponseEntity<ErrorResponse> {
+        return buildResponse(ErrorCode.INVALID_INPUT, listOf(ex.message ?: "Unsupported Content-Type"))
     }
 
     /**

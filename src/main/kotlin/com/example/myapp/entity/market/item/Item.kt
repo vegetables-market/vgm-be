@@ -49,6 +49,9 @@ class Item(
     @Column(name = "f_shipping_origin_area")
     var shippingOriginArea: Int? = null,
 
+    @Column(name = "f_shipping_origin_address_id")
+    var shippingOriginAddressId: Int? = null,
+
     @Column(name = "f_shipping_days_id")
     var shippingDaysId: Int? = null,
 

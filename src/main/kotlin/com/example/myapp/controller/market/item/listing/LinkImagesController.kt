@@ -37,7 +37,12 @@ class LinkImagesController(
         if (userId == null) {
             throw AppException(ErrorCode.AUTH_REQUIRED, "Login required")
         }
-        itemService.linkImages(userId, itemId, request.filenames)
+        itemService.linkImages(
+            userId = userId,
+            displayId = itemId,
+            filenames = request.filenames,
+            replaceExisting = request.replaceExisting
+        )
         return ResponseEntity.ok().build()
     }
 }

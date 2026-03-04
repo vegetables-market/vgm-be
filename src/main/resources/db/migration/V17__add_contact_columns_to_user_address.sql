@@ -1,0 +1,4 @@
+ALTER TABLE t_user_address
+    ADD COLUMN IF NOT EXISTS f_name VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS f_name_kana VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS f_phone_number VARCHAR(50);
