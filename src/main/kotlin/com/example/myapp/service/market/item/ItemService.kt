@@ -23,6 +23,11 @@ class ItemService(
     private val entityManager: EntityManager,
     private val userAddressRepository: UserAddressRepository,
 ) {
+    companion object {
+        private const val MAX_ITEM_NAME_LENGTH = 50
+        private const val MAX_ITEM_DESCRIPTION_LENGTH = 300
+    }
+
     @Transactional
     fun createDraft(userId: Int): Item {
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
@@ -45,12 +50,22 @@ class ItemService(
 
     // 修正: 戻り値を SimpleItemResponse に指定
     @Transactional
-    fun linkImages(userId: Int, displayId: String, filenames: List<String>): SimpleItemResponse {
+    fun linkImages(
+        userId: Int,
+        displayId: String,
+        filenames: List<String>,
+        replaceExisting: Boolean = false
+    ): SimpleItemResponse {
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         val itemId = item.itemId!!
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
 
-        val currentMaxOrder = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId).maxOfOrNull { it.displayOrder } ?: 0
+        val currentMaxOrder = if (replaceExisting) {
+            itemImageRepository.deleteAllByItemId(itemId)
+            0
+        } else {
+            itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId).maxOfOrNull { it.displayOrder } ?: 0
+        }
         
         filenames.forEachIndexed { index, filename ->
             val itemImage = ItemImage(
@@ -72,7 +87,10 @@ class ItemService(
         val item = itemRepository.findByDisplayId(displayId) ?: throw RuntimeException("Item not found")
         val itemId = item.itemId!!
         if (item.user.userId != userId) throw RuntimeException("Not authorized")
-        if (request.categoryId <= 0) throw RuntimeException("Invalid categoryId: ${request.categoryId}")
+        validateItemTextFields(request)
+        if (request.categoryId <= 0) {
+            throw AppException(ErrorCode.INVALID_INPUT, "categoryId must be greater than 0")
+        }
 
         println("[DEBUG] publishItem called: displayId=$displayId, itemId=$itemId")
         println("[DEBUG] request.imageUrls = ${request.imageUrls}")
@@ -94,30 +112,33 @@ class ItemService(
         
         itemRepository.save(item)
 
-        // 画像の更新 (deleteAllByItemId を使用)
-        val existingImages = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
-        println("[DEBUG] 既存画像数 (削除前): ${existingImages.size}")
-        itemImageRepository.deleteAllByItemId(itemId)
-        itemImageRepository.flush()
-        println("[DEBUG] deleteAllByItemId 完了")
+        // imageUrls が指定された場合のみ既存画像を置換する。
+        // null の場合は LinkImages API で既に紐付いた画像を保持する。
+        request.imageUrls?.let { urls ->
+            val existingImages = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
+            println("[DEBUG] 既存画像数 (削除前): ${existingImages.size}")
+            itemImageRepository.deleteAllByItemId(itemId)
+            itemImageRepository.flush()
+            println("[DEBUG] deleteAllByItemId 完了")
 
-        request.imageUrls?.forEachIndexed { index, url ->
-            println("[DEBUG] 画像保存: index=$index, url=$url, itemId=$itemId")
-            val itemImage = ItemImage(
-                itemId = itemId,
-                imageUrl = url,
-                displayOrder = index
-            )
-            itemImageRepository.save(itemImage)
-        }
+            urls.forEachIndexed { index, url ->
+                println("[DEBUG] 画像保存: index=$index, url=$url, itemId=$itemId")
+                val itemImage = ItemImage(
+                    itemId = itemId,
+                    imageUrl = url,
+                    displayOrder = index + 1
+                )
+                itemImageRepository.save(itemImage)
+            }
 
-        // キャッシュ対策を追加
-        itemImageRepository.flush()
-        entityManager.clear()
-        
-        val savedImages = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
-        println("[DEBUG] 保存後の画像数: ${savedImages.size}")
-        savedImages.forEach { println("[DEBUG]   imageId=${it.imageId}, url=${it.imageUrl}") }
+            // キャッシュ対策を追加
+            itemImageRepository.flush()
+            entityManager.clear()
+
+            val savedImages = itemImageRepository.findByItemIdOrderByDisplayOrderAsc(itemId)
+            println("[DEBUG] 保存後の画像数: ${savedImages.size}")
+            savedImages.forEach { println("[DEBUG]   imageId=${it.imageId}, url=${it.imageUrl}") }
+        } ?: println("[DEBUG] request.imageUrls is null, keeping existing linked images")
 
         val finalItem = itemRepository.findById(itemId).orElseThrow()
         return toSimpleResponse(finalItem)
@@ -126,6 +147,10 @@ class ItemService(
     @Transactional
     fun createItem(userId: Int, request: CreateItemRequest): SimpleItemResponse {
         val user = userRepository.findById(userId).orElseThrow { RuntimeException("User not found") }
+        validateItemTextFields(request)
+        if (request.categoryId <= 0) {
+            throw AppException(ErrorCode.INVALID_INPUT, "categoryId must be greater than 0")
+        }
 
         val item = Item(
             user = user,
@@ -208,5 +233,23 @@ class ItemService(
         val address = userAddressRepository.findByAddressIdAndUserIdAndDeletedAtIsNull(addressId, userId)
             ?: throw AppException(ErrorCode.INVALID_INPUT, "shippingOriginAddressId is invalid")
         return address.addressId
+    }
+
+    private fun validateItemTextFields(request: CreateItemRequest) {
+        val normalizedName = request.name.trim()
+        if (normalizedName.isEmpty()) {
+            throw AppException(ErrorCode.INVALID_INPUT, "name is required")
+        }
+        if (normalizedName.length > MAX_ITEM_NAME_LENGTH) {
+            throw AppException(ErrorCode.INVALID_INPUT, "name must be $MAX_ITEM_NAME_LENGTH characters or less")
+        }
+
+        val normalizedDescription = request.description.trim()
+        if (normalizedDescription.isEmpty()) {
+            throw AppException(ErrorCode.INVALID_INPUT, "description is required")
+        }
+        if (normalizedDescription.length > MAX_ITEM_DESCRIPTION_LENGTH) {
+            throw AppException(ErrorCode.INVALID_INPUT, "description must be $MAX_ITEM_DESCRIPTION_LENGTH characters or less")
+        }
     }
 }
