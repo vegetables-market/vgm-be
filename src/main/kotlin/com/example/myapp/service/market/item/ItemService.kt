@@ -4,9 +4,12 @@ import com.example.myapp.dto.market.item.liisting.CreateItemRequest
 import com.example.myapp.dto.market.item.SimpleItemResponse
 import com.example.myapp.entity.market.item.Item
 import com.example.myapp.entity.market.item.ItemImage
+import com.example.myapp.exception.AppException
+import com.example.myapp.exception.ErrorCode
 import com.example.myapp.repository.market.item.ItemImageRepository
 import com.example.myapp.repository.market.item.ItemRepository
 import com.example.myapp.repository.user.UserRepository
+import com.example.myapp.repository.user.address.UserAddressRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -17,7 +20,11 @@ class ItemService(
     private val itemRepository: ItemRepository,
     private val itemImageRepository: ItemImageRepository,
     private val userRepository: UserRepository,
+<<<<<<< HEAD
     private val entityManager: EntityManager
+=======
+    private val userAddressRepository: UserAddressRepository,
+>>>>>>> 5e80cfaed1e862696c63d1fc694bd1f5aba11a48
 ) {
     @Transactional
     fun createDraft(userId: Int): Item {
@@ -82,6 +89,7 @@ class ItemService(
         item.status = 2 // 出品中
         item.shippingPayerType = request.shippingPayerType
         item.shippingOriginArea = request.shippingOriginArea
+        item.shippingOriginAddressId = resolveShippingOriginAddressId(userId, request.shippingOriginAddressId)
         item.shippingDaysId = request.shippingDaysId
         item.shippingMethodId = request.shippingMethodId
         item.itemCondition = request.itemCondition
@@ -132,6 +140,7 @@ class ItemService(
             status = 1.toShort(),
             shippingPayerType = request.shippingPayerType,
             shippingOriginArea = request.shippingOriginArea,
+            shippingOriginAddressId = resolveShippingOriginAddressId(userId, request.shippingOriginAddressId),
             shippingDaysId = request.shippingDaysId,
             shippingMethodId = request.shippingMethodId,
             itemCondition = request.itemCondition
@@ -197,4 +206,15 @@ class ItemService(
         item.updatedAt = LocalDateTime.now()
         itemRepository.save(item)
     }
+<<<<<<< HEAD
 }
+=======
+
+    private fun resolveShippingOriginAddressId(userId: Int, addressId: Int?): Int? {
+        if (addressId == null) return null
+        val address = userAddressRepository.findByAddressIdAndUserIdAndDeletedAtIsNull(addressId, userId)
+            ?: throw AppException(ErrorCode.INVALID_INPUT, "shippingOriginAddressId is invalid")
+        return address.addressId
+    }
+}
+>>>>>>> 5e80cfaed1e862696c63d1fc694bd1f5aba11a48

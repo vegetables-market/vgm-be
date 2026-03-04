@@ -103,6 +103,6 @@ class CheckoutController(
         if (userId == null) {
             throw AppException(ErrorCode.AUTH_REQUIRED, "Login required")
         }
-        return ResponseEntity.ok(checkoutService.pay(userId, orderId))
+        return ResponseEntity.ok(checkoutService.pay(userId, orderId, request))
     }
 }

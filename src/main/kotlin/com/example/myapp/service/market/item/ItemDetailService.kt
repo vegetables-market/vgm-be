@@ -77,6 +77,8 @@ class ItemDetailService(
             brand = item.brand,
             weight = item.weight,
             shippingPayerType = item.shippingPayerType,
+            shippingOriginArea = item.shippingOriginArea,
+            shippingOriginAddressId = item.shippingOriginAddressId,
             images = images,
             seller = SellerDetailInfo(
                 userId = item.user.userId,
