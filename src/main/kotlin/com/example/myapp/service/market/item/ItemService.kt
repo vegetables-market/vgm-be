@@ -25,7 +25,7 @@ class ItemService(
 ) {
     companion object {
         private const val MAX_ITEM_NAME_LENGTH = 50
-        private const val MAX_ITEM_DESCRIPTION_LENGTH = 300
+        private const val MAX_ITEM_DESCRIPTION_LENGTH = 1000
     }
 
     @Transactional
