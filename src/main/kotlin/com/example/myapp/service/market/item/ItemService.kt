@@ -20,11 +20,8 @@ class ItemService(
     private val itemRepository: ItemRepository,
     private val itemImageRepository: ItemImageRepository,
     private val userRepository: UserRepository,
-<<<<<<< HEAD
-    private val entityManager: EntityManager
-=======
+    private val entityManager: EntityManager,
     private val userAddressRepository: UserAddressRepository,
->>>>>>> 5e80cfaed1e862696c63d1fc694bd1f5aba11a48
 ) {
     @Transactional
     fun createDraft(userId: Int): Item {
@@ -206,10 +203,6 @@ class ItemService(
         item.updatedAt = LocalDateTime.now()
         itemRepository.save(item)
     }
-<<<<<<< HEAD
-}
-=======
-
     private fun resolveShippingOriginAddressId(userId: Int, addressId: Int?): Int? {
         if (addressId == null) return null
         val address = userAddressRepository.findByAddressIdAndUserIdAndDeletedAtIsNull(addressId, userId)
@@ -217,4 +210,3 @@ class ItemService(
         return address.addressId
     }
 }
->>>>>>> 5e80cfaed1e862696c63d1fc694bd1f5aba11a48
