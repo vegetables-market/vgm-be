@@ -1,9 +1,11 @@
 package com.example.myapp.repository.market.item
 
 import com.example.myapp.entity.market.item.Item
+import jakarta.persistence.LockModeType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
@@ -13,6 +15,10 @@ interface ItemRepository : JpaRepository<Item, Long> {
     fun findByUser_UserIdOrderByCreatedAtDesc(userId: Int): List<Item>
 
     fun findByDisplayId(displayId: String): Item?
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT i FROM Item i WHERE i.displayId = :displayId")
+    fun findByDisplayIdForUpdate(@Param("displayId") displayId: String): Item?
 
     // 指定したステータスのアイテムのみ取得（出品中、取引中、売切、停止）
     fun findByUser_UserIdAndStatusInOrderByCreatedAtDesc(userId: Int, statuses: List<Short>): List<Item>

@@ -11,4 +11,5 @@ interface CartItemRepository : JpaRepository<CartItem, Long> {
 
     fun findByUserIdAndItemId(userId: Int, itemId: Long): CartItem?
     fun findByGuestIdAndItemId(guestId: String, itemId: Long): CartItem?
+    fun deleteByUserIdAndItemIdIn(userId: Int, itemIds: List<Long>)
 }

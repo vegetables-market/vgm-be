@@ -22,6 +22,7 @@ data class UserProfileInfo(
     val displayName: String,
     val email: String?,
     val avatarUrl: String?,
+    val bio: String?,
     val hasPassword: Boolean,
     val role: String,
     val isEmailVerified: Boolean

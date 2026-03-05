@@ -87,3 +87,10 @@ firebase:
   credentials:
     path: ${FIREBASE_CREDENTIALS_PATH:}
     json: ${FIREBASE_CREDENTIALS_JSON:}
+
+# Stripe設定
+stripe:
+  api:
+    key: ${STRIPE_API_KEY:}
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET:}

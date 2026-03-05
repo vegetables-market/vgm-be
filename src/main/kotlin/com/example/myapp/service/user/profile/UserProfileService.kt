@@ -39,13 +39,15 @@ class UserProfileService(
             AppException(ErrorCode.RESOURCE_NOT_FOUND, "ユーザーが見つかりません")
         }
         val authStatus = userAuthStatusRepository.findByUserId(userId)
+        val profile = userProfileRepository.findById(userId).orElse(null)
         
         return UserProfileInfo(
             userId = user.userId,
             username = user.username,
             displayName = user.displayName ?: user.username,
             email = null, // TODO: 必要であればEmailRepositoryから取得して設定
-            avatarUrl = null, // TODO: 必要であればUserProfileから取得
+            avatarUrl = profile?.profileImageUrl,
+            bio = profile?.profileText,
             hasPassword = authStatus?.hasPassword ?: false,
             role = user.role,
             isEmailVerified = authStatus?.emailVerified ?: false

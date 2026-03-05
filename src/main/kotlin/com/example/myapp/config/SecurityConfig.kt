@@ -53,6 +53,7 @@ class SecurityConfig(
                         "/v1/user/mfa/**",  // MFAエンドポイント(独自認証)
                         "/v1/user/account/**",  // アカウント管理(独自認証)
                         "/v1/user/profile/**",  // プロフィール管理(独自認証)
+                        "/v1/user/addresses/**",  // 住所管理(独自認証)
                         "/v1/user/emails/**",  // メール管理(独自認証)
                         "/v1/user/sessions/**",  // セッション管理(独自認証)
                         "/v1/user/oauth/**",  // OAuth管理(独自認証)
@@ -61,6 +62,9 @@ class SecurityConfig(
                         "/v1/market/items/upload-token", // 一時的なCSRF除外(デバッグ)
                         "/v1/market/items/**",     // 商品関連API(一時的除外)
                         "/v1/market/cart/**",      // カート機能(ゲストPOST用)
+                        "/v1/market/orders/**",    // 旧注文API互換レイヤー
+                        "/v1/market/checkout/**",  // チェックアウトAPI
+                        "/v1/market/shipping/**",  // 配送見積API
                         "/v1/user/favorites/**",   // お気に入り機能(ゲストPOST用)
                         "/v1/admin/media/upload-token",      // 管理者アップロードも除外
                         "/v1/auth/check-username",   // ユーザー名重複チェック 
@@ -108,12 +112,16 @@ class SecurityConfig(
                         "/v1/user/mfa/**",           // MFA設定
                         "/v1/user/account/**",       // アカウント管理（削除等）
                         "/v1/user/profile/**",       // プロフィール管理
+                        "/v1/user/addresses/**",     // 住所管理
                         "/v1/user/emails/**",        // メール管理
                         "/v1/user/sessions/**",      // セッション管理
                         "/v1/user/oauth/**",         // OAuth管理
                         "/v1/auth/logout",           // ログアウト
                         "/v1/market/items/**",       // デバッグ用: 一時的に許可
                         "/v1/market/cart/**",         // ゲストカート機能（未認証アクセス許可）
+                        "/v1/market/orders/**",       // 旧注文API互換レイヤー（Controllerで認証判定）
+                        "/v1/market/checkout/**",     // チェックアウト機能（Controllerで認証判定）
+                        "/v1/market/shipping/**",     // 配送見積機能（Controllerで認証判定）
                         "/v1/user/favorites/**"      // ゲストお気に入り機能（未認証アクセス許可）
                     ).permitAll()
                     

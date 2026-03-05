@@ -28,9 +28,9 @@ class ItemDetailController(
     /**
      * 商品詳細取得
      */
-    @GetMapping("/{itemId}")
+    @GetMapping("/{item_id}")
     fun getItemDetail(
-        @PathVariable itemId: String,
+        @PathVariable("item_id") itemId: String,
         servletRequest: HttpServletRequest
     ): ResponseEntity<ItemDetailResponse> {
         val (userId, guestId) = servletRequest.getMarketUser(appCookieService, sessionService)
